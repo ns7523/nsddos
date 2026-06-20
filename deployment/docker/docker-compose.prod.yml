@@ -4,22 +4,43 @@ services:
       context: ..
       dockerfile: deployment/docker/Dockerfile.prod
     command: python -m nsddos api start --host 0.0.0.0 --port 8008
+    restart: unless-stopped
     environment:
       NSDDOS_HOME: /var/lib/nsddos
-      NSDDOS_CONFIG: /etc/nsddos/config.yaml
+      NSDDOS_CONFIG: /var/lib/nsddos/config.yaml
       NSDDOS_API_TOKEN: ${NSDDOS_API_TOKEN:-}
+      NSDDOS_SECRET_KEY: ${NSDDOS_SECRET_KEY:-}
+    volumes:
+      - nsddos-data:/var/lib/nsddos
     ports:
       - "8008:8008"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8008/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
   nsddos-ui:
     build:
       context: ..
       dockerfile: deployment/docker/Dockerfile.prod
     command: python -m nsddos ui start
+    restart: unless-stopped
     environment:
       NSDDOS_HOME: /var/lib/nsddos
-      NSDDOS_CONFIG: /etc/nsddos/config.yaml
+      NSDDOS_CONFIG: /var/lib/nsddos/config.yaml
+      NSDDOS_API_TOKEN: ${NSDDOS_API_TOKEN:-}
+      NSDDOS_SECRET_KEY: ${NSDDOS_SECRET_KEY:-}
+    volumes:
+      - nsddos-data:/var/lib/nsddos
     ports:
       - "3000:3000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:3000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
   nsddos-runtime:
     build:
       context: ..
@@ -27,5 +48,12 @@ services:
     command: python -m nsddos verify
     environment:
       NSDDOS_HOME: /var/lib/nsddos
-      NSDDOS_CONFIG: /etc/nsddos/config.yaml
+      NSDDOS_CONFIG: /var/lib/nsddos/config.yaml
       NSDDOS_RUNTIME_MODE: dry-run
+      NSDDOS_API_TOKEN: ${NSDDOS_API_TOKEN:-}
+      NSDDOS_SECRET_KEY: ${NSDDOS_SECRET_KEY:-}
+    volumes:
+      - nsddos-data:/var/lib/nsddos
+
+volumes:
+  nsddos-data:

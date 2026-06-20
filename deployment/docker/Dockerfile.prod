@@ -3,12 +3,18 @@ FROM python:3.11-slim
 WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1
 
 COPY pyproject.toml README.md /app/
 COPY src /app/src
 
 RUN pip install --upgrade pip && pip install .
+RUN useradd --create-home --home-dir /home/nsddos --uid 10001 --shell /usr/sbin/nologin nsddos \
+    && mkdir -p /var/lib/nsddos \
+    && chown -R nsddos:nsddos /app /var/lib/nsddos
+
+USER nsddos
 
 EXPOSE 8008 3000
 

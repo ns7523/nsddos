@@ -10,6 +10,10 @@ spec:
     - Ingress
     - Egress
   ingress:
-    - from: []
+    - ports:
+        - protocol: TCP
+          port: 8008
+        - protocol: TCP
+          port: 3000
   egress:
-    - to: []
+    - {}

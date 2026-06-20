@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 from nsddos.runtime.flows import telemetry_freshness
 from nsddos.runtime.verification.validators import (
@@ -35,16 +34,15 @@ def test_disabled_optional_validators_are_pass():
     assert [item.status for item in validate_streaming_contracts(context)] == ["pass", "pass"]
 
 
-def test_secret_contract_uses_example_placeholders(monkeypatch, tmp_path):
+def test_secret_contract_requires_real_environment_secrets(monkeypatch, tmp_path):
     from nsddos.deployment import secrets as secrets_module
 
     example = tmp_path / ".env.example"
     example.write_text("NSDDOS_API_TOKEN=local-dev-token\nNSDDOS_SECRET_KEY=local-dev-secret-key\n", encoding="utf-8")
-    monkeypatch.setattr(secrets_module, "PROJECT_ROOT", tmp_path)
     monkeypatch.delenv("NSDDOS_API_TOKEN", raising=False)
     monkeypatch.delenv("NSDDOS_SECRET_KEY", raising=False)
     contract = secrets_module.build_secret_contract()
-    assert contract.missing_keys == ()
+    assert contract.missing_keys == ("NSDDOS_API_TOKEN", "NSDDOS_SECRET_KEY")
 
 
 def test_dependency_audit_accepts_bounded_ranges(tmp_path):

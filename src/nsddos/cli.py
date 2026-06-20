@@ -57,6 +57,7 @@ from nsddos.runtime.reproducibility import analyze_reproducibility
 from nsddos.runtime.replay import replay_execution_history
 from nsddos.runtime.collection_layer import collect_runtime_bundle
 from nsddos.runtime.analysis_layer import aggregate_runtime
+from nsddos.runtime.attack import run_live_attack_suite
 from nsddos.runtime.cache import cache_summary
 from nsddos.runtime.stability import analyze_runtime_stability
 from nsddos.runtime.telemetry import (
@@ -1895,6 +1896,42 @@ def runtime_provider_diagnostics() -> None:
     for item in diagnostics:
         rows.append((item.provider, f"state={item.health_state} latency_ms={item.latency_ms:.2f} anomalies={','.join(item.anomalies) or 'none'}"))
     _render_mapping_table("Provider Diagnostics", rows)
+
+
+@runtime_app.command("attack-live")
+def runtime_attack_live(
+    attack: str = typer.Option("all", "--attack"),
+    attacker: str = typer.Option("h1", "--attacker"),
+    victim: str = typer.Option("h2", "--victim"),
+    probe: str = typer.Option("h3", "--probe"),
+    target_ip: str = typer.Option("10.0.0.2", "--target-ip"),
+    target_port: int = typer.Option(8081, "--target-port"),
+    warmup: int = typer.Option(10, "--warmup"),
+    attack_seconds: int = typer.Option(15, "--attack-seconds"),
+    cooldown: int = typer.Option(15, "--cooldown"),
+) -> None:
+    """Execute live Mininet attack suite."""
+    config = _bootstrap()
+    report = run_live_attack_suite(
+        config,
+        attack=attack,
+        attacker=attacker,
+        victim=victim,
+        probe=probe,
+        target_ip=target_ip,
+        target_port=target_port,
+        warmup=warmup,
+        attack_seconds=attack_seconds,
+        cooldown=cooldown,
+    )
+    _render_mapping_table(
+        "Live Attack Suite",
+        [
+            ("run_id", str(report.get("run_id", ""))),
+            ("scenarios", str(len(report.get("scenarios", [])))),
+            ("report_path", str(report.get("report_path", ""))),
+        ],
+    )
 
 
 @runtime_app.command("simulate")

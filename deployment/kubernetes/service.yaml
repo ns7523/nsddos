@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: nsddos-api
 spec:
+  type: ClusterIP
   selector:
     app: nsddos
   ports:

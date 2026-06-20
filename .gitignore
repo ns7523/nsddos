@@ -1,15 +1,69 @@
+# =========================
+# Python
+# =========================
 __pycache__/
 *.pyc
-.venv/
-venv/
-.env
-.env.*
 .pytest_cache/
 .mypy_cache/
-dist/
-build/
-*.log
-.DS_Store
-.nsddos-home/
+.coverage
 coverage.xml
 htmlcov/
+
+# =========================
+# Virtual Environments
+# =========================
+.venv/
+venv/
+
+# =========================
+# Environment Files
+# =========================
+.env
+.env.*
+
+# =========================
+# Build Artifacts
+# =========================
+build/
+dist/
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# macOS
+# =========================
+.DS_Store
+
+# =========================
+# NSDDOS Runtime State
+# =========================
+.nsddos-home/
+.nsddos-home-*/
+
+.runtime-home/
+.runtime-home-*/
+
+# Generated runtime state
+**/latest.json
+**/history.json
+**/checkpoint.json
+
+# Generated reports/artifacts
+artifacts/
+reports/
+snapshots/
+checkpoints/
+
+# Release outputs
+release_output/
+*.tar.gz
+*.zip
+
+# =========================
+# IDE
+# =========================
+.vscode/
+.idea/

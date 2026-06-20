@@ -1,0 +1,14 @@
+.git
+.github
+.nsddos-home
+.pytest_cache
+.ruff_cache
+.venv
+.venv-check
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+tests/
+outp.md
+examples/

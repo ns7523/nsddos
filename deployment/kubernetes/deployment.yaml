@@ -12,12 +12,111 @@ spec:
       labels:
         app: nsddos
     spec:
+      securityContext:
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        - name: runtime-data
+          emptyDir: {}
       containers:
         - name: nsddos-api
           image: nsddos/api:prod
+          command: ["python", "-m", "nsddos", "api", "start", "--host", "0.0.0.0", "--port", "8008"]
+          env:
+            - name: NSDDOS_HOME
+              value: /var/lib/nsddos
+            - name: NSDDOS_CONFIG
+              value: /var/lib/nsddos/config.yaml
+            - name: NSDDOS_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: nsddos-secrets
+                  key: NSDDOS_API_TOKEN
+            - name: NSDDOS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nsddos-secrets
+                  key: NSDDOS_SECRET_KEY
           ports:
             - containerPort: 8008
+              name: api
+          volumeMounts:
+            - name: runtime-data
+              mountPath: /var/lib/nsddos
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: api
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: api
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 10001
+            capabilities:
+              drop: ["ALL"]
         - name: nsddos-ui
           image: nsddos/ui:prod
+          command: ["python", "-m", "nsddos", "ui", "start"]
+          env:
+            - name: NSDDOS_HOME
+              value: /var/lib/nsddos
+            - name: NSDDOS_CONFIG
+              value: /var/lib/nsddos/config.yaml
+            - name: NSDDOS_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: nsddos-secrets
+                  key: NSDDOS_API_TOKEN
+            - name: NSDDOS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nsddos-secrets
+                  key: NSDDOS_SECRET_KEY
           ports:
             - containerPort: 3000
+              name: ui
+          volumeMounts:
+            - name: runtime-data
+              mountPath: /var/lib/nsddos
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: ui
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: ui
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 10001
+            capabilities:
+              drop: ["ALL"]

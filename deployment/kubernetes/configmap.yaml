@@ -5,3 +5,4 @@ metadata:
 data:
   NSDDOS_RUNTIME_MODE: dry-run
   NSDDOS_API_PORT: "8008"
+  NSDDOS_DASHBOARD_PORT: "3000"
