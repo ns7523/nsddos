@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+COPY pyproject.toml README.md /app/
+COPY src /app/src
+
+RUN pip install --upgrade pip && pip install .
+
+EXPOSE 8008 3000
+
+CMD ["python", "-m", "nsddos", "deploy"]

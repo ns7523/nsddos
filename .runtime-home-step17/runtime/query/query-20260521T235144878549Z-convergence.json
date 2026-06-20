@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "timestamp": "2026-05-21T23:51:44.878526+00:00",
+  "query": {
+    "schema_version": "1.0",
+    "name": "convergence",
+    "scope": "convergence",
+    "filters": [],
+    "pagination": {
+      "limit": 25,
+      "offset": 0
+    },
+    "dependencies": [],
+    "replay_safe": true
+  },
+  "items": [
+    {
+      "id": "convergence",
+      "status": "partially_converged",
+      "topology_agreement": false,
+      "datapath_agreement": false,
+      "controller_agreement": true,
+      "telemetry_agreement": false,
+      "divergence_reasons": [
+        "topology_disagreement",
+        "datapath_disagreement",
+        "telemetry_disagreement"
+      ],
+      "stale_entities": [],
+      "detail": "topology=False datapath=False controller=True telemetry=False",
+      "type": "convergence",
+      "schema_version": "1.0",
+      "contract_version": "17.0"
+    }
+  ],
+  "total": 1,
+  "evidence": [
+    {
+      "kind": "query",
+      "reference": "convergence",
+      "detail": "scope=convergence"
+    },
+    {
+      "kind": "dependencies",
+      "reference": "verification",
+      "detail": "query dependencies"
+    }
+  ],
+  "duration_ms": 3371.1295000102837,
+  "cache": {},
+  "plan": {
+    "query": "convergence",
+    "scope": "convergence",
+    "dependencies": [
+      "verification"
+    ],
+    "replay_safe": true
+  },
+  "performance": {
+    "query_execution_ms": 3371.1295000102837,
+    "selector_ms": 3371.0881249862723,
+    "graph_traversal_ms": 0.0,
+    "replay_query_ms": 0.0,
+    "pagination_ms": 0.036500015994533896,
+    "filter_ms": 0.0026249908842146397
+  }
+}

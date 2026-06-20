@@ -1,0 +1,15 @@
+digraph nsddos_runtime {
+  "switch:s1" [label="switch:s1"];
+  "host:h1" [label="host:h1"];
+  "host:h2" [label="host:h2"];
+  "host:h3" [label="host:h3"];
+  "iface:s1-eth1" [label="iface:s1-eth1"];
+  "iface:s1-eth2" [label="iface:s1-eth2"];
+  "iface:s1-eth3" [label="iface:s1-eth3"];
+  "switch:s1" -> "host:h1" [label="link"];
+  "switch:s1" -> "host:h2" [label="link"];
+  "switch:s1" -> "host:h3" [label="link"];
+  "switch:s1" -> "iface:s1-eth1" [label="has_interface"];
+  "switch:s1" -> "iface:s1-eth2" [label="has_interface"];
+  "switch:s1" -> "iface:s1-eth3" [label="has_interface"];
+}

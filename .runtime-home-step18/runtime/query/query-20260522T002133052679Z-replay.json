@@ -1,0 +1,1214 @@
+{
+  "schema_version": "1.0",
+  "timestamp": "2026-05-22T00:21:33.052671+00:00",
+  "query": {
+    "schema_version": "1.0",
+    "name": "replay",
+    "scope": "replay",
+    "filters": [],
+    "pagination": {
+      "limit": 25,
+      "offset": 0
+    },
+    "dependencies": [],
+    "replay_safe": true
+  },
+  "items": [
+    {
+      "id": "execution",
+      "kind": "execution",
+      "event_count": 0,
+      "phases": [],
+      "failed": [],
+      "warnings": [],
+      "typed_replay": [],
+      "replay_contract_errors": [],
+      "schema_version": "1.0",
+      "contract_version": "17.0",
+      "type": "replay"
+    },
+    {
+      "id": "verification",
+      "kind": "verification",
+      "run_count": 1,
+      "runs": [
+        {
+          "schema_version": "1.0",
+          "run_id": "8ecacc52-2b25-4fac-ab71-d2d2d4dd52de",
+          "timestamp": "2026-05-22T00:21:19.195511+00:00",
+          "severity": "warning",
+          "results": [
+            {
+              "name": "docker",
+              "status": "pass",
+              "detail": "docker CLI available",
+              "category": "static"
+            },
+            {
+              "name": "compose",
+              "status": "pass",
+              "detail": "/Users/143ns/BTECH/PORTFOLIO/Projects/P1/ns-ddosiot/code/nsddos/docker/docker-compose.yml",
+              "category": "static"
+            },
+            {
+              "name": "config",
+              "status": "pass",
+              "detail": "config schema loaded",
+              "category": "static"
+            },
+            {
+              "name": "runtime_dirs",
+              "status": "pass",
+              "detail": "runtime directories bootstrapped",
+              "category": "static"
+            },
+            {
+              "name": "floodlight_artifact",
+              "status": "pass",
+              "detail": "/Users/143ns/BTECH/PORTFOLIO/Projects/P1/ns-ddosiot/floodlight/target/floodlight.jar",
+              "category": "static"
+            },
+            {
+              "name": "sflowrt_artifact",
+              "status": "pass",
+              "detail": "/Users/143ns/BTECH/PORTFOLIO/Projects/P1/ns-ddosiot/ns-ddos/lib/sflowrt.jar",
+              "category": "static"
+            },
+            {
+              "name": "mininet_binary",
+              "status": "pass",
+              "detail": "/Users/143ns/BTECH/PORTFOLIO/Projects/P1/ns-ddosiot/mininet/bin/mn",
+              "category": "static"
+            },
+            {
+              "name": "ovs_vswitch",
+              "status": "pass",
+              "detail": "ovs-vsctl available",
+              "category": "static"
+            },
+            {
+              "name": "docker_daemon",
+              "status": "warn",
+              "detail": "docker daemon reachable",
+              "category": "runtime"
+            },
+            {
+              "name": "containers",
+              "status": "warn",
+              "detail": "no containers",
+              "category": "runtime"
+            },
+            {
+              "name": "floodlight",
+              "status": "warn",
+              "detail": "http://127.0.0.1:8080",
+              "category": "runtime"
+            },
+            {
+              "name": "sflowrt",
+              "status": "warn",
+              "detail": "http://127.0.0.1:8008",
+              "category": "runtime"
+            },
+            {
+              "name": "mininet",
+              "status": "warn",
+              "detail": "127.0.0.1:6653",
+              "category": "runtime"
+            },
+            {
+              "name": "ovs",
+              "status": "warn",
+              "detail": "bridges=0",
+              "category": "runtime"
+            },
+            {
+              "name": "runtime_profile",
+              "status": "warn",
+              "detail": "profile=macos-degraded detail=platform=darwin wsl2=False docker=False",
+              "category": "environment"
+            },
+            {
+              "name": "profile_compatibility",
+              "status": "warn",
+              "detail": "profile=macos-degraded docker=False ovs=False mininet=True",
+              "category": "environment"
+            },
+            {
+              "name": "capability_validation",
+              "status": "warn",
+              "detail": "platform=darwin,kernel=25.5.0,docker=False,ovs=False,mininet=True",
+              "category": "environment"
+            },
+            {
+              "name": "collection_schema",
+              "status": "pass",
+              "detail": "1.0",
+              "category": "collection"
+            },
+            {
+              "name": "provider_collection",
+              "status": "pass",
+              "detail": "providers=['floodlight', 'mininet', 'ovs', 'sflowrt']",
+              "category": "collection"
+            },
+            {
+              "name": "collection_cache_policy",
+              "status": "pass",
+              "detail": "{\"cache_hit\": false, \"policy\": \"explicit_no_silent_reuse\"}",
+              "category": "collection"
+            },
+            {
+              "name": "analysis_schema",
+              "status": "pass",
+              "detail": "1.0",
+              "category": "normalization"
+            },
+            {
+              "name": "identity_normalization",
+              "status": "pass",
+              "detail": "conflicts=[]",
+              "category": "normalization"
+            },
+            {
+              "name": "datapath_normalization",
+              "status": "pass",
+              "detail": "switches=1",
+              "category": "normalization"
+            },
+            {
+              "name": "topology_consistency",
+              "status": "warn",
+              "detail": "switches=1 controller=0 ovs=0 sflow_ifaces=0 orphans=0",
+              "category": "topology"
+            },
+            {
+              "name": "interface_correlation",
+              "status": "warn",
+              "detail": "missing_interfaces=['iface:s1-eth1', 'iface:s1-eth2', 'iface:s1-eth3']",
+              "category": "topology"
+            },
+            {
+              "name": "controller_mapping",
+              "status": "warn",
+              "detail": "missing_in_controller=['s1']",
+              "category": "topology"
+            },
+            {
+              "name": "telemetry_flowing",
+              "status": "warn",
+              "detail": "flows=0 detail=changed=False first=0 second=0",
+              "category": "telemetry"
+            },
+            {
+              "name": "flow_visibility",
+              "status": "warn",
+              "detail": "first=0 second=0",
+              "category": "telemetry"
+            },
+            {
+              "name": "telemetry_freshness",
+              "status": "pass",
+              "detail": "changed=False first=0 second=0",
+              "category": "telemetry"
+            },
+            {
+              "name": "telemetry_topology_agreement",
+              "status": "warn",
+              "detail": "stale_entities=['sflow:s1-eth1', 'sflow:s1-eth2', 'sflow:s1-eth3']",
+              "category": "reconciliation"
+            },
+            {
+              "name": "controller_ovs_agreement",
+              "status": "warn",
+              "detail": "provider_agreement=['controller_missing_switches', 'ovs_missing_switches', 'sflow_missing_interfaces']",
+              "category": "reconciliation"
+            },
+            {
+              "name": "runtime_reconciliation",
+              "status": "warn",
+              "detail": "missing=11 stale=3 inconsistent=1 orphan=0",
+              "category": "reconciliation"
+            },
+            {
+              "name": "datapath_reconciliation",
+              "status": "warn",
+              "detail": "ports=0 missing=3 stale=0 orphan=0",
+              "category": "datapath"
+            },
+            {
+              "name": "port_level_visibility",
+              "status": "pass",
+              "detail": "stale_ports=[] orphan_ports=[]",
+              "category": "datapath"
+            },
+            {
+              "name": "interface_port_agreement",
+              "status": "pass",
+              "detail": "orphan_ports=[]",
+              "category": "datapath"
+            },
+            {
+              "name": "telemetry_path_consistency",
+              "status": "warn",
+              "detail": "observed=3 missing=3 orphan=0 inconsistent=0",
+              "category": "datapath"
+            },
+            {
+              "name": "openflow_reconciliation",
+              "status": "pass",
+              "detail": "ports=0 missing=3 stale=0 orphan=0",
+              "category": "datapath"
+            },
+            {
+              "name": "controller_convergence_validation",
+              "status": "warn",
+              "detail": "topology=False datapath=False controller=True telemetry=False",
+              "category": "convergence"
+            },
+            {
+              "name": "convergence_state",
+              "status": "warn",
+              "detail": "status=partially_converged",
+              "category": "convergence"
+            },
+            {
+              "name": "runtime_state_schema",
+              "status": "pass",
+              "detail": "1.0",
+              "category": "persistence"
+            },
+            {
+              "name": "runtime_state_consistency",
+              "status": "pass",
+              "detail": "state=[] live=[]",
+              "category": "persistence"
+            },
+            {
+              "name": "topology_state_consistency",
+              "status": "pass",
+              "detail": "runtime=stopped provider=False",
+              "category": "persistence"
+            },
+            {
+              "name": "service_session_consistency",
+              "status": "pass",
+              "detail": "sessions=0",
+              "category": "service"
+            },
+            {
+              "name": "service_synchronization_integrity",
+              "status": "warn",
+              "detail": "sync_state=unknown",
+              "category": "service"
+            },
+            {
+              "name": "service_replay_integrity",
+              "status": "pass",
+              "detail": "events=0",
+              "category": "service"
+            },
+            {
+              "name": "service_heartbeat_integrity",
+              "status": "pass",
+              "detail": "heartbeats=0",
+              "category": "service"
+            },
+            {
+              "name": "service_lock_consistency",
+              "status": "pass",
+              "detail": "lock_owner=None state_owner=",
+              "category": "service"
+            },
+            {
+              "name": "service_recovery_replay_safe",
+              "status": "pass",
+              "detail": "replay_safe=True",
+              "category": "service"
+            },
+            {
+              "name": "domain_registry_integrity",
+              "status": "pass",
+              "detail": "entities=18 relationships=6",
+              "category": "domain"
+            },
+            {
+              "name": "domain_contract_versioning",
+              "status": "pass",
+              "detail": "contract versions valid",
+              "category": "domain"
+            },
+            {
+              "name": "domain_schema_consistency",
+              "status": "pass",
+              "detail": "contract_versions=18",
+              "category": "domain"
+            },
+            {
+              "name": "validator_dependency_consistency",
+              "status": "pass",
+              "detail": "validators=15 rules=15",
+              "category": "integrity"
+            },
+            {
+              "name": "verification_evidence_attached",
+              "status": "pass",
+              "detail": "evidence=5",
+              "category": "integrity"
+            },
+            {
+              "name": "verification_schema",
+              "status": "pass",
+              "detail": "1.0",
+              "category": "integrity"
+            },
+            {
+              "name": "query_dependency_integrity",
+              "status": "pass",
+              "detail": "queries=11 deps=9",
+              "category": "integrity"
+            },
+            {
+              "name": "query_scope_integrity",
+              "status": "pass",
+              "detail": "scopes=17",
+              "category": "integrity"
+            },
+            {
+              "name": "api_schema_consistency",
+              "status": "pass",
+              "detail": "routes=20",
+              "category": "integrity"
+            },
+            {
+              "name": "api_query_compatibility",
+              "status": "pass",
+              "detail": "API must bind query engine",
+              "category": "integrity"
+            },
+            {
+              "name": "api_pagination_stability",
+              "status": "pass",
+              "detail": "limit/offset pagination enforced by typed schemas",
+              "category": "integrity"
+            },
+            {
+              "name": "api_response_schema_integrity",
+              "status": "pass",
+              "detail": "Pydantic response models configured",
+              "category": "integrity"
+            },
+            {
+              "name": "execution_graph_validation",
+              "status": "pass",
+              "detail": "phases=28 deps=48",
+              "category": "orchestration"
+            },
+            {
+              "name": "startup_ordering_validation",
+              "status": "pass",
+              "detail": "bootstrap -> environment_validate -> runtime_prepare -> providers_prepare -> docker_runtime_start -> controller_start -> telemetry_start -> topology_start -> reconciliation_validate -> convergence_validate -> verification_prepare -> verification_execute -> verification_evidence_attach -> verification_finalize -> query_prepare -> query_dependency_validate -> query_execute -> query_finalize -> api_prepare -> api_validate -> api_query_bind -> api_finalize -> service_prepare -> service_start -> service_sync -> service_validate -> service_finalize -> evidence_capture",
+              "category": "orchestration"
+            },
+            {
+              "name": "orchestration_reproducibility",
+              "status": "pass",
+              "detail": "reproducible_pipeline",
+              "category": "orchestration"
+            },
+            {
+              "name": "readiness_gate_validation",
+              "status": "pass",
+              "detail": "verification_execute gate present",
+              "category": "orchestration"
+            },
+            {
+              "name": "convergence_gate_validation",
+              "status": "pass",
+              "detail": "convergence_validate gate present",
+              "category": "orchestration"
+            },
+            {
+              "name": "provider_compatibility",
+              "status": "warn",
+              "detail": "{\"floodlight\": \"supported\", \"mininet\": \"partial\", \"ovs\": \"partial\", \"sflowrt\": \"supported\"}",
+              "category": "reproducibility"
+            },
+            {
+              "name": "environment_reproducibility",
+              "status": "warn",
+              "detail": "profile=macos-degraded environment=unsupported",
+              "category": "reproducibility"
+            },
+            {
+              "name": "runtime_portability",
+              "status": "warn",
+              "detail": "profile=macos-degraded docker=False ovs=False mininet=True",
+              "category": "reproducibility"
+            },
+            {
+              "name": "runtime_stability",
+              "status": "pass",
+              "detail": "classification=stable",
+              "category": "temporal"
+            },
+            {
+              "name": "transition_history",
+              "status": "pass",
+              "detail": "transitions=0",
+              "category": "temporal"
+            }
+          ],
+          "categories": [
+            {
+              "category": "environment",
+              "severity": "warning",
+              "duration_ms": 0.032167008612304926,
+              "results": [
+                {
+                  "name": "docker",
+                  "status": "pass",
+                  "detail": "docker CLI available",
+                  "category": "static"
+                },
+                {
+                  "name": "compose",
+                  "status": "pass",
+                  "detail": "/Users/143ns/BTECH/PORTFOLIO/Projects/P1/ns-ddosiot/code/nsddos/docker/docker-compose.yml",
+                  "category": "static"
+                },
+                {
+                  "name": "config",
+                  "status": "pass",
+                  "detail": "config schema loaded",
+                  "category": "static"
+                },
+                {
+                  "name": "runtime_dirs",
+                  "status": "pass",
+                  "detail": "runtime directories bootstrapped",
+                  "category": "static"
+                },
+                {
+                  "name": "floodlight_artifact",
+                  "status": "pass",
+                  "detail": "/Users/143ns/BTECH/PORTFOLIO/Projects/P1/ns-ddosiot/floodlight/target/floodlight.jar",
+                  "category": "static"
+                },
+                {
+                  "name": "sflowrt_artifact",
+                  "status": "pass",
+                  "detail": "/Users/143ns/BTECH/PORTFOLIO/Projects/P1/ns-ddosiot/ns-ddos/lib/sflowrt.jar",
+                  "category": "static"
+                },
+                {
+                  "name": "mininet_binary",
+                  "status": "pass",
+                  "detail": "/Users/143ns/BTECH/PORTFOLIO/Projects/P1/ns-ddosiot/mininet/bin/mn",
+                  "category": "static"
+                },
+                {
+                  "name": "ovs_vswitch",
+                  "status": "pass",
+                  "detail": "ovs-vsctl available",
+                  "category": "static"
+                },
+                {
+                  "name": "docker_daemon",
+                  "status": "warn",
+                  "detail": "docker daemon reachable",
+                  "category": "runtime"
+                },
+                {
+                  "name": "containers",
+                  "status": "warn",
+                  "detail": "no containers",
+                  "category": "runtime"
+                },
+                {
+                  "name": "floodlight",
+                  "status": "warn",
+                  "detail": "http://127.0.0.1:8080",
+                  "category": "runtime"
+                },
+                {
+                  "name": "sflowrt",
+                  "status": "warn",
+                  "detail": "http://127.0.0.1:8008",
+                  "category": "runtime"
+                },
+                {
+                  "name": "mininet",
+                  "status": "warn",
+                  "detail": "127.0.0.1:6653",
+                  "category": "runtime"
+                },
+                {
+                  "name": "ovs",
+                  "status": "warn",
+                  "detail": "bridges=0",
+                  "category": "runtime"
+                },
+                {
+                  "name": "runtime_profile",
+                  "status": "warn",
+                  "detail": "profile=macos-degraded detail=platform=darwin wsl2=False docker=False",
+                  "category": "environment"
+                },
+                {
+                  "name": "profile_compatibility",
+                  "status": "warn",
+                  "detail": "profile=macos-degraded docker=False ovs=False mininet=True",
+                  "category": "environment"
+                },
+                {
+                  "name": "capability_validation",
+                  "status": "warn",
+                  "detail": "platform=darwin,kernel=25.5.0,docker=False,ovs=False,mininet=True",
+                  "category": "environment"
+                }
+              ],
+              "evidence": []
+            },
+            {
+              "category": "collection",
+              "severity": "info",
+              "duration_ms": 0.015083001926541328,
+              "results": [
+                {
+                  "name": "collection_schema",
+                  "status": "pass",
+                  "detail": "1.0",
+                  "category": "collection"
+                },
+                {
+                  "name": "provider_collection",
+                  "status": "pass",
+                  "detail": "providers=['floodlight', 'mininet', 'ovs', 'sflowrt']",
+                  "category": "collection"
+                },
+                {
+                  "name": "collection_cache_policy",
+                  "status": "pass",
+                  "detail": "{\"cache_hit\": false, \"policy\": \"explicit_no_silent_reuse\"}",
+                  "category": "collection"
+                }
+              ],
+              "evidence": []
+            },
+            {
+              "category": "normalization",
+              "severity": "info",
+              "duration_ms": 0.0032920215744525194,
+              "results": [
+                {
+                  "name": "analysis_schema",
+                  "status": "pass",
+                  "detail": "1.0",
+                  "category": "normalization"
+                },
+                {
+                  "name": "identity_normalization",
+                  "status": "pass",
+                  "detail": "conflicts=[]",
+                  "category": "normalization"
+                },
+                {
+                  "name": "datapath_normalization",
+                  "status": "pass",
+                  "detail": "switches=1",
+                  "category": "normalization"
+                }
+              ],
+              "evidence": []
+            },
+            {
+              "category": "topology",
+              "severity": "warning",
+              "duration_ms": 0.003542023478075862,
+              "results": [
+                {
+                  "name": "topology_consistency",
+                  "status": "warn",
+                  "detail": "switches=1 controller=0 ovs=0 sflow_ifaces=0 orphans=0",
+                  "category": "topology"
+                },
+                {
+                  "name": "interface_correlation",
+                  "status": "warn",
+                  "detail": "missing_interfaces=['iface:s1-eth1', 'iface:s1-eth2', 'iface:s1-eth3']",
+                  "category": "topology"
+                },
+                {
+                  "name": "controller_mapping",
+                  "status": "warn",
+                  "detail": "missing_in_controller=['s1']",
+                  "category": "topology"
+                }
+              ],
+              "evidence": []
+            },
+            {
+              "category": "telemetry",
+              "severity": "warning",
+              "duration_ms": 0.004124973202124238,
+              "results": [
+                {
+                  "name": "telemetry_flowing",
+                  "status": "warn",
+                  "detail": "flows=0 detail=changed=False first=0 second=0",
+                  "category": "telemetry"
+                },
+                {
+                  "name": "flow_visibility",
+                  "status": "warn",
+                  "detail": "first=0 second=0",
+                  "category": "telemetry"
+                },
+                {
+                  "name": "telemetry_freshness",
+                  "status": "pass",
+                  "detail": "changed=False first=0 second=0",
+                  "category": "telemetry"
+                }
+              ],
+              "evidence": []
+            },
+            {
+              "category": "reconciliation",
+              "severity": "warning",
+              "duration_ms": 0.005291018169373274,
+              "results": [
+                {
+                  "name": "telemetry_topology_agreement",
+                  "status": "warn",
+                  "detail": "stale_entities=['sflow:s1-eth1', 'sflow:s1-eth2', 'sflow:s1-eth3']",
+                  "category": "reconciliation"
+                },
+                {
+                  "name": "controller_ovs_agreement",
+                  "status": "warn",
+                  "detail": "provider_agreement=['controller_missing_switches', 'ovs_missing_switches', 'sflow_missing_interfaces']",
+                  "category": "reconciliation"
+                },
+                {
+                  "name": "runtime_reconciliation",
+                  "status": "warn",
+                  "detail": "missing=11 stale=3 inconsistent=1 orphan=0",
+                  "category": "reconciliation"
+                }
+              ],
+              "evidence": []
+            },
+            {
+              "category": "datapath",
+              "severity": "warning",
+              "duration_ms": 0.004917004844173789,
+              "results": [
+                {
+                  "name": "datapath_reconciliation",
+                  "status": "warn",
+                  "detail": "ports=0 missing=3 stale=0 orphan=0",
+                  "category": "datapath"
+                },
+                {
+                  "name": "port_level_visibility",
+                  "status": "pass",
+                  "detail": "stale_ports=[] orphan_ports=[]",
+                  "category": "datapath"
+                },
+                {
+                  "name": "interface_port_agreement",
+                  "status": "pass",
+                  "detail": "orphan_ports=[]",
+                  "category": "datapath"
+                },
+                {
+                  "name": "telemetry_path_consistency",
+                  "status": "warn",
+                  "detail": "observed=3 missing=3 orphan=0 inconsistent=0",
+                  "category": "datapath"
+                },
+                {
+                  "name": "openflow_reconciliation",
+                  "status": "pass",
+                  "detail": "ports=0 missing=3 stale=0 orphan=0",
+                  "category": "datapath"
+                }
+              ],
+              "evidence": []
+            },
+            {
+              "category": "convergence",
+              "severity": "warning",
+              "duration_ms": 0.003958994057029486,
+              "results": [
+                {
+                  "name": "controller_convergence_validation",
+                  "status": "warn",
+                  "detail": "topology=False datapath=False controller=True telemetry=False",
+                  "category": "convergence"
+                },
+                {
+                  "name": "convergence_state",
+                  "status": "warn",
+                  "detail": "status=partially_converged",
+                  "category": "convergence"
+                }
+              ],
+              "evidence": []
+            },
+            {
+              "category": "persistence",
+              "severity": "info",
+              "duration_ms": 0.006749993190169334,
+              "results": [
+                {
+                  "name": "runtime_state_schema",
+                  "status": "pass",
+                  "detail": "1.0",
+                  "category": "persistence"
+                },
+                {
+                  "name": "runtime_state_consistency",
+                  "status": "pass",
+                  "detail": "state=[] live=[]",
+                  "category": "persistence"
+                },
+                {
+                  "name": "topology_state_consistency",
+                  "status": "pass",
+                  "detail": "runtime=stopped provider=False",
+                  "category": "persistence"
+                }
+              ],
+              "evidence": []
+            },
+            {
+              "category": "service",
+              "severity": "warning",
+              "duration_ms": 0.8800420037005097,
+              "results": [
+                {
+                  "name": "service_session_consistency",
+                  "status": "pass",
+                  "detail": "sessions=0",
+                  "category": "service"
+                },
+                {
+                  "name": "service_synchronization_integrity",
+                  "status": "warn",
+                  "detail": "sync_state=unknown",
+                  "category": "service"
+                },
+                {
+                  "name": "service_replay_integrity",
+                  "status": "pass",
+                  "detail": "events=0",
+                  "category": "service"
+                },
+                {
+                  "name": "service_heartbeat_integrity",
+                  "status": "pass",
+                  "detail": "heartbeats=0",
+                  "category": "service"
+                },
+                {
+                  "name": "service_lock_consistency",
+                  "status": "pass",
+                  "detail": "lock_owner=None state_owner=",
+                  "category": "service"
+                },
+                {
+                  "name": "service_recovery_replay_safe",
+                  "status": "pass",
+                  "detail": "replay_safe=True",
+                  "category": "service"
+                }
+              ],
+              "evidence": []
+            },
+            {
+              "category": "domain",
+              "severity": "info",
+              "duration_ms": 0.020334002329036593,
+              "results": [
+                {
+                  "name": "domain_registry_integrity",
+                  "status": "pass",
+                  "detail": "entities=18 relationships=6",
+                  "category": "domain"
+                },
+                {
+                  "name": "domain_contract_versioning",
+                  "status": "pass",
+                  "detail": "contract versions valid",
+                  "category": "domain"
+                },
+                {
+                  "name": "domain_schema_consistency",
+                  "status": "pass",
+                  "detail": "contract_versions=18",
+                  "category": "domain"
+                }
+              ],
+              "evidence": []
+            },
+            {
+              "category": "integrity",
+              "severity": "info",
+              "duration_ms": 22.573833994101733,
+              "results": [
+                {
+                  "name": "validator_dependency_consistency",
+                  "status": "pass",
+                  "detail": "validators=15 rules=15",
+                  "category": "integrity"
+                },
+                {
+                  "name": "verification_evidence_attached",
+                  "status": "pass",
+                  "detail": "evidence=5",
+                  "category": "integrity"
+                },
+                {
+                  "name": "verification_schema",
+                  "status": "pass",
+                  "detail": "1.0",
+                  "category": "integrity"
+                },
+                {
+                  "name": "query_dependency_integrity",
+                  "status": "pass",
+                  "detail": "queries=11 deps=9",
+                  "category": "integrity"
+                },
+                {
+                  "name": "query_scope_integrity",
+                  "status": "pass",
+                  "detail": "scopes=17",
+                  "category": "integrity"
+                },
+                {
+                  "name": "api_schema_consistency",
+                  "status": "pass",
+                  "detail": "routes=20",
+                  "category": "integrity"
+                },
+                {
+                  "name": "api_query_compatibility",
+                  "status": "pass",
+                  "detail": "API must bind query engine",
+                  "category": "integrity"
+                },
+                {
+                  "name": "api_pagination_stability",
+                  "status": "pass",
+                  "detail": "limit/offset pagination enforced by typed schemas",
+                  "category": "integrity"
+                },
+                {
+                  "name": "api_response_schema_integrity",
+                  "status": "pass",
+                  "detail": "Pydantic response models configured",
+                  "category": "integrity"
+                }
+              ],
+              "evidence": []
+            },
+            {
+              "category": "orchestration",
+              "severity": "info",
+              "duration_ms": 0.0048330111894756556,
+              "results": [
+                {
+                  "name": "execution_graph_validation",
+                  "status": "pass",
+                  "detail": "phases=28 deps=48",
+                  "category": "orchestration"
+                },
+                {
+                  "name": "startup_ordering_validation",
+                  "status": "pass",
+                  "detail": "bootstrap -> environment_validate -> runtime_prepare -> providers_prepare -> docker_runtime_start -> controller_start -> telemetry_start -> topology_start -> reconciliation_validate -> convergence_validate -> verification_prepare -> verification_execute -> verification_evidence_attach -> verification_finalize -> query_prepare -> query_dependency_validate -> query_execute -> query_finalize -> api_prepare -> api_validate -> api_query_bind -> api_finalize -> service_prepare -> service_start -> service_sync -> service_validate -> service_finalize -> evidence_capture",
+                  "category": "orchestration"
+                },
+                {
+                  "name": "orchestration_reproducibility",
+                  "status": "pass",
+                  "detail": "reproducible_pipeline",
+                  "category": "orchestration"
+                },
+                {
+                  "name": "readiness_gate_validation",
+                  "status": "pass",
+                  "detail": "verification_execute gate present",
+                  "category": "orchestration"
+                },
+                {
+                  "name": "convergence_gate_validation",
+                  "status": "pass",
+                  "detail": "convergence_validate gate present",
+                  "category": "orchestration"
+                }
+              ],
+              "evidence": []
+            },
+            {
+              "category": "reproducibility",
+              "severity": "warning",
+              "duration_ms": 0.0077500008046627045,
+              "results": [
+                {
+                  "name": "provider_compatibility",
+                  "status": "warn",
+                  "detail": "{\"floodlight\": \"supported\", \"mininet\": \"partial\", \"ovs\": \"partial\", \"sflowrt\": \"supported\"}",
+                  "category": "reproducibility"
+                },
+                {
+                  "name": "environment_reproducibility",
+                  "status": "warn",
+                  "detail": "profile=macos-degraded environment=unsupported",
+                  "category": "reproducibility"
+                },
+                {
+                  "name": "runtime_portability",
+                  "status": "warn",
+                  "detail": "profile=macos-degraded docker=False ovs=False mininet=True",
+                  "category": "reproducibility"
+                }
+              ],
+              "evidence": []
+            },
+            {
+              "category": "temporal",
+              "severity": "info",
+              "duration_ms": 0.002374988980591297,
+              "results": [
+                {
+                  "name": "runtime_stability",
+                  "status": "pass",
+                  "detail": "classification=stable",
+                  "category": "temporal"
+                },
+                {
+                  "name": "transition_history",
+                  "status": "pass",
+                  "detail": "transitions=0",
+                  "category": "temporal"
+                }
+              ],
+              "evidence": []
+            }
+          ],
+          "validator_order": [
+            "environment",
+            "collection",
+            "normalization",
+            "topology",
+            "telemetry",
+            "reconciliation",
+            "datapath",
+            "convergence",
+            "persistence",
+            "service",
+            "domain",
+            "integrity",
+            "orchestration",
+            "reproducibility",
+            "temporal"
+          ],
+          "skipped_validators": [],
+          "degraded_validators": [
+            "convergence",
+            "datapath",
+            "environment",
+            "reconciliation",
+            "reproducibility",
+            "service",
+            "telemetry",
+            "topology"
+          ],
+          "dependency_graph": [
+            {
+              "source": "environment",
+              "target": "reproducibility",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "environment",
+              "target": "orchestration",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "environment",
+              "target": "collection",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "collection",
+              "target": "normalization",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "normalization",
+              "target": "topology",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "collection",
+              "target": "telemetry",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "topology",
+              "target": "reconciliation",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "telemetry",
+              "target": "reconciliation",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "topology",
+              "target": "datapath",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "reconciliation",
+              "target": "convergence",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "datapath",
+              "target": "convergence",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "convergence",
+              "target": "temporal",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "collection",
+              "target": "persistence",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "persistence",
+              "target": "service",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "service",
+              "target": "domain",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "persistence",
+              "target": "integrity",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "convergence",
+              "target": "integrity",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "service",
+              "target": "integrity",
+              "reason": "validator_dependency"
+            },
+            {
+              "source": "domain",
+              "target": "integrity",
+              "reason": "validator_dependency"
+            }
+          ],
+          "evidence": [
+            {
+              "kind": "runtime_state",
+              "reference": "/Users/143ns/BTECH/PORTFOLIO/Projects/P1/ns-ddosiot/code/nsddos/.runtime-home-step18/runtime/state.json",
+              "detail": "state schema + lifecycle flags"
+            },
+            {
+              "kind": "collection",
+              "reference": "1.0",
+              "detail": "collection bundle schema"
+            },
+            {
+              "kind": "analysis",
+              "reference": "1.0",
+              "detail": "analysis bundle schema"
+            },
+            {
+              "kind": "reconciliation",
+              "reference": "missing=11 stale=3 inconsistent=1 orphan=0",
+              "detail": "truth reconciliation"
+            },
+            {
+              "kind": "convergence",
+              "reference": "partially_converged",
+              "detail": "convergence state"
+            }
+          ],
+          "performance": {
+            "validator.environment.ms": 0.032167008612304926,
+            "validator.collection.ms": 0.015083001926541328,
+            "validator.normalization.ms": 0.0032920215744525194,
+            "validator.topology.ms": 0.003542023478075862,
+            "validator.telemetry.ms": 0.004124973202124238,
+            "validator.reconciliation.ms": 0.005291018169373274,
+            "validator.datapath.ms": 0.004917004844173789,
+            "validator.convergence.ms": 0.003958994057029486,
+            "validator.persistence.ms": 0.006749993190169334,
+            "validator.service.ms": 0.8800420037005097,
+            "validator.domain.ms": 0.020334002329036593,
+            "validator.integrity.ms": 22.573833994101733,
+            "validator.orchestration.ms": 0.0048330111894756556,
+            "validator.reproducibility.ms": 0.0077500008046627045,
+            "validator.temporal.ms": 0.002374988980591297,
+            "verification.total.ms": 3833.8634580140933
+          }
+        }
+      ],
+      "transitions": [],
+      "repeated_failures": {},
+      "schema_version": "1.0",
+      "contract_version": "17.0",
+      "type": "replay"
+    }
+  ],
+  "total": 2,
+  "evidence": [
+    {
+      "kind": "query",
+      "reference": "replay",
+      "detail": "scope=replay"
+    },
+    {
+      "kind": "dependencies",
+      "reference": "verification",
+      "detail": "query dependencies"
+    }
+  ],
+  "duration_ms": 0.9780409745872021,
+  "cache": {},
+  "plan": {
+    "query": "replay",
+    "scope": "replay",
+    "dependencies": [
+      "verification"
+    ],
+    "replay_safe": true
+  },
+  "performance": {
+    "query_execution_ms": 0.9780409745872021,
+    "selector_ms": 0.26862500817514956,
+    "graph_traversal_ms": 0.0,
+    "replay_query_ms": 0.26862500817514956,
+    "pagination_ms": 0.16983301611617208,
+    "filter_ms": 0.0002910092007368803
+  }
+}

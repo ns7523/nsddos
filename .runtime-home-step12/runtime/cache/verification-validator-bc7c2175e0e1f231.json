@@ -1,0 +1,33 @@
+{
+  "name": "verification-validator",
+  "key": "verification-validator-bc7c2175e0e1f231",
+  "inputs": {
+    "run_id": "34e32a58-c92d-4afe-b67e-82aeeeaeb790",
+    "validator": "integrity"
+  },
+  "created_at": "2026-05-21T15:56:58.867512+00:00",
+  "value": {
+    "results": [
+      {
+        "name": "validator_dependency_consistency",
+        "status": "pass",
+        "detail": "validators=13 rules=13",
+        "category": "integrity"
+      },
+      {
+        "name": "verification_evidence_attached",
+        "status": "pass",
+        "detail": "evidence=5",
+        "category": "integrity"
+      },
+      {
+        "name": "verification_schema",
+        "status": "pass",
+        "detail": "1.0",
+        "category": "integrity"
+      }
+    ],
+    "duration_ms": 0.0029579969123005867
+  },
+  "schema_version": "1.0"
+}

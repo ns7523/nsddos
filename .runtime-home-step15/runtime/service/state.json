@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "service_id": "nsddos-runtime-service",
+  "state": "stopped",
+  "owner": "",
+  "active_session_id": null,
+  "startup_count": 1,
+  "degraded": false,
+  "lock_owner": null,
+  "replay_safe": true,
+  "last_error": null,
+  "started_at": "2026-05-21T23:21:24.234385+00:00",
+  "updated_at": "2026-05-21T23:21:36.798038+00:00",
+  "performance": {
+    "service_startup_ms": 5.358665977837518,
+    "service_stop_ms": 2.5858330191113055
+  },
+  "streaming": {
+    "latest_sequence": 1,
+    "subscriptions": [
+      {
+        "subscriber_id": "service.query",
+        "kind": "query",
+        "replay_safe": true,
+        "deterministic": true,
+        "query_backed": true
+      },
+      {
+        "subscriber_id": "service.replay",
+        "kind": "replay",
+        "replay_safe": true,
+        "deterministic": true,
+        "query_backed": true
+      },
+      {
+        "subscriber_id": "service.convergence",
+        "kind": "convergence",
+        "replay_safe": true,
+        "deterministic": true,
+        "query_backed": true
+      },
+      {
+        "subscriber_id": "service.verification",
+        "kind": "verification",
+        "replay_safe": true,
+        "deterministic": true,
+        "query_backed": true
+      },
+      {
+        "subscriber_id": "service.timeline",
+        "kind": "timeline",
+        "replay_safe": true,
+        "deterministic": true,
+        "query_backed": true
+      }
+    ]
+  },
+  "synchronization": {
+    "state": "synchronized",
+    "runtime_checksum": "1f186706e4f73219",
+    "query_checksum": "472dfeff4c1c6dd2",
+    "evidence_checksum": "cf38edd4bdb5c332",
+    "synchronized_at": "2026-05-21T23:21:24.237991+00:00"
+  }
+}

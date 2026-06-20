@@ -1,0 +1,132 @@
+{
+  "profile": {
+    "name": "macos-degraded",
+    "platform": "darwin",
+    "description": "macOS diagnostic/runtime-export mode. Not canonical for full SDN lab.",
+    "required_services": [
+      "docker"
+    ],
+    "supported_capabilities": [
+      "docker"
+    ],
+    "runtime_limitations": [
+      "no-native-mininet",
+      "no-native-ovs-datapath",
+      "telemetry-truth-degraded"
+    ],
+    "verification_expectations": [
+      "diagnostics",
+      "exports",
+      "degraded-verify"
+    ],
+    "provider_availability": {
+      "floodlight": "partial",
+      "sflowrt": "partial",
+      "ovs": "unsupported",
+      "mininet": "unsupported"
+    },
+    "privilege_requirements": [
+      "docker-access"
+    ],
+    "detected": true,
+    "detail": "platform=darwin wsl2=False docker=False"
+  },
+  "capabilities": {
+    "platform": "darwin",
+    "kernel": "25.5.0",
+    "docker_installed": true,
+    "docker_daemon": false,
+    "ovs_installed": true,
+    "ovs_service": false,
+    "mininet_supported": true,
+    "linux_kernel": false,
+    "sudo_available": false,
+    "passwordless_sudo": false,
+    "wsl2": false,
+    "container_networking": false,
+    "openflow_compatible": false,
+    "sflow_capable": false,
+    "java_available": true,
+    "detail": "platform=darwin,kernel=25.5.0,docker=False,ovs=False,mininet=True"
+  },
+  "environment": {
+    "profile": "macos-degraded",
+    "status": "unsupported",
+    "supported": [
+      "java"
+    ],
+    "degraded": [
+      "docker",
+      "mininet",
+      "ovs",
+      "provider:mininet",
+      "provider:ovs",
+      "sflow"
+    ],
+    "unsupported": [
+      "openflow"
+    ],
+    "provider_support": {
+      "floodlight": "supported",
+      "sflowrt": "supported",
+      "mininet": "partial",
+      "ovs": "partial"
+    },
+    "missing_dependencies": [
+      "docker-daemon"
+    ],
+    "reproducibility_limitations": [
+      "no-native-mininet",
+      "no-native-ovs-datapath",
+      "sudo-needed-for-mininet",
+      "telemetry-truth-degraded"
+    ],
+    "detail": "profile=macos-degraded docker=False ovs=False mininet=True"
+  },
+  "reproducibility": {
+    "status": "non_reproducible",
+    "deterministic_inputs": [
+      "yaml-config",
+      "src-layout",
+      "typed-runtime-state",
+      "compose-file"
+    ],
+    "portability_limits": [
+      "no-native-mininet",
+      "no-native-ovs-datapath",
+      "sudo-needed-for-mininet",
+      "telemetry-truth-degraded",
+      "docker-daemon"
+    ],
+    "provider_reproducibility": {
+      "floodlight": "reproducible",
+      "sflowrt": "reproducible",
+      "mininet": "partial",
+      "ovs": "partial"
+    },
+    "snapshot_portable": true,
+    "profile_stable": false,
+    "detail": "profile=macos-degraded environment=unsupported"
+  },
+  "bootstrap": {
+    "profile": "macos-degraded",
+    "status": "unsupported",
+    "bootstrap_ready": false,
+    "missing_dependencies": [
+      "docker-daemon"
+    ],
+    "limitations": [
+      "no-native-mininet",
+      "no-native-ovs-datapath",
+      "sudo-needed-for-mininet",
+      "telemetry-truth-degraded"
+    ],
+    "provider_support": {
+      "floodlight": "supported",
+      "sflowrt": "supported",
+      "mininet": "partial",
+      "ovs": "partial"
+    },
+    "detail": "profile=macos-degraded docker=False ovs=False mininet=True"
+  }
+}

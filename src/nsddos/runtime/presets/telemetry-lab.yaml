@@ -1,0 +1,16 @@
+name: telemetry-lab
+providers:
+  floodlight: false
+  sflowrt: true
+  ovs: true
+  mininet: false
+runtime_expectations:
+  - docker
+  - ovs
+  - sflow
+verification_scope:
+  - health
+  - verify
+  - telemetry
+expected_topology: single,3
+

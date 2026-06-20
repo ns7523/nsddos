@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0",
+  "timestamp": "2026-05-21T23:51:45.756716+00:00",
+  "query": {
+    "schema_version": "1.0",
+    "name": "timeline",
+    "scope": "temporal",
+    "filters": [],
+    "pagination": {
+      "limit": 25,
+      "offset": 0
+    },
+    "dependencies": [],
+    "replay_safe": true
+  },
+  "items": [
+    {
+      "id": "event:0",
+      "record_type": "event",
+      "timestamp": "2026-05-21T23:51:30.199581+00:00",
+      "event_type": "verify",
+      "status": "warning",
+      "message": "Runtime verification completed with warnings.",
+      "type": "timeline",
+      "schema_version": "1.0",
+      "contract_version": "17.0"
+    }
+  ],
+  "total": 1,
+  "evidence": [
+    {
+      "kind": "query",
+      "reference": "timeline",
+      "detail": "scope=temporal"
+    },
+    {
+      "kind": "dependencies",
+      "reference": "",
+      "detail": "query dependencies"
+    }
+  ],
+  "duration_ms": 0.11712498962879181,
+  "cache": {},
+  "plan": {
+    "query": "timeline",
+    "scope": "temporal",
+    "dependencies": [],
+    "replay_safe": true
+  },
+  "performance": {
+    "query_execution_ms": 0.11712498962879181,
+    "selector_ms": 0.10304199531674385,
+    "graph_traversal_ms": 0.0,
+    "replay_query_ms": 0.0,
+    "pagination_ms": 0.010957999620586634,
+    "filter_ms": 0.000500003807246685
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "timestamp": "2026-05-21T16:10:19.311832+00:00",
+  "query": {
+    "schema_version": "1.0",
+    "name": "timeline",
+    "scope": "temporal",
+    "filters": [],
+    "pagination": {
+      "limit": 25,
+      "offset": 0
+    },
+    "dependencies": [],
+    "replay_safe": true
+  },
+  "items": [
+    {
+      "id": "event:0",
+      "timestamp": "2026-05-21T16:10:06.211036+00:00",
+      "event_type": "verify",
+      "status": "warning",
+      "message": "Runtime verification completed with warnings."
+    }
+  ],
+  "total": 1,
+  "evidence": [
+    {
+      "kind": "query",
+      "reference": "timeline",
+      "detail": "scope=temporal"
+    },
+    {
+      "kind": "dependencies",
+      "reference": "",
+      "detail": "query dependencies"
+    }
+  ],
+  "duration_ms": 0.7057090115267783,
+  "cache": {},
+  "plan": {
+    "query": "timeline",
+    "scope": "temporal",
+    "dependencies": [],
+    "replay_safe": true
+  }
+}

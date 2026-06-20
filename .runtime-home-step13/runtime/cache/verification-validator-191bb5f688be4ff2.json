@@ -1,0 +1,33 @@
+{
+  "name": "verification-validator",
+  "key": "verification-validator-191bb5f688be4ff2",
+  "inputs": {
+    "run_id": "8b342b88-9ad6-4edd-82f0-820a792cbc71",
+    "validator": "reconciliation"
+  },
+  "created_at": "2026-05-21T16:10:06.192944+00:00",
+  "value": {
+    "results": [
+      {
+        "name": "telemetry_topology_agreement",
+        "status": "warn",
+        "detail": "stale_entities=['sflow:s1-eth1', 'sflow:s1-eth2', 'sflow:s1-eth3']",
+        "category": "reconciliation"
+      },
+      {
+        "name": "controller_ovs_agreement",
+        "status": "warn",
+        "detail": "provider_agreement=['controller_missing_switches', 'ovs_missing_switches', 'sflow_missing_interfaces']",
+        "category": "reconciliation"
+      },
+      {
+        "name": "runtime_reconciliation",
+        "status": "warn",
+        "detail": "missing=11 stale=3 inconsistent=1 orphan=0",
+        "category": "reconciliation"
+      }
+    ],
+    "duration_ms": 0.0037919962778687477
+  },
+  "schema_version": "1.0"
+}

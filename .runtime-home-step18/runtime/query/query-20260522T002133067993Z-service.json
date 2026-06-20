@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0",
+  "timestamp": "2026-05-22T00:21:33.067986+00:00",
+  "query": {
+    "schema_version": "1.0",
+    "name": "service",
+    "scope": "service",
+    "filters": [],
+    "pagination": {
+      "limit": 25,
+      "offset": 0
+    },
+    "dependencies": [],
+    "replay_safe": true
+  },
+  "items": [
+    {
+      "id": "service-diagnostics",
+      "kind": "diagnostics",
+      "session_count": 0,
+      "heartbeat_count": 0,
+      "schema_version": "1.0",
+      "contract_version": "17.0",
+      "type": "service"
+    },
+    {
+      "id": "service-state",
+      "kind": "service",
+      "state": "stopped",
+      "owner": "",
+      "replay_safe": true,
+      "schema_version": "1.0",
+      "contract_version": "17.0",
+      "type": "service"
+    },
+    {
+      "id": "service-sync",
+      "kind": "synchronization",
+      "schema_version": "1.0",
+      "contract_version": "17.0",
+      "type": "service"
+    }
+  ],
+  "total": 3,
+  "evidence": [
+    {
+      "kind": "query",
+      "reference": "service",
+      "detail": "scope=service"
+    },
+    {
+      "kind": "dependencies",
+      "reference": "verification,timeline",
+      "detail": "query dependencies"
+    }
+  ],
+  "duration_ms": 0.32687498605810106,
+  "cache": {},
+  "plan": {
+    "query": "service",
+    "scope": "service",
+    "dependencies": [
+      "verification",
+      "timeline"
+    ],
+    "replay_safe": true
+  },
+  "performance": {
+    "query_execution_ms": 0.32687498605810106,
+    "selector_ms": 0.26941599207930267,
+    "graph_traversal_ms": 0.0,
+    "replay_query_ms": 0.0,
+    "pagination_ms": 0.01420799526385963,
+    "filter_ms": 0.00033300602808594704
+  }
+}

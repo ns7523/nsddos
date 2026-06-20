@@ -1,0 +1,230 @@
+name: smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      NSDDOS_HOME: ${{ runner.temp }}/nsddos-home
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          pip install -e ".[dev]" --no-build-isolation
+
+      - name: Smoke health
+        run: nsddos health
+
+      - name: Smoke verify
+        run: nsddos verify
+
+      - name: CLI surfaces
+        run: |
+          nsddos doctor
+          nsddos doctor --deep
+          nsddos lab status
+          nsddos lab snapshot
+          nsddos runtime evidence
+          nsddos runtime timeline
+          nsddos runtime explain-timeline
+          nsddos runtime explain-correlation
+          nsddos runtime explain-stability
+          nsddos runtime explain-environment
+          nsddos runtime explain-pipeline
+          nsddos runtime explain-verification
+          nsddos runtime replay-verification
+          nsddos runtime explain-query
+          nsddos runtime query-snapshots
+          nsddos runtime query-evidence
+          nsddos runtime query-verification
+          nsddos runtime query-timeline
+          nsddos runtime query-graph
+          nsddos runtime query-replay
+          nsddos api routes
+          nsddos api explain
+          nsddos service start
+          nsddos service status
+          nsddos service sessions
+          nsddos service explain
+          nsddos service diagnostics
+          nsddos service replay
+          nsddos service stream-status
+          nsddos service stop
+          nsddos ui explain
+          nsddos ui status
+          nsddos runtime install-guide
+          nsddos runtime use-preset minimal-lab
+          nsddos runtime explain
+          nsddos runtime explain-ports
+          nsddos runtime explain-paths
+          nsddos runtime explain-controller
+          nsddos runtime explain-convergence
+          nsddos runtime explain-domain
+          nsddos runtime validate-contracts
+          nsddos runtime validate-replay
+          nsddos runtime explain-producers
+          nsddos runtime validate-producers
+          nsddos runtime replay-producers
+          nsddos runtime producer-lineage
+          nsddos runtime explain-freshness
+          nsddos runtime validate-freshness
+          nsddos runtime explain-consistency
+          nsddos runtime replay-consistency
+          nsddos runtime freshness-lineage
+          nsddos runtime detect
+          nsddos runtime explain-detection
+          nsddos runtime validate-detection
+          nsddos runtime detection-evidence
+          nsddos runtime export-environment
+          nsddos runtime export-graph
+          nsddos runtime export-history
+          nsddos runtime export-pipeline
+          nsddos runtime export-relationships
+          nsddos runtime export-bundle
+
+      - name: Verification validation
+        run: |
+          nsddos runtime explain-verification
+          nsddos runtime replay-verification
+          python -m pytest tests/test_verification_engine.py tests/test_runtime_hardening.py tests/test_service_runtime.py
+
+      - name: Contract validation
+        run: |
+          nsddos runtime explain-domain
+          nsddos runtime validate-contracts
+
+      - name: Schema validation
+        run: python -m pytest tests/test_domain_contracts.py -k "schema or contract"
+
+      - name: Replay compatibility validation
+        run: |
+          nsddos runtime validate-replay
+          python -m pytest tests/test_domain_contracts.py -k "replay"
+
+      - name: Serialization determinism validation
+        run: python -m pytest tests/test_domain_contracts.py -k "serialization"
+
+      - name: Identifier stability validation
+        run: python -m pytest tests/test_domain_contracts.py -k "identifier"
+
+      - name: Producer validation
+        run: |
+          nsddos runtime explain-producers
+          nsddos runtime validate-producers
+
+      - name: Replay producer validation
+        run: nsddos runtime replay-producers
+
+      - name: Immutable entity validation
+        run: python -m pytest tests/test_producers.py -k "immutability or determinism"
+
+      - name: Contract leak validation
+        run: python -m pytest tests/test_producers.py -k "legacy or typed_pipeline or contract"
+
+      - name: Freshness validation
+        run: |
+          nsddos runtime explain-freshness
+          nsddos runtime validate-freshness
+          python -m pytest tests/test_freshness_engine.py -k "freshness or stale or temporal"
+
+      - name: Replay consistency validation
+        run: |
+          nsddos runtime explain-consistency
+          nsddos runtime replay-consistency
+          python -m pytest tests/test_freshness_engine.py -k "replay or consistency"
+
+      - name: Detection validation
+        run: |
+          nsddos runtime detect
+          nsddos runtime explain-detection
+          nsddos runtime validate-detection
+          nsddos runtime detection-evidence
+          python -m pytest tests/test_detection_engine.py
+
+      - name: Stale propagation validation
+        run: python -m pytest tests/test_freshness_engine.py -k "inheritance or propagation"
+
+      - name: Graph freshness validation
+        run: python -m pytest tests/test_freshness_engine.py -k "graph"
+
+      - name: Synchronization consistency validation
+        run: python -m pytest tests/test_freshness_engine.py -k "query_freshness or filter_expired"
+
+      - name: Service lifecycle validation
+        run: |
+          nsddos service start
+          nsddos service status
+          nsddos service sessions
+          nsddos service stop
+
+      - name: Service synchronization validation
+        run: |
+          nsddos service start
+          nsddos service diagnostics
+          nsddos service stream-status
+          nsddos service replay
+          nsddos service stop
+
+      - name: Query validation
+        run: |
+          nsddos runtime explain-query
+          nsddos runtime query-snapshots
+          nsddos runtime query-evidence
+          nsddos runtime query-verification
+          nsddos runtime query-timeline
+          nsddos runtime query-graph
+          nsddos runtime query-replay
+          python -m pytest tests/test_query_engine.py
+
+      - name: API validation
+        run: |
+          nsddos api routes
+          nsddos api explain
+          python -m pytest tests/test_api_layer.py
+
+      - name: API schema validation
+        run: python -m pytest tests/test_api_layer.py -k "schema or typed"
+
+      - name: Replay-safe API response validation
+        run: python -m pytest tests/test_api_layer.py -k "replay or timing"
+
+      - name: API endpoint and pagination validation
+        run: python -m pytest tests/test_api_layer.py -k "route or endpoint or pagination or snapshot"
+
+      - name: API query integration validation
+        run: python -m pytest tests/test_api_layer.py -k "query or graph or evidence or timeline"
+
+      - name: UI route validation
+        run: python -m pytest tests/test_ui_layer.py -k "routes or graph or convergence or evidence"
+
+      - name: API/UI integration validation
+        run: python -m pytest tests/test_ui_layer.py -k "explain or replay_safe_pagination"
+
+      - name: Replay-safe rendering validation
+        run: python -m pytest tests/test_ui_layer.py -k "deterministic_ordering"
+
+      - name: Deterministic pagination validation
+        run: python -m pytest tests/test_ui_layer.py -k "replay_safe_pagination"
+
+      - name: Bootstrap validation
+        run: |
+          nsddos runtime validate-bootstrap || true
+          nsddos runtime bootstrap
+          nsddos runtime shutdown
+
+      - name: Snapshot diff
+        run: |
+          nsddos lab snapshot
+          first=$(ls -1 "$NSDDOS_HOME/runtime/snapshots"/*.json | sort | head -n 1)
+          second=$(ls -1 "$NSDDOS_HOME/runtime/snapshots"/*.json | sort | tail -n 1)
+          nsddos lab compare-snapshots "$first" "$second"

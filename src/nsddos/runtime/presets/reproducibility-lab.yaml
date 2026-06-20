@@ -1,0 +1,21 @@
+name: reproducibility-lab
+providers:
+  floodlight: true
+  sflowrt: true
+  ovs: true
+  mininet: true
+runtime_expectations:
+  - docker
+  - ovs
+  - mininet
+  - openflow
+  - sflow
+verification_scope:
+  - health
+  - verify
+  - telemetry
+  - controller
+  - datapath
+  - convergence
+expected_topology: single,3
+

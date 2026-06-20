@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.env.*
+.pytest_cache/
+.mypy_cache/
+dist/
+build/
+*.log
+.DS_Store
+.nsddos-home/
+coverage.xml
+htmlcov/

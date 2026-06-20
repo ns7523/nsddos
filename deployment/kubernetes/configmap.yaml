@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nsddos-config
+data:
+  NSDDOS_RUNTIME_MODE: dry-run
+  NSDDOS_API_PORT: "8008"

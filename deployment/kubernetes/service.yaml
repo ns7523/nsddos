@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nsddos-api
+spec:
+  selector:
+    app: nsddos
+  ports:
+    - name: api
+      port: 8008
+      targetPort: 8008
+    - name: ui
+      port: 3000
+      targetPort: 3000

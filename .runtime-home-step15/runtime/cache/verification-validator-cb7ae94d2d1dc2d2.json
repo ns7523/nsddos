@@ -1,0 +1,27 @@
+{
+  "name": "verification-validator",
+  "key": "verification-validator-cb7ae94d2d1dc2d2",
+  "inputs": {
+    "run_id": "c3c1bd23-8abf-43e1-a63f-b80d4098121c",
+    "validator": "convergence"
+  },
+  "created_at": "2026-05-21T23:21:17.964792+00:00",
+  "value": {
+    "results": [
+      {
+        "name": "controller_convergence_validation",
+        "status": "warn",
+        "detail": "topology=False datapath=False controller=True telemetry=False",
+        "category": "convergence"
+      },
+      {
+        "name": "convergence_state",
+        "status": "warn",
+        "detail": "status=partially_converged",
+        "category": "convergence"
+      }
+    ],
+    "duration_ms": 0.00391600769944489
+  },
+  "schema_version": "1.0"
+}

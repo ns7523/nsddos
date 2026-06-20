@@ -1,0 +1,6 @@
+NS-DDoS Evidence Bundle
+timestamp=20260521T000308Z
+topology=partial
+telemetry=missing
+flows=empty
+provider_agreement=mismatch

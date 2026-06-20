@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "timestamp": "2026-05-22T00:21:40.722581+00:00",
+  "query": {
+    "schema_version": "1.0",
+    "name": "evidence",
+    "scope": "evidence",
+    "filters": [],
+    "pagination": {
+      "limit": 5,
+      "offset": 0
+    },
+    "dependencies": [],
+    "replay_safe": true
+  },
+  "items": [],
+  "total": 0,
+  "evidence": [
+    {
+      "kind": "query",
+      "reference": "evidence",
+      "detail": "scope=evidence"
+    },
+    {
+      "kind": "dependencies",
+      "reference": "snapshots",
+      "detail": "query dependencies"
+    }
+  ],
+  "duration_ms": 0.020625011529773474,
+  "cache": {},
+  "plan": {
+    "query": "evidence",
+    "scope": "evidence",
+    "dependencies": [
+      "snapshots"
+    ],
+    "replay_safe": true
+  },
+  "performance": {
+    "query_execution_ms": 0.020625011529773474,
+    "selector_ms": 0.013083015801385045,
+    "graph_traversal_ms": 0.0,
+    "replay_query_ms": 0.0,
+    "pagination_ms": 0.0013750104699283838,
+    "filter_ms": 0.00033300602808594704
+  }
+}

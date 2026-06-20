@@ -1,0 +1,189 @@
+"""Docker Compose orchestration utilities."""
+
+from __future__ import annotations
+
+import json
+import subprocess
+from pathlib import Path
+from shutil import which
+from typing import Any
+
+import typer
+from loguru import logger
+
+from nsddos.config import build_runtime_state, load_runtime_state, write_runtime_state
+from nsddos.constants import COMPOSE_FILE
+from nsddos.runtime.models import ServiceState
+
+
+class DockerManager:
+    """Minimal Docker Compose runtime manager."""
+
+    def __init__(self, compose_file: Path = COMPOSE_FILE) -> None:
+        self.compose_file = compose_file
+
+    @staticmethod
+    def is_docker_installed() -> bool:
+        """Check Docker CLI availability."""
+        return which("docker") is not None
+
+    def is_daemon_running(self) -> bool:
+        """Check Docker daemon availability."""
+        if not self.is_docker_installed():
+            return False
+        result = subprocess.run(
+            ["docker", "info"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        return result.returncode == 0
+
+    def compose_exists(self) -> bool:
+        """Check compose file availability."""
+        return self.compose_file.exists()
+
+    def _run(self, args: list[str]) -> subprocess.CompletedProcess[str]:
+        """Run subprocess for Docker operations."""
+        command = ["docker", "compose", "-f", str(self.compose_file), *args]
+        logger.info("Running compose command: {}", " ".join(command))
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            logger.error(result.stderr.strip() or "Docker command failed")
+        return result
+
+    def _run_attached(self, args: list[str]) -> int:
+        """Run compose command attached to terminal."""
+        command = ["docker", "compose", "-f", str(self.compose_file), *args]
+        logger.info("Running compose command: {}", " ".join(command))
+        process = subprocess.Popen(command)
+        try:
+            return process.wait()
+        except KeyboardInterrupt:
+            process.terminate()
+            return 130
+
+    def validate_environment(self) -> None:
+        """Validate Docker execution prerequisites."""
+        if not self.is_docker_installed():
+            logger.error("Docker CLI not installed.")
+            raise typer.Exit(code=1)
+        if not self.is_daemon_running():
+            logger.error("Docker daemon not running.")
+            raise typer.Exit(code=1)
+        if not self.compose_exists():
+            logger.error("Compose file missing: {}", self.compose_file)
+            raise typer.Exit(code=1)
+
+    def start_stack(self) -> None:
+        """Start compose stack."""
+        self.start_services(["floodlight", "sflowrt", "detector"])
+
+    def start_services(self, services: list[str]) -> None:
+        """Start selected compose services."""
+        self.validate_environment()
+        result = self._run(["up", "-d", *services])
+        if result.returncode != 0:
+            logger.error("Failed to start lab stack.")
+            raise typer.Exit(code=1)
+        services = self.get_service_states()
+        write_runtime_state(build_runtime_state(stack_running=True, services=services))
+
+    def stop_stack(self) -> None:
+        """Stop compose stack."""
+        self.validate_environment()
+        result = self._run(["down"])
+        if result.returncode != 0:
+            logger.error("Failed to stop lab stack.")
+            raise typer.Exit(code=1)
+        current = load_runtime_state()
+        current.stack_running = False
+        current.services = []
+        current.topology_state = "stopped"
+        current.topology_pid = None
+        current.last_error = None
+        current.updated_at = build_runtime_state(False).updated_at
+        current.stopped_at = current.updated_at
+        write_runtime_state(current)
+
+    @staticmethod
+    def _normalize_service(raw: dict[str, Any]) -> ServiceState:
+        """Normalize `docker compose ps` entry."""
+        state = str(raw.get("State", raw.get("state", "unknown")))
+        health = str(raw.get("Health", raw.get("health", "")))
+        healthy = state.lower() == "running" and health.lower() not in {"unhealthy"}
+        return ServiceState(
+            name=raw.get("Service", raw.get("Name", raw.get("service", "unknown"))),
+            status=state,
+            healthy=healthy,
+            container_id=raw.get("ID", raw.get("Id", raw.get("id"))),
+            provider="docker",
+            endpoint=None,
+            detail=health or state,
+        )
+
+    @staticmethod
+    def _parse_compose_ps_output(raw: str) -> list[dict[str, Any]]:
+        """Parse compose ps JSON output across compose variants."""
+        if not raw:
+            return []
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, list):
+                return parsed
+            if isinstance(parsed, dict):
+                return [parsed]
+        except json.JSONDecodeError:
+            pass
+
+        services: list[dict[str, Any]] = []
+        for line in raw.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                parsed = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(parsed, dict):
+                services.append(parsed)
+        return services
+
+    def get_service_states(self) -> list[ServiceState]:
+        """Return normalized service states."""
+        if not self.compose_exists():
+            return []
+        if not self.is_docker_installed() or not self.is_daemon_running():
+            return []
+
+        result = self._run(["ps", "--format", "json"])
+        if result.returncode != 0:
+            return []
+
+        parsed = self._parse_compose_ps_output(result.stdout.strip())
+        return [self._normalize_service(entry) for entry in parsed]
+
+    def get_service_status(self) -> dict[str, Any]:
+        """Return compose service status."""
+        services = self.get_service_states()
+        return {
+            "running": any(service.status.lower() == "running" for service in services),
+            "services": [service.to_dict() for service in services],
+            "compose_file": str(self.compose_file),
+        }
+
+    def stream_logs(self, service: str | None = None) -> None:
+        """Stream compose logs."""
+        self.validate_environment()
+        args = ["logs", "-f"]
+        if service:
+            args.append(service)
+        result = self._run_attached(args)
+        if result not in {0, 130}:
+            logger.error("Failed to stream logs.")
+            raise typer.Exit(code=1)

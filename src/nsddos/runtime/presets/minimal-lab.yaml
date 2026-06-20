@@ -1,0 +1,14 @@
+name: minimal-lab
+providers:
+  floodlight: true
+  sflowrt: true
+  ovs: false
+  mininet: false
+runtime_expectations:
+  - docker
+  - java
+verification_scope:
+  - health
+  - verify
+expected_topology: none
+

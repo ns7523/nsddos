@@ -1,0 +1,19 @@
+dashboard_port: 3000
+sflow_port: 6343
+api_port: 8008
+lab:
+  floodlight_port: 8080
+  controller_port: 6653
+  detector_port: 9000
+  mininet_topology: single,3
+  ovs_bridge: s1
+  ovs_sflow_target: 127.0.0.1:6343
+  ovs_agent_interface: lo
+  ovs_sampling: 10
+  ovs_polling: 20
+simulation:
+  enabled: true
+logging:
+  level: INFO
+ml:
+  model: default.pkl

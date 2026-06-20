@@ -1,0 +1,33 @@
+{
+  "name": "verification-validator",
+  "key": "verification-validator-509a0915c58e7458",
+  "inputs": {
+    "run_id": "943c95c0-bcdd-40f2-8738-27c9d0f4a062",
+    "validator": "collection"
+  },
+  "created_at": "2026-05-21T15:59:51.710589+00:00",
+  "value": {
+    "results": [
+      {
+        "name": "collection_schema",
+        "status": "pass",
+        "detail": "1.0",
+        "category": "collection"
+      },
+      {
+        "name": "provider_collection",
+        "status": "pass",
+        "detail": "providers=['floodlight', 'mininet', 'ovs', 'sflowrt']",
+        "category": "collection"
+      },
+      {
+        "name": "collection_cache_policy",
+        "status": "pass",
+        "detail": "{\"cache_hit\": false, \"policy\": \"explicit_no_silent_reuse\"}",
+        "category": "collection"
+      }
+    ],
+    "duration_ms": 0.011374999303370714
+  },
+  "schema_version": "1.0"
+}

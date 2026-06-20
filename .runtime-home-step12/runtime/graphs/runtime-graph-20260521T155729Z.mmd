@@ -1,0 +1,136 @@
+graph TD
+    profile_macos_degraded[profile:macos-degraded]
+    capability_docker[capability:docker]
+    reproducibility_non_reproducible[reproducibility:non_reproducible]
+    provider_floodlight[provider:floodlight]
+    provider_sflowrt[provider:sflowrt]
+    provider_mininet[provider:mininet]
+    provider_ovs[provider:ovs]
+    phase_bootstrap[phase:bootstrap]
+    phase_environment_validate[phase:environment_validate]
+    phase_runtime_prepare[phase:runtime_prepare]
+    phase_providers_prepare[phase:providers_prepare]
+    phase_docker_runtime_start[phase:docker_runtime_start]
+    phase_controller_start[phase:controller_start]
+    phase_telemetry_start[phase:telemetry_start]
+    phase_topology_start[phase:topology_start]
+    phase_reconciliation_validate[phase:reconciliation_validate]
+    phase_convergence_validate[phase:convergence_validate]
+    phase_verification_prepare[phase:verification_prepare]
+    phase_verification_execute[phase:verification_execute]
+    phase_verification_evidence_attach[phase:verification_evidence_attach]
+    phase_verification_finalize[phase:verification_finalize]
+    phase_evidence_capture[phase:evidence_capture]
+    validator_environment[validator:environment]
+    verification_category_environment[verification_category:environment]
+    validator_collection[validator:collection]
+    verification_category_collection[verification_category:collection]
+    validator_normalization[validator:normalization]
+    verification_category_normalization[verification_category:normalization]
+    validator_topology[validator:topology]
+    verification_category_topology[verification_category:topology]
+    validator_telemetry[validator:telemetry]
+    verification_category_telemetry[verification_category:telemetry]
+    validator_reconciliation[validator:reconciliation]
+    verification_category_reconciliation[verification_category:reconciliation]
+    validator_datapath[validator:datapath]
+    verification_category_datapath[verification_category:datapath]
+    validator_convergence[validator:convergence]
+    verification_category_convergence[verification_category:convergence]
+    validator_persistence[validator:persistence]
+    verification_category_persistence[verification_category:persistence]
+    validator_integrity[validator:integrity]
+    verification_category_integrity[verification_category:integrity]
+    validator_orchestration[validator:orchestration]
+    verification_category_orchestration[verification_category:orchestration]
+    validator_reproducibility[validator:reproducibility]
+    verification_category_reproducibility[verification_category:reproducibility]
+    validator_temporal[validator:temporal]
+    verification_category_temporal[verification_category:temporal]
+    verification_run_0[verification_run:0]
+    verification_run_1[verification_run:1]
+    verification_run_2[verification_run:2]
+    verification_run_3[verification_run:3]
+    switch_s1[switch:s1]
+    host_h1[host:h1]
+    host_h2[host:h2]
+    host_h3[host:h3]
+    iface_s1_eth1[iface:s1-eth1]
+    iface_s1_eth2[iface:s1-eth2]
+    iface_s1_eth3[iface:s1-eth3]
+    path_s1_>h1[path:s1->h1]
+    path_s1_>h2[path:s1->h2]
+    path_s1_>h3[path:s1->h3]
+    transition_0[transition:0]
+    profile_macos_degraded -->|supports| capability_docker
+    profile_macos_degraded -->|profile_reproducibility| reproducibility_non_reproducible
+    profile_macos_degraded -->|provider_support| provider_floodlight
+    profile_macos_degraded -->|provider_support| provider_sflowrt
+    profile_macos_degraded -->|provider_support| provider_mininet
+    profile_macos_degraded -->|provider_support| provider_ovs
+    phase_bootstrap -->|execution_dependency| phase_environment_validate
+    phase_environment_validate -->|execution_dependency| phase_runtime_prepare
+    phase_runtime_prepare -->|execution_dependency| phase_providers_prepare
+    phase_providers_prepare -->|execution_dependency| phase_docker_runtime_start
+    phase_docker_runtime_start -->|execution_dependency| phase_controller_start
+    phase_controller_start -->|execution_dependency| phase_telemetry_start
+    phase_telemetry_start -->|execution_dependency| phase_topology_start
+    phase_topology_start -->|execution_dependency| phase_reconciliation_validate
+    phase_reconciliation_validate -->|execution_dependency| phase_convergence_validate
+    phase_convergence_validate -->|execution_dependency| phase_verification_prepare
+    phase_verification_prepare -->|execution_dependency| phase_verification_execute
+    phase_verification_execute -->|execution_dependency| phase_verification_evidence_attach
+    phase_verification_evidence_attach -->|execution_dependency| phase_verification_finalize
+    phase_verification_finalize -->|execution_dependency| phase_evidence_capture
+    phase_controller_start -->|execution_dependency| phase_topology_start
+    phase_telemetry_start -->|execution_dependency| phase_reconciliation_validate
+    phase_topology_start -->|execution_dependency| phase_reconciliation_validate
+    phase_reconciliation_validate -->|execution_dependency| phase_convergence_validate
+    phase_convergence_validate -->|execution_dependency| phase_verification_prepare
+    phase_verification_prepare -->|execution_dependency| phase_verification_execute
+    phase_verification_execute -->|execution_dependency| phase_verification_evidence_attach
+    phase_verification_evidence_attach -->|execution_dependency| phase_verification_finalize
+    verification_category_environment -->|owns_validator| validator_environment
+    verification_category_collection -->|owns_validator| validator_collection
+    validator_environment -->|validator_dependency| validator_collection
+    verification_category_normalization -->|owns_validator| validator_normalization
+    validator_collection -->|validator_dependency| validator_normalization
+    verification_category_topology -->|owns_validator| validator_topology
+    validator_normalization -->|validator_dependency| validator_topology
+    verification_category_telemetry -->|owns_validator| validator_telemetry
+    validator_collection -->|validator_dependency| validator_telemetry
+    verification_category_reconciliation -->|owns_validator| validator_reconciliation
+    validator_topology -->|validator_dependency| validator_reconciliation
+    validator_telemetry -->|validator_dependency| validator_reconciliation
+    verification_category_datapath -->|owns_validator| validator_datapath
+    validator_topology -->|validator_dependency| validator_datapath
+    verification_category_convergence -->|owns_validator| validator_convergence
+    validator_reconciliation -->|validator_dependency| validator_convergence
+    validator_datapath -->|validator_dependency| validator_convergence
+    verification_category_persistence -->|owns_validator| validator_persistence
+    validator_collection -->|validator_dependency| validator_persistence
+    verification_category_integrity -->|owns_validator| validator_integrity
+    validator_persistence -->|validator_dependency| validator_integrity
+    validator_convergence -->|validator_dependency| validator_integrity
+    verification_category_orchestration -->|owns_validator| validator_orchestration
+    validator_environment -->|validator_dependency| validator_orchestration
+    verification_category_reproducibility -->|owns_validator| validator_reproducibility
+    validator_environment -->|validator_dependency| validator_reproducibility
+    verification_category_temporal -->|owns_validator| validator_temporal
+    validator_convergence -->|validator_dependency| validator_temporal
+    phase_verification_execute -->|verification_replay| verification_run_0
+    phase_verification_execute -->|verification_replay| verification_run_1
+    phase_verification_execute -->|verification_replay| verification_run_2
+    phase_verification_execute -->|verification_replay| verification_run_3
+    switch_s1 -->|link| host_h1
+    switch_s1 -->|link| host_h2
+    switch_s1 -->|link| host_h3
+    switch_s1 -->|has_interface| iface_s1_eth1
+    switch_s1 -->|has_interface| iface_s1_eth2
+    switch_s1 -->|has_interface| iface_s1_eth3
+    switch_s1 -->|path_source| path_s1_>h1
+    path_s1_>h1 -->|path_target| host_h1
+    switch_s1 -->|path_source| path_s1_>h2
+    path_s1_>h2 -->|path_target| host_h2
+    switch_s1 -->|path_source| path_s1_>h3
+    path_s1_>h3 -->|path_target| host_h3

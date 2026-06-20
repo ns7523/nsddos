@@ -1,0 +1,33 @@
+{
+  "name": "verification-validator",
+  "key": "verification-validator-015a3cde1dda0708",
+  "inputs": {
+    "run_id": "8ecacc52-2b25-4fac-ab71-d2d2d4dd52de",
+    "validator": "domain"
+  },
+  "created_at": "2026-05-22T00:21:19.171772+00:00",
+  "value": {
+    "results": [
+      {
+        "name": "domain_registry_integrity",
+        "status": "pass",
+        "detail": "entities=18 relationships=6",
+        "category": "domain"
+      },
+      {
+        "name": "domain_contract_versioning",
+        "status": "pass",
+        "detail": "contract versions valid",
+        "category": "domain"
+      },
+      {
+        "name": "domain_schema_consistency",
+        "status": "pass",
+        "detail": "contract_versions=18",
+        "category": "domain"
+      }
+    ],
+    "duration_ms": 0.020334002329036593
+  },
+  "schema_version": "1.0"
+}

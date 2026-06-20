@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "timestamp": "2026-05-21T16:10:19.305842+00:00",
+  "query": {
+    "schema_version": "1.0",
+    "name": "snapshots",
+    "scope": "persistence",
+    "filters": [],
+    "pagination": {
+      "limit": 25,
+      "offset": 0
+    },
+    "dependencies": [],
+    "replay_safe": true
+  },
+  "items": [],
+  "total": 0,
+  "evidence": [
+    {
+      "kind": "query",
+      "reference": "snapshots",
+      "detail": "scope=persistence"
+    },
+    {
+      "kind": "dependencies",
+      "reference": "",
+      "detail": "query dependencies"
+    }
+  ],
+  "duration_ms": 0.2743749937508255,
+  "cache": {},
+  "plan": {
+    "query": "snapshots",
+    "scope": "persistence",
+    "dependencies": [],
+    "replay_safe": true
+  }
+}

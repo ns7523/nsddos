@@ -1,0 +1,11 @@
+services:
+  floodlight:
+    image: eclipse-temurin:17-jre
+    command: ["sleep", "infinity"]
+  sflowrt:
+    image: eclipse-temurin:17-jre
+    command: ["sleep", "infinity"]
+  detector:
+    image: python:3.11-slim-bookworm
+    command: ["sleep", "infinity"]
+

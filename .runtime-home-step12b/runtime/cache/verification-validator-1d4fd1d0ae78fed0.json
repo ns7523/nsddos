@@ -1,0 +1,33 @@
+{
+  "name": "verification-validator",
+  "key": "verification-validator-1d4fd1d0ae78fed0",
+  "inputs": {
+    "run_id": "943c95c0-bcdd-40f2-8738-27c9d0f4a062",
+    "validator": "normalization"
+  },
+  "created_at": "2026-05-21T15:59:51.710809+00:00",
+  "value": {
+    "results": [
+      {
+        "name": "analysis_schema",
+        "status": "pass",
+        "detail": "1.0",
+        "category": "normalization"
+      },
+      {
+        "name": "identity_normalization",
+        "status": "pass",
+        "detail": "conflicts=[]",
+        "category": "normalization"
+      },
+      {
+        "name": "datapath_normalization",
+        "status": "pass",
+        "detail": "switches=1",
+        "category": "normalization"
+      }
+    ],
+    "duration_ms": 0.0034580007195472717
+  },
+  "schema_version": "1.0"
+}

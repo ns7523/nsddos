@@ -1,0 +1,231 @@
+{
+  "schema_version": "1.0",
+  "timestamp": "2026-05-21T23:30:20.672452+00:00",
+  "query": {
+    "schema_version": "1.0",
+    "name": "graph",
+    "scope": "graph",
+    "filters": [],
+    "pagination": {
+      "limit": 25,
+      "offset": 0
+    },
+    "dependencies": [],
+    "replay_safe": true
+  },
+  "items": [
+    {
+      "id": "api:/health:GET",
+      "type": "api_endpoint",
+      "path": "/health",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/convergence:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/convergence",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/drift:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/drift",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/evidence:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/evidence",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/graph/traverse:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/graph/traverse",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/graph:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/graph",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/query/explain:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/query/explain",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/query:POST",
+      "type": "api_endpoint",
+      "path": "/runtime/query",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "id": "api:/runtime/replay/explain:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/replay/explain",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/replay:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/replay",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/service:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/service",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/snapshots/compare:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/snapshots/compare",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/snapshots/{snapshot_id}/lineage:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/snapshots/{snapshot_id}/lineage",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/snapshots/{snapshot_id}:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/snapshots/{snapshot_id}",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/snapshots:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/snapshots",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/stability:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/stability",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/timeline/transitions:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/timeline/transitions",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/timeline:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/timeline",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/verification/explain:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/verification/explain",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "api:/runtime/verification:GET",
+      "type": "api_endpoint",
+      "path": "/runtime/verification",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "id": "capability:docker",
+      "type": "capability"
+    },
+    {
+      "id": "host:h1",
+      "type": "host"
+    },
+    {
+      "id": "host:h2",
+      "type": "host"
+    },
+    {
+      "id": "host:h3",
+      "type": "host"
+    },
+    {
+      "id": "iface:s1-eth1",
+      "type": "interface",
+      "visible_in_ovs": false,
+      "visible_in_sflow": false
+    }
+  ],
+  "total": 118,
+  "evidence": [
+    {
+      "kind": "query",
+      "reference": "graph",
+      "detail": "scope=graph"
+    },
+    {
+      "kind": "dependencies",
+      "reference": "verification",
+      "detail": "query dependencies"
+    }
+  ],
+  "duration_ms": 894.7082499798853,
+  "cache": {},
+  "plan": {
+    "query": "graph",
+    "scope": "graph",
+    "dependencies": [
+      "verification"
+    ],
+    "replay_safe": true
+  },
+  "performance": {
+    "query_execution_ms": 894.7082499798853,
+    "selector_ms": 894.687708991114,
+    "graph_traversal_ms": 894.687708991114,
+    "replay_query_ms": 0.0,
+    "pagination_ms": 0.015666009858250618,
+    "filter_ms": 0.0019579892978072166
+  }
+}

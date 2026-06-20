@@ -1,0 +1,33 @@
+{
+  "name": "verification-validator",
+  "key": "verification-validator-31c1237ee1626ee0",
+  "inputs": {
+    "run_id": "47ffbaaf-7bb1-4bdd-9d43-2af83fd51add",
+    "validator": "reproducibility"
+  },
+  "created_at": "2026-05-21T15:59:44.839751+00:00",
+  "value": {
+    "results": [
+      {
+        "name": "provider_compatibility",
+        "status": "warn",
+        "detail": "{\"floodlight\": \"supported\", \"mininet\": \"partial\", \"ovs\": \"partial\", \"sflowrt\": \"supported\"}",
+        "category": "reproducibility"
+      },
+      {
+        "name": "environment_reproducibility",
+        "status": "warn",
+        "detail": "profile=macos-degraded environment=unsupported",
+        "category": "reproducibility"
+      },
+      {
+        "name": "runtime_portability",
+        "status": "warn",
+        "detail": "profile=macos-degraded docker=False ovs=False mininet=True",
+        "category": "reproducibility"
+      }
+    ],
+    "duration_ms": 0.00895900302566588
+  },
+  "schema_version": "1.0"
+}

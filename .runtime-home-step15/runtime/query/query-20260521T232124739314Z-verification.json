@@ -1,0 +1,151 @@
+{
+  "schema_version": "1.0",
+  "timestamp": "2026-05-21T23:21:24.739143+00:00",
+  "query": {
+    "schema_version": "1.0",
+    "name": "verification",
+    "scope": "verification",
+    "filters": [],
+    "pagination": {
+      "limit": 10,
+      "offset": 0
+    },
+    "dependencies": [],
+    "replay_safe": true
+  },
+  "items": [
+    {
+      "id": "collection",
+      "name": "collection",
+      "scope": "verification",
+      "category": "collection",
+      "dependencies": [
+        "environment"
+      ],
+      "degraded_safe": true
+    },
+    {
+      "id": "convergence",
+      "name": "convergence",
+      "scope": "verification",
+      "category": "convergence",
+      "dependencies": [
+        "reconciliation",
+        "datapath"
+      ],
+      "degraded_safe": true
+    },
+    {
+      "id": "datapath",
+      "name": "datapath",
+      "scope": "verification",
+      "category": "datapath",
+      "dependencies": [
+        "topology"
+      ],
+      "degraded_safe": true
+    },
+    {
+      "id": "environment",
+      "name": "environment",
+      "scope": "verification",
+      "category": "environment",
+      "dependencies": [],
+      "degraded_safe": true
+    },
+    {
+      "id": "integrity",
+      "name": "integrity",
+      "scope": "verification",
+      "category": "integrity",
+      "dependencies": [
+        "persistence",
+        "convergence",
+        "service"
+      ],
+      "degraded_safe": true
+    },
+    {
+      "id": "normalization",
+      "name": "normalization",
+      "scope": "verification",
+      "category": "normalization",
+      "dependencies": [
+        "collection"
+      ],
+      "degraded_safe": true
+    },
+    {
+      "id": "orchestration",
+      "name": "orchestration",
+      "scope": "verification",
+      "category": "orchestration",
+      "dependencies": [
+        "environment"
+      ],
+      "degraded_safe": true
+    },
+    {
+      "id": "persistence",
+      "name": "persistence",
+      "scope": "verification",
+      "category": "persistence",
+      "dependencies": [
+        "collection"
+      ],
+      "degraded_safe": true
+    },
+    {
+      "id": "reconciliation",
+      "name": "reconciliation",
+      "scope": "verification",
+      "category": "reconciliation",
+      "dependencies": [
+        "topology",
+        "telemetry"
+      ],
+      "degraded_safe": true
+    },
+    {
+      "id": "reproducibility",
+      "name": "reproducibility",
+      "scope": "verification",
+      "category": "reproducibility",
+      "dependencies": [
+        "environment"
+      ],
+      "degraded_safe": true
+    }
+  ],
+  "total": 14,
+  "evidence": [
+    {
+      "kind": "query",
+      "reference": "verification",
+      "detail": "scope=verification"
+    },
+    {
+      "kind": "dependencies",
+      "reference": "evidence",
+      "detail": "query dependencies"
+    }
+  ],
+  "duration_ms": 0.43429198558442295,
+  "cache": {},
+  "plan": {
+    "query": "verification",
+    "scope": "verification",
+    "dependencies": [
+      "evidence"
+    ],
+    "replay_safe": true
+  },
+  "performance": {
+    "query_execution_ms": 0.43429198558442295,
+    "selector_ms": 0.42470800690352917,
+    "graph_traversal_ms": 0.0,
+    "replay_query_ms": 0.0,
+    "pagination_ms": 0.00495798303745687,
+    "filter_ms": 0.0018330174498260021
+  }
+}

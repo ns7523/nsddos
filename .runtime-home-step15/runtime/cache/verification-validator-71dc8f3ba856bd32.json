@@ -1,0 +1,69 @@
+{
+  "name": "verification-validator",
+  "key": "verification-validator-71dc8f3ba856bd32",
+  "inputs": {
+    "run_id": "c3c1bd23-8abf-43e1-a63f-b80d4098121c",
+    "validator": "integrity"
+  },
+  "created_at": "2026-05-21T23:21:18.188888+00:00",
+  "value": {
+    "results": [
+      {
+        "name": "validator_dependency_consistency",
+        "status": "pass",
+        "detail": "validators=14 rules=14",
+        "category": "integrity"
+      },
+      {
+        "name": "verification_evidence_attached",
+        "status": "pass",
+        "detail": "evidence=5",
+        "category": "integrity"
+      },
+      {
+        "name": "verification_schema",
+        "status": "pass",
+        "detail": "1.0",
+        "category": "integrity"
+      },
+      {
+        "name": "query_dependency_integrity",
+        "status": "pass",
+        "detail": "queries=11 deps=9",
+        "category": "integrity"
+      },
+      {
+        "name": "query_scope_integrity",
+        "status": "pass",
+        "detail": "scopes=17",
+        "category": "integrity"
+      },
+      {
+        "name": "api_schema_consistency",
+        "status": "pass",
+        "detail": "routes=20",
+        "category": "integrity"
+      },
+      {
+        "name": "api_query_compatibility",
+        "status": "pass",
+        "detail": "API must bind query engine",
+        "category": "integrity"
+      },
+      {
+        "name": "api_pagination_stability",
+        "status": "pass",
+        "detail": "limit/offset pagination enforced by typed schemas",
+        "category": "integrity"
+      },
+      {
+        "name": "api_response_schema_integrity",
+        "status": "pass",
+        "detail": "Pydantic response models configured",
+        "category": "integrity"
+      }
+    ],
+    "duration_ms": 222.54220899776556
+  },
+  "schema_version": "1.0"
+}

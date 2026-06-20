@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nsddos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nsddos
+  template:
+    metadata:
+      labels:
+        app: nsddos
+    spec:
+      containers:
+        - name: nsddos-api
+          image: nsddos/api:prod
+          ports:
+            - containerPort: 8008
+        - name: nsddos-ui
+          image: nsddos/ui:prod
+          ports:
+            - containerPort: 3000

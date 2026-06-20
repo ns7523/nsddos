@@ -1,0 +1,424 @@
+{
+  "nodes": [
+    {
+      "id": "switch:s1",
+      "type": "switch",
+      "aliases": [
+        "s1"
+      ]
+    },
+    {
+      "id": "host:h1",
+      "type": "host"
+    },
+    {
+      "id": "host:h2",
+      "type": "host"
+    },
+    {
+      "id": "host:h3",
+      "type": "host"
+    },
+    {
+      "id": "iface:s1-eth1",
+      "type": "interface",
+      "visible_in_ovs": false,
+      "visible_in_sflow": false
+    },
+    {
+      "id": "iface:s1-eth2",
+      "type": "interface",
+      "visible_in_ovs": false,
+      "visible_in_sflow": false
+    },
+    {
+      "id": "iface:s1-eth3",
+      "type": "interface",
+      "visible_in_ovs": false,
+      "visible_in_sflow": false
+    },
+    {
+      "id": "switch:s1:unknown:s1-eth1",
+      "type": "openflow_port",
+      "datapath_id": null,
+      "port_no": null,
+      "visible_in_controller": false,
+      "visible_in_sflow": false
+    },
+    {
+      "id": "switch:s1:unknown:s1-eth2",
+      "type": "openflow_port",
+      "datapath_id": null,
+      "port_no": null,
+      "visible_in_controller": false,
+      "visible_in_sflow": false
+    },
+    {
+      "id": "switch:s1:unknown:s1-eth3",
+      "type": "openflow_port",
+      "datapath_id": null,
+      "port_no": null,
+      "visible_in_controller": false,
+      "visible_in_sflow": false
+    },
+    {
+      "id": "path:s1->h1",
+      "type": "path",
+      "visible_in_controller": false,
+      "visible_in_telemetry": false
+    },
+    {
+      "id": "path:s1->h2",
+      "type": "path",
+      "visible_in_controller": false,
+      "visible_in_telemetry": false
+    },
+    {
+      "id": "path:s1->h3",
+      "type": "path",
+      "visible_in_controller": false,
+      "visible_in_telemetry": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "switch:s1",
+      "target": "host:h1",
+      "type": "link"
+    },
+    {
+      "source": "switch:s1",
+      "target": "host:h2",
+      "type": "link"
+    },
+    {
+      "source": "switch:s1",
+      "target": "host:h3",
+      "type": "link"
+    },
+    {
+      "source": "switch:s1",
+      "target": "iface:s1-eth1",
+      "type": "has_interface"
+    },
+    {
+      "source": "switch:s1",
+      "target": "iface:s1-eth2",
+      "type": "has_interface"
+    },
+    {
+      "source": "switch:s1",
+      "target": "iface:s1-eth3",
+      "type": "has_interface"
+    },
+    {
+      "source": "switch:s1",
+      "target": "switch:s1:unknown:s1-eth1",
+      "type": "has_port"
+    },
+    {
+      "source": "switch:s1:unknown:s1-eth1",
+      "target": "iface:s1-eth1",
+      "type": "maps_interface"
+    },
+    {
+      "source": "switch:s1",
+      "target": "switch:s1:unknown:s1-eth2",
+      "type": "has_port"
+    },
+    {
+      "source": "switch:s1:unknown:s1-eth2",
+      "target": "iface:s1-eth2",
+      "type": "maps_interface"
+    },
+    {
+      "source": "switch:s1",
+      "target": "switch:s1:unknown:s1-eth3",
+      "type": "has_port"
+    },
+    {
+      "source": "switch:s1:unknown:s1-eth3",
+      "target": "iface:s1-eth3",
+      "type": "maps_interface"
+    },
+    {
+      "source": "switch:s1",
+      "target": "path:s1->h1",
+      "type": "path_source"
+    },
+    {
+      "source": "path:s1->h1",
+      "target": "host:h1",
+      "type": "path_target"
+    },
+    {
+      "source": "switch:s1:unknown:s1-eth1",
+      "target": "path:s1->h1",
+      "type": "path_port"
+    },
+    {
+      "source": "switch:s1",
+      "target": "path:s1->h2",
+      "type": "path_source"
+    },
+    {
+      "source": "path:s1->h2",
+      "target": "host:h2",
+      "type": "path_target"
+    },
+    {
+      "source": "switch:s1:unknown:s1-eth2",
+      "target": "path:s1->h2",
+      "type": "path_port"
+    },
+    {
+      "source": "switch:s1",
+      "target": "path:s1->h3",
+      "type": "path_source"
+    },
+    {
+      "source": "path:s1->h3",
+      "target": "host:h3",
+      "type": "path_target"
+    },
+    {
+      "source": "switch:s1:unknown:s1-eth3",
+      "target": "path:s1->h3",
+      "type": "path_port"
+    }
+  ],
+  "topology": {
+    "expected_switches": [
+      "s1"
+    ],
+    "expected_hosts": [
+      "h1",
+      "h2",
+      "h3"
+    ],
+    "controller_switches": [],
+    "ovs_bridges": [],
+    "ovs_interfaces": [
+      "s1-eth1",
+      "s1-eth2",
+      "s1-eth3"
+    ],
+    "sflow_interfaces": [],
+    "missing_in_controller": [
+      "s1"
+    ],
+    "missing_in_ovs": [
+      "s1"
+    ],
+    "missing_in_sflow": [
+      "s1-eth1",
+      "s1-eth2",
+      "s1-eth3"
+    ],
+    "normalized_switches": [
+      "switch:s1"
+    ],
+    "provider_agreement": [
+      "controller_missing_switches",
+      "ovs_missing_switches",
+      "sflow_missing_interfaces"
+    ],
+    "graph_links": [
+      "s1-h1",
+      "s1-h2",
+      "s1-h3"
+    ],
+    "consistent": false,
+    "detail": "switches=1 controller=0 ovs=0 sflow_ifaces=0 orphans=0"
+  },
+  "interfaces": {
+    "interfaces": [
+      {
+        "canonical_id": "iface:s1-eth1",
+        "switch_id": "switch:s1",
+        "ovs_name": "s1-eth1",
+        "mininet_link": "s1-h1",
+        "sflow_name": null,
+        "controller_port": null,
+        "visible_in_ovs": false,
+        "visible_in_sflow": false,
+        "visible_in_controller": false
+      },
+      {
+        "canonical_id": "iface:s1-eth2",
+        "switch_id": "switch:s1",
+        "ovs_name": "s1-eth2",
+        "mininet_link": "s1-h2",
+        "sflow_name": null,
+        "controller_port": null,
+        "visible_in_ovs": false,
+        "visible_in_sflow": false,
+        "visible_in_controller": false
+      },
+      {
+        "canonical_id": "iface:s1-eth3",
+        "switch_id": "switch:s1",
+        "ovs_name": "s1-eth3",
+        "mininet_link": "s1-h3",
+        "sflow_name": null,
+        "controller_port": null,
+        "visible_in_ovs": false,
+        "visible_in_sflow": false,
+        "visible_in_controller": false
+      }
+    ],
+    "missing_interfaces": [
+      "iface:s1-eth1",
+      "iface:s1-eth2",
+      "iface:s1-eth3"
+    ],
+    "orphan_interfaces": [],
+    "duplicate_mappings": [],
+    "detail": "expected=3 visible_ovs=0 visible_sflow=0"
+  },
+  "openflow": {
+    "ports": [
+      {
+        "canonical_id": "switch:s1:unknown:s1-eth1",
+        "switch_id": "switch:s1",
+        "datapath_id": null,
+        "port_no": null,
+        "controller_name": null,
+        "ovs_name": "s1-eth1",
+        "mininet_interface": "s1-eth1",
+        "sflow_name": null,
+        "visible_in_controller": false,
+        "visible_in_ovs": false,
+        "visible_in_sflow": false
+      },
+      {
+        "canonical_id": "switch:s1:unknown:s1-eth2",
+        "switch_id": "switch:s1",
+        "datapath_id": null,
+        "port_no": null,
+        "controller_name": null,
+        "ovs_name": "s1-eth2",
+        "mininet_interface": "s1-eth2",
+        "sflow_name": null,
+        "visible_in_controller": false,
+        "visible_in_ovs": false,
+        "visible_in_sflow": false
+      },
+      {
+        "canonical_id": "switch:s1:unknown:s1-eth3",
+        "switch_id": "switch:s1",
+        "datapath_id": null,
+        "port_no": null,
+        "controller_name": null,
+        "ovs_name": "s1-eth3",
+        "mininet_interface": "s1-eth3",
+        "sflow_name": null,
+        "visible_in_controller": false,
+        "visible_in_ovs": false,
+        "visible_in_sflow": false
+      }
+    ],
+    "missing_ports": [
+      "switch:s1:unknown:s1-eth1",
+      "switch:s1:unknown:s1-eth2",
+      "switch:s1:unknown:s1-eth3"
+    ],
+    "stale_ports": [],
+    "orphan_ports": [],
+    "duplicate_ports": [],
+    "detail": "ports=3 missing=3 stale=0 orphan=0"
+  },
+  "paths": {
+    "observed_paths": [
+      {
+        "canonical_id": "path:s1->h1",
+        "source_id": "switch:s1",
+        "target_id": "host:h1",
+        "interface_id": "iface:s1-eth1",
+        "port_id": "switch:s1:unknown:s1-eth1",
+        "visible_in_topology": true,
+        "visible_in_controller": false,
+        "visible_in_telemetry": false
+      },
+      {
+        "canonical_id": "path:s1->h2",
+        "source_id": "switch:s1",
+        "target_id": "host:h2",
+        "interface_id": "iface:s1-eth2",
+        "port_id": "switch:s1:unknown:s1-eth2",
+        "visible_in_topology": true,
+        "visible_in_controller": false,
+        "visible_in_telemetry": false
+      },
+      {
+        "canonical_id": "path:s1->h3",
+        "source_id": "switch:s1",
+        "target_id": "host:h3",
+        "interface_id": "iface:s1-eth3",
+        "port_id": "switch:s1:unknown:s1-eth3",
+        "visible_in_topology": true,
+        "visible_in_controller": false,
+        "visible_in_telemetry": false
+      }
+    ],
+    "missing_paths": [
+      "path:s1->h1",
+      "path:s1->h2",
+      "path:s1->h3"
+    ],
+    "orphan_paths": [],
+    "inconsistent_paths": [],
+    "detail": "observed=3 missing=3 orphan=0 inconsistent=0"
+  },
+  "identity": {
+    "switches": [
+      {
+        "canonical_id": "switch:s1",
+        "mininet_name": "s1",
+        "ovs_bridge": null,
+        "controller_dpid": null,
+        "sflow_agent": null,
+        "aliases": [
+          "s1"
+        ]
+      }
+    ],
+    "controller_endpoint": "127.0.0.1:6653",
+    "provider_aliases": {
+      "switch:s1": [
+        "s1"
+      ]
+    },
+    "conflicts": [],
+    "detail": "mininet=1 ovs=0 controller=0 sflow_agents=0"
+  },
+  "reconciliation": {
+    "missing_entities": [
+      "controller:s1",
+      "interface:iface:s1-eth1",
+      "interface:iface:s1-eth2",
+      "interface:iface:s1-eth3",
+      "path:path:s1->h1",
+      "path:path:s1->h2",
+      "path:path:s1->h3",
+      "port:switch:s1:unknown:s1-eth1",
+      "port:switch:s1:unknown:s1-eth2",
+      "port:switch:s1:unknown:s1-eth3",
+      "switch:s1"
+    ],
+    "stale_entities": [
+      "sflow:s1-eth1",
+      "sflow:s1-eth2",
+      "sflow:s1-eth3"
+    ],
+    "inconsistent_entities": [
+      "topology:provider_disagreement"
+    ],
+    "orphan_entities": [],
+    "confidence_reductions": [
+      "telemetry_gap",
+      "topology_disagreement"
+    ],
+    "detail": "missing=11 stale=3 inconsistent=1 orphan=0"
+  }
+}

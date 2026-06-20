@@ -1,0 +1,10 @@
+services:
+  nsddos-research:
+    build:
+      context: ../../
+      dockerfile: docker/runtime/research/Dockerfile
+    environment:
+      NSDDOS_HOME: /tmp/nsddos-home
+    volumes:
+      - ../../:/opt/nsddos
+

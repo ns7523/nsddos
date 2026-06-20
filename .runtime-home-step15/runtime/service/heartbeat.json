@@ -1,0 +1,23 @@
+{
+  "heartbeats": [
+    {
+      "heartbeat_id": "hb-7cd91785-7f9a-413c-962a-7dce537fb214",
+      "service_state": "running",
+      "session_count": 1,
+      "synchronization_state": "synchronized",
+      "replay_state": "fresh",
+      "timestamp": "2026-05-21T23:21:24.239218+00:00",
+      "detail": "service-start"
+    },
+    {
+      "heartbeat_id": "hb-371d4a04-76b3-447a-83bf-eafd9326553e",
+      "service_state": "stopped",
+      "session_count": 0,
+      "synchronization_state": "stopped",
+      "replay_state": "stopped",
+      "timestamp": "2026-05-21T23:21:36.799570+00:00",
+      "detail": "service-stop"
+    }
+  ],
+  "schema_version": "1.0"
+}

@@ -1,0 +1,9 @@
+dashboard_port: 3000
+sflow_port: 6343
+api_port: 8008
+simulation:
+  enabled: true
+logging:
+  level: INFO
+ml:
+  model: default.pkl

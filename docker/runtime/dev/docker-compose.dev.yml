@@ -1,0 +1,10 @@
+services:
+  nsddos-dev:
+    build:
+      context: ../../
+      dockerfile: docker/runtime/dev/Dockerfile
+    environment:
+      NSDDOS_HOME: /tmp/nsddos-home
+    volumes:
+      - ../../:/opt/nsddos
+

@@ -1,0 +1,541 @@
+{
+  "plan": {
+    "name": "canonical-sdn-lab",
+    "phases": [
+      {
+        "name": "bootstrap",
+        "dependencies": [],
+        "providers": [],
+        "gate": "config",
+        "required": true
+      },
+      {
+        "name": "environment_validate",
+        "dependencies": [
+          "bootstrap"
+        ],
+        "providers": [],
+        "gate": "profile_compatibility",
+        "required": true
+      },
+      {
+        "name": "runtime_prepare",
+        "dependencies": [
+          "environment_validate"
+        ],
+        "providers": [],
+        "gate": "canonical_runtime_files",
+        "required": true
+      },
+      {
+        "name": "providers_prepare",
+        "dependencies": [
+          "runtime_prepare"
+        ],
+        "providers": [],
+        "gate": "provider_compatibility",
+        "required": true
+      },
+      {
+        "name": "docker_runtime_start",
+        "dependencies": [
+          "providers_prepare"
+        ],
+        "providers": [
+          "docker"
+        ],
+        "gate": "docker_daemon",
+        "required": true
+      },
+      {
+        "name": "controller_start",
+        "dependencies": [
+          "docker_runtime_start"
+        ],
+        "providers": [
+          "floodlight"
+        ],
+        "gate": "controller_readiness",
+        "required": true
+      },
+      {
+        "name": "telemetry_start",
+        "dependencies": [
+          "controller_start"
+        ],
+        "providers": [
+          "sflowrt"
+        ],
+        "gate": "telemetry_readiness",
+        "required": true
+      },
+      {
+        "name": "topology_start",
+        "dependencies": [
+          "telemetry_start",
+          "controller_start"
+        ],
+        "providers": [
+          "mininet",
+          "ovs"
+        ],
+        "gate": "topology_readiness",
+        "required": false
+      },
+      {
+        "name": "reconciliation_validate",
+        "dependencies": [
+          "topology_start",
+          "telemetry_start",
+          "topology_start"
+        ],
+        "providers": [
+          "floodlight",
+          "sflowrt",
+          "mininet",
+          "ovs"
+        ],
+        "gate": "runtime_reconciliation",
+        "required": true
+      },
+      {
+        "name": "convergence_validate",
+        "dependencies": [
+          "reconciliation_validate",
+          "reconciliation_validate"
+        ],
+        "providers": [],
+        "gate": "runtime_convergence",
+        "required": true
+      },
+      {
+        "name": "verification_prepare",
+        "dependencies": [
+          "convergence_validate",
+          "convergence_validate"
+        ],
+        "providers": [],
+        "gate": "verification_registry",
+        "required": true
+      },
+      {
+        "name": "verification_execute",
+        "dependencies": [
+          "verification_prepare",
+          "verification_prepare"
+        ],
+        "providers": [
+          "floodlight",
+          "sflowrt",
+          "mininet",
+          "ovs"
+        ],
+        "gate": "verification_engine",
+        "required": true
+      },
+      {
+        "name": "verification_evidence_attach",
+        "dependencies": [
+          "verification_execute",
+          "verification_execute"
+        ],
+        "providers": [],
+        "gate": "verification_evidence",
+        "required": true
+      },
+      {
+        "name": "verification_finalize",
+        "dependencies": [
+          "verification_evidence_attach",
+          "verification_evidence_attach"
+        ],
+        "providers": [],
+        "gate": "verification_integrity",
+        "required": true
+      },
+      {
+        "name": "evidence_capture",
+        "dependencies": [
+          "verification_finalize"
+        ],
+        "providers": [],
+        "gate": "evidence",
+        "required": true
+      }
+    ],
+    "dependencies": [
+      {
+        "source": "bootstrap",
+        "target": "environment_validate",
+        "reason": "canonical_order"
+      },
+      {
+        "source": "environment_validate",
+        "target": "runtime_prepare",
+        "reason": "canonical_order"
+      },
+      {
+        "source": "runtime_prepare",
+        "target": "providers_prepare",
+        "reason": "canonical_order"
+      },
+      {
+        "source": "providers_prepare",
+        "target": "docker_runtime_start",
+        "reason": "canonical_order"
+      },
+      {
+        "source": "docker_runtime_start",
+        "target": "controller_start",
+        "reason": "canonical_order"
+      },
+      {
+        "source": "controller_start",
+        "target": "telemetry_start",
+        "reason": "canonical_order"
+      },
+      {
+        "source": "telemetry_start",
+        "target": "topology_start",
+        "reason": "canonical_order"
+      },
+      {
+        "source": "topology_start",
+        "target": "reconciliation_validate",
+        "reason": "canonical_order"
+      },
+      {
+        "source": "reconciliation_validate",
+        "target": "convergence_validate",
+        "reason": "canonical_order"
+      },
+      {
+        "source": "convergence_validate",
+        "target": "verification_prepare",
+        "reason": "canonical_order"
+      },
+      {
+        "source": "verification_prepare",
+        "target": "verification_execute",
+        "reason": "canonical_order"
+      },
+      {
+        "source": "verification_execute",
+        "target": "verification_evidence_attach",
+        "reason": "canonical_order"
+      },
+      {
+        "source": "verification_evidence_attach",
+        "target": "verification_finalize",
+        "reason": "canonical_order"
+      },
+      {
+        "source": "verification_finalize",
+        "target": "evidence_capture",
+        "reason": "canonical_order"
+      },
+      {
+        "source": "controller_start",
+        "target": "topology_start",
+        "reason": "controller before topology"
+      },
+      {
+        "source": "telemetry_start",
+        "target": "reconciliation_validate",
+        "reason": "telemetry before reconciliation"
+      },
+      {
+        "source": "topology_start",
+        "target": "reconciliation_validate",
+        "reason": "topology before reconciliation"
+      },
+      {
+        "source": "reconciliation_validate",
+        "target": "convergence_validate",
+        "reason": "truth before convergence"
+      },
+      {
+        "source": "convergence_validate",
+        "target": "verification_prepare",
+        "reason": "convergence before verify"
+      },
+      {
+        "source": "verification_prepare",
+        "target": "verification_execute",
+        "reason": "prepare before execute"
+      },
+      {
+        "source": "verification_execute",
+        "target": "verification_evidence_attach",
+        "reason": "verify before evidence"
+      },
+      {
+        "source": "verification_evidence_attach",
+        "target": "verification_finalize",
+        "reason": "evidence before finalize"
+      }
+    ],
+    "preset": "minimal-lab",
+    "profile": "macos-degraded"
+  },
+  "nodes": [
+    {
+      "id": "bootstrap",
+      "type": "runtime_phase",
+      "gate": "config",
+      "providers": [],
+      "required": true
+    },
+    {
+      "id": "environment_validate",
+      "type": "runtime_phase",
+      "gate": "profile_compatibility",
+      "providers": [],
+      "required": true
+    },
+    {
+      "id": "runtime_prepare",
+      "type": "runtime_phase",
+      "gate": "canonical_runtime_files",
+      "providers": [],
+      "required": true
+    },
+    {
+      "id": "providers_prepare",
+      "type": "runtime_phase",
+      "gate": "provider_compatibility",
+      "providers": [],
+      "required": true
+    },
+    {
+      "id": "docker_runtime_start",
+      "type": "runtime_phase",
+      "gate": "docker_daemon",
+      "providers": [
+        "docker"
+      ],
+      "required": true
+    },
+    {
+      "id": "controller_start",
+      "type": "runtime_phase",
+      "gate": "controller_readiness",
+      "providers": [
+        "floodlight"
+      ],
+      "required": true
+    },
+    {
+      "id": "telemetry_start",
+      "type": "runtime_phase",
+      "gate": "telemetry_readiness",
+      "providers": [
+        "sflowrt"
+      ],
+      "required": true
+    },
+    {
+      "id": "topology_start",
+      "type": "runtime_phase",
+      "gate": "topology_readiness",
+      "providers": [
+        "mininet",
+        "ovs"
+      ],
+      "required": false
+    },
+    {
+      "id": "reconciliation_validate",
+      "type": "runtime_phase",
+      "gate": "runtime_reconciliation",
+      "providers": [
+        "floodlight",
+        "sflowrt",
+        "mininet",
+        "ovs"
+      ],
+      "required": true
+    },
+    {
+      "id": "convergence_validate",
+      "type": "runtime_phase",
+      "gate": "runtime_convergence",
+      "providers": [],
+      "required": true
+    },
+    {
+      "id": "verification_prepare",
+      "type": "runtime_phase",
+      "gate": "verification_registry",
+      "providers": [],
+      "required": true
+    },
+    {
+      "id": "verification_execute",
+      "type": "runtime_phase",
+      "gate": "verification_engine",
+      "providers": [
+        "floodlight",
+        "sflowrt",
+        "mininet",
+        "ovs"
+      ],
+      "required": true
+    },
+    {
+      "id": "verification_evidence_attach",
+      "type": "runtime_phase",
+      "gate": "verification_evidence",
+      "providers": [],
+      "required": true
+    },
+    {
+      "id": "verification_finalize",
+      "type": "runtime_phase",
+      "gate": "verification_integrity",
+      "providers": [],
+      "required": true
+    },
+    {
+      "id": "evidence_capture",
+      "type": "runtime_phase",
+      "gate": "evidence",
+      "providers": [],
+      "required": true
+    }
+  ],
+  "edges": [
+    {
+      "source": "bootstrap",
+      "target": "environment_validate",
+      "type": "phase_dependency",
+      "reason": "canonical_order"
+    },
+    {
+      "source": "environment_validate",
+      "target": "runtime_prepare",
+      "type": "phase_dependency",
+      "reason": "canonical_order"
+    },
+    {
+      "source": "runtime_prepare",
+      "target": "providers_prepare",
+      "type": "phase_dependency",
+      "reason": "canonical_order"
+    },
+    {
+      "source": "providers_prepare",
+      "target": "docker_runtime_start",
+      "type": "phase_dependency",
+      "reason": "canonical_order"
+    },
+    {
+      "source": "docker_runtime_start",
+      "target": "controller_start",
+      "type": "phase_dependency",
+      "reason": "canonical_order"
+    },
+    {
+      "source": "controller_start",
+      "target": "telemetry_start",
+      "type": "phase_dependency",
+      "reason": "canonical_order"
+    },
+    {
+      "source": "telemetry_start",
+      "target": "topology_start",
+      "type": "phase_dependency",
+      "reason": "canonical_order"
+    },
+    {
+      "source": "topology_start",
+      "target": "reconciliation_validate",
+      "type": "phase_dependency",
+      "reason": "canonical_order"
+    },
+    {
+      "source": "reconciliation_validate",
+      "target": "convergence_validate",
+      "type": "phase_dependency",
+      "reason": "canonical_order"
+    },
+    {
+      "source": "convergence_validate",
+      "target": "verification_prepare",
+      "type": "phase_dependency",
+      "reason": "canonical_order"
+    },
+    {
+      "source": "verification_prepare",
+      "target": "verification_execute",
+      "type": "phase_dependency",
+      "reason": "canonical_order"
+    },
+    {
+      "source": "verification_execute",
+      "target": "verification_evidence_attach",
+      "type": "phase_dependency",
+      "reason": "canonical_order"
+    },
+    {
+      "source": "verification_evidence_attach",
+      "target": "verification_finalize",
+      "type": "phase_dependency",
+      "reason": "canonical_order"
+    },
+    {
+      "source": "verification_finalize",
+      "target": "evidence_capture",
+      "type": "phase_dependency",
+      "reason": "canonical_order"
+    },
+    {
+      "source": "controller_start",
+      "target": "topology_start",
+      "type": "phase_dependency",
+      "reason": "controller before topology"
+    },
+    {
+      "source": "telemetry_start",
+      "target": "reconciliation_validate",
+      "type": "phase_dependency",
+      "reason": "telemetry before reconciliation"
+    },
+    {
+      "source": "topology_start",
+      "target": "reconciliation_validate",
+      "type": "phase_dependency",
+      "reason": "topology before reconciliation"
+    },
+    {
+      "source": "reconciliation_validate",
+      "target": "convergence_validate",
+      "type": "phase_dependency",
+      "reason": "truth before convergence"
+    },
+    {
+      "source": "convergence_validate",
+      "target": "verification_prepare",
+      "type": "phase_dependency",
+      "reason": "convergence before verify"
+    },
+    {
+      "source": "verification_prepare",
+      "target": "verification_execute",
+      "type": "phase_dependency",
+      "reason": "prepare before execute"
+    },
+    {
+      "source": "verification_execute",
+      "target": "verification_evidence_attach",
+      "type": "phase_dependency",
+      "reason": "verify before evidence"
+    },
+    {
+      "source": "verification_evidence_attach",
+      "target": "verification_finalize",
+      "type": "phase_dependency",
+      "reason": "evidence before finalize"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+"""Application constants."""
+
+import os
+from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
+
+APP_NAME = "nsddos"
+APP_HOME_ENV = "NSDDOS_HOME"
+APP_CONFIG_ENV = "NSDDOS_CONFIG"
+APP_COMPOSE_ENV = "NSDDOS_COMPOSE_FILE"
+
+try:
+    APP_VERSION = version(APP_NAME)
+except PackageNotFoundError:
+    APP_VERSION = "unknown"
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
+
+
+def _default_app_dir() -> Path:
+    explicit = os.getenv(APP_HOME_ENV)
+    if explicit:
+        return Path(explicit).expanduser()
+    return REPOSITORY_ROOT / ".nsddos-home"
+
+
+APP_DIR = _default_app_dir()
+LOG_DIR = APP_DIR / "logs"
+MODELS_DIR = APP_DIR / "models"
+DATA_DIR = APP_DIR / "data"
+RUNTIME_DIR = APP_DIR / "runtime"
+SNAPSHOT_DIR = RUNTIME_DIR / "snapshots"
+CONFIG_PATH = Path(os.getenv(APP_CONFIG_ENV, APP_DIR / "config.yaml")).expanduser()
+STATE_PATH = RUNTIME_DIR / "state.json"
+EVENTS_PATH = RUNTIME_DIR / "events.log"
+COMPOSE_FILE = Path(
+    os.getenv(APP_COMPOSE_ENV, PROJECT_ROOT / "docker" / "docker-compose.yml")
+).expanduser()
+
+FLOODLIGHT_JAR = REPOSITORY_ROOT / "floodlight" / "target" / "floodlight.jar"
+SFLOWRT_JAR = REPOSITORY_ROOT / "ns-ddos" / "lib" / "sflowrt.jar"
+MININET_BIN = Path(
+    os.getenv("NSDDOS_MININET_BIN", REPOSITORY_ROOT / "mininet" / "bin" / "mn")
+).expanduser()
+OVS_VSCTL_BIN = Path(os.getenv("NSDDOS_OVS_VSCTL_BIN", "ovs-vsctl")).expanduser()
+OVS_OFCTL_BIN = Path(os.getenv("NSDDOS_OVS_OFCTL_BIN", "ovs-ofctl")).expanduser()
+
+DEFAULT_FLOODLIGHT_PORT = 8080
+DEFAULT_FLOODLIGHT_OF_PORT = 6653
+DEFAULT_SFLOWRT_PORT = 8008
+DEFAULT_SFLOW_PORT = 6343
+DEFAULT_DETECTOR_PORT = 9000
+
+RUNTIME_DIRECTORIES = (
+    APP_DIR,
+    LOG_DIR,
+    MODELS_DIR,
+    DATA_DIR,
+    RUNTIME_DIR,
+    SNAPSHOT_DIR,
+)

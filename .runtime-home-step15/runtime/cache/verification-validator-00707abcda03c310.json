@@ -1,0 +1,51 @@
+{
+  "name": "verification-validator",
+  "key": "verification-validator-00707abcda03c310",
+  "inputs": {
+    "run_id": "c3c1bd23-8abf-43e1-a63f-b80d4098121c",
+    "validator": "service"
+  },
+  "created_at": "2026-05-21T23:21:17.966061+00:00",
+  "value": {
+    "results": [
+      {
+        "name": "service_session_consistency",
+        "status": "pass",
+        "detail": "sessions=0",
+        "category": "service"
+      },
+      {
+        "name": "service_synchronization_integrity",
+        "status": "warn",
+        "detail": "sync_state=unknown",
+        "category": "service"
+      },
+      {
+        "name": "service_replay_integrity",
+        "status": "pass",
+        "detail": "events=0",
+        "category": "service"
+      },
+      {
+        "name": "service_heartbeat_integrity",
+        "status": "pass",
+        "detail": "heartbeats=0",
+        "category": "service"
+      },
+      {
+        "name": "service_lock_consistency",
+        "status": "pass",
+        "detail": "lock_owner=None state_owner=",
+        "category": "service"
+      },
+      {
+        "name": "service_recovery_replay_safe",
+        "status": "pass",
+        "detail": "replay_safe=True",
+        "category": "service"
+      }
+    ],
+    "duration_ms": 0.8349580166395754
+  },
+  "schema_version": "1.0"
+}
