@@ -2,21 +2,27 @@ name: nsddos
 
 services:
   labhost:
-    extends:
-      file: ../docker-compose.yml
-      service: labhost
+    build:
+      context: ../..
+      dockerfile: code/nsddos/docker/labhost.Dockerfile
+    container_name: nsddos-labhost
+    privileged: true
+    restart: unless-stopped
+    networks:
+      - nsddos-lab
+    healthcheck:
+      test: ["CMD-SHELL", "ovs-vsctl show >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
   floodlight:
-<<<<<<< HEAD
-    image: eclipse-temurin:8-jre
+    build:
+      context: ../..
+      dockerfile: code/nsddos/docker/floodlight.Dockerfile
     container_name: nsddos-floodlight
     working_dir: /opt/floodlight
-    command:
-      [
-        "java",
-        "-Dlogback.configurationFile=/opt/floodlight/logback.xml",
-        "-jar",
-        "/opt/floodlight/target/floodlight.jar"
-      ]
     ports:
       - "8080:8080"
       - "6653:6653"
@@ -27,8 +33,7 @@ services:
     networks:
       - nsddos-lab
     volumes:
-      - ../external/floodlight:/opt/floodlight:ro
-      - ${NSDDOS_HOME:-../.nsddos-home}/runtime/floodlight:/var/lib/nsddos/floodlight
+      - floodlight-data:/var/lib/nsddos/floodlight
     healthcheck:
       test: ["CMD-SHELL", "tr '\\0' ' ' </proc/1/cmdline | grep -q '[f]loodlight.jar'"]
       interval: 10s
@@ -37,10 +42,11 @@ services:
       start_period: 15s
 
   sflowrt:
-    image: eclipse-temurin:8-jre
+    build:
+      context: ../..
+      dockerfile: code/nsddos/docker/sflowrt.Dockerfile
     container_name: nsddos-sflowrt
-    working_dir: /opt/ns-ddos
-    command: ["sh", "/opt/ns-ddos/start.sh"]
+    working_dir: /opt/nsddos
     ports:
       - "8008:8008"
       - "6343:6343/udp"
@@ -51,8 +57,7 @@ services:
     networks:
       - nsddos-lab
     volumes:
-      - ../external/sflowrt:/opt/ns-ddos:ro
-      - ${NSDDOS_HOME:-../.nsddos-home}/runtime/sflowrt:/var/lib/nsddos/sflowrt
+      - sflowrt-data:/var/lib/nsddos/sflowrt
     healthcheck:
       test: ["CMD-SHELL", "tr '\\0' ' ' </proc/1/cmdline | grep -q '[s]flowrt.jar'"]
       interval: 10s
@@ -73,26 +78,13 @@ services:
     networks:
       - nsddos-lab
     volumes:
-      - ${NSDDOS_HOME:-../.nsddos-home}/runtime/detector:/var/lib/nsddos/detector
+      - detector-data:/var/lib/nsddos/detector
     healthcheck:
       test: ["CMD-SHELL", "tr '\\0' ' ' </proc/1/cmdline | grep -q 'http.server 9000'"]
       interval: 10s
       timeout: 5s
       retries: 6
       start_period: 5s
-=======
-    extends:
-      file: ../docker-compose.yml
-      service: floodlight
-  sflowrt:
-    extends:
-      file: ../docker-compose.yml
-      service: sflowrt
-  detector:
-    extends:
-      file: ../docker-compose.yml
-      service: detector
->>>>>>> 7b0b4a3 (Initial NSDDOS v4.0 release candidate)
 
 networks:
   nsddos-lab:

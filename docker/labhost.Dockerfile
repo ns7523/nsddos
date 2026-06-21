@@ -14,8 +14,8 @@ RUN apt-get update \
         python3 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY labhost-entrypoint.sh /usr/local/bin/labhost-entrypoint.sh
-COPY labhost-mininet.py /usr/local/bin/labhost-mininet.py
+COPY code/nsddos/docker/labhost-entrypoint.sh /usr/local/bin/labhost-entrypoint.sh
+COPY code/nsddos/docker/labhost-mininet.py /usr/local/bin/labhost-mininet.py
 
 RUN chmod +x /usr/local/bin/labhost-entrypoint.sh /usr/local/bin/labhost-mininet.py
 

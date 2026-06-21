@@ -149,7 +149,7 @@ def doctor_runtime(config: dict[str, Any], deep: bool = False) -> list[Verificat
     for port_name, port in {
         "floodlight_rest": config.get("lab", {}).get("floodlight_port", 8080),
         "controller": config.get("lab", {}).get("controller_port", 6653),
-        "sflowrt": urlparse(resolve_sflowrt_api_url(config)).port or 8009,
+        "sflowrt": urlparse(resolve_sflowrt_api_url(config)).port or 8008,
         "sflow_udp": config.get("sflow_port", 6343),
     }.items():
         checks.append(

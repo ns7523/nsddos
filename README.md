@@ -132,10 +132,22 @@ Current runtime services:
 - `detector`
 - `mininet` via provider orchestration on host
 
+<<<<<<< HEAD
 Bundled runtime assets live inside repo:
 - `external/floodlight/target/floodlight.jar`
 - `external/floodlight/logback.xml`
 - `external/sflowrt/`
+=======
+Clean clone deployment entrypoint:
+
+```bash
+docker compose up -d --build
+docker compose ps
+```
+
+Canonical compose file lives at repository root as `docker-compose.yml`.
+Compat copies remain under `code/nsddos/`.
+>>>>>>> 7b0b4a3 (Initial NSDDOS v4.0 release candidate)
 
 Runtime state persists in `~/.nsddos/runtime/state.json`.
 Evidence bundles persist in `~/.nsddos/runtime/evidence/`.
