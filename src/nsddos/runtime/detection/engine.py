@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from nsddos.constants import RUNTIME_DIR
-from nsddos.providers.sflow.provider import SFlowProvider
+from nsddos.providers.sflow.provider import SFlowProvider, resolve_sflowrt_api_url
 from nsddos.runtime.collection_layer import collect_runtime_bundle
 from nsddos.runtime.detection.anomaly import build_baseline, detect_anomalies
 from nsddos.runtime.detection.classifier import classify_attack
@@ -25,8 +25,7 @@ DETECTION_DIR = RUNTIME_DIR / "detection"
 
 
 def _provider_url(config: dict[str, Any]) -> str:
-    port = config.get("api_port") or config.get("lab", {}).get("sflow_port", 8008)
-    return f"http://127.0.0.1:{port}"
+    return resolve_sflowrt_api_url(config)
 
 
 def _default_telemetry(config: dict[str, Any], reference_at: str | None = None) -> dict[str, Any]:
@@ -37,10 +36,11 @@ def _default_telemetry(config: dict[str, Any], reference_at: str | None = None) 
         contract = generate_attack_traffic(config)
         return contract_to_detection_telemetry(contract)
     bundle = collect_runtime_bundle(config)
-    provider = SFlowProvider(api_url=_provider_url(config))
-    flows = provider.flows() if provider.is_reachable() else []
+    collector_reachable = bool(bundle.telemetry_state.get("collector_reachable", False))
+    provider = SFlowProvider(api_url=_provider_url(config)) if collector_reachable else None
+    flows = provider.flows() if provider is not None else []
     return {
-        "provider_source": "sflowrt" if provider.is_reachable() else "runtime-collection",
+        "provider_source": "sflowrt" if collector_reachable else "runtime-collection",
         "timestamp": reference_at or datetime.now(timezone.utc).isoformat(),
         "sample_window_seconds": bundle.freshness_state.get("sample_interval_seconds", 1.0) or 1.0,
         "flows": flows,

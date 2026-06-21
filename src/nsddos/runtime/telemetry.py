@@ -8,6 +8,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from nsddos.config import ensure_runtime_directories, load_runtime_state
 from nsddos.constants import APP_DIR, COMPOSE_FILE, CONFIG_PATH, SNAPSHOT_DIR
@@ -28,6 +29,7 @@ from nsddos.runtime.analysis_layer import aggregate_runtime
 from nsddos.runtime.providers_registry import build_provider_registry, collect_provider_status_from_registry
 from nsddos.runtime.replay import replay_execution_history
 from nsddos.runtime.transitions import analyze_snapshot_transitions
+from nsddos.providers.sflow.provider import resolve_sflowrt_api_url
 
 
 def _socket_reachable(host: str, port: int, timeout: float = 2.0) -> bool:
@@ -74,26 +76,16 @@ def verify_runtime(config: dict[str, Any]) -> list[VerificationResult]:
 
 def doctor_runtime(config: dict[str, Any], deep: bool = False) -> list[VerificationResult]:
     """Collect environment diagnostics."""
-    aggregation = runtime_aggregation(config)
-    collection = aggregation.collection
-    analysis = aggregation.analysis
-    provider_status = collection.provider_status
-    flows = collection.flow_state
-    topology = analysis.topology
-    controller = collection.controller_state
-    convergence = analysis.convergence
-    profile = collection.profile
-    capabilities = collection.capabilities
-    environment = collection.environment
-    reproducibility = collection.reproducibility
-    freshness = collection.freshness_state
-    temporal = analysis.temporal
-    identity = analysis.identity
-    openflow = analysis.openflow
-    paths = analysis.paths
-    reconciliation = analysis.reconciliation
-    drift = analysis.drift
-    confidence = analysis.confidence
+    from nsddos.runtime.capabilities import detect_runtime_capabilities
+    from nsddos.runtime.environment import validate_runtime_environment
+    from nsddos.runtime.profiles import detect_runtime_profile
+    from nsddos.runtime.reproducibility import analyze_reproducibility
+
+    provider_status = collect_provider_status(config)
+    profile = detect_runtime_profile().to_dict()
+    capabilities = detect_runtime_capabilities().to_dict()
+    environment = validate_runtime_environment(config).to_dict()
+    reproducibility = analyze_reproducibility(config).to_dict()
     runtime_state = load_runtime_state()
     docker = DockerManager()
     checks = [
@@ -157,7 +149,7 @@ def doctor_runtime(config: dict[str, Any], deep: bool = False) -> list[Verificat
     for port_name, port in {
         "floodlight_rest": config.get("lab", {}).get("floodlight_port", 8080),
         "controller": config.get("lab", {}).get("controller_port", 6653),
-        "sflowrt": config.get("api_port", 8008),
+        "sflowrt": urlparse(resolve_sflowrt_api_url(config)).port or 8009,
         "sflow_udp": config.get("sflow_port", 6343),
     }.items():
         checks.append(
@@ -170,6 +162,21 @@ def doctor_runtime(config: dict[str, Any], deep: bool = False) -> list[Verificat
         )
 
     if deep:
+        aggregation = runtime_aggregation(config)
+        collection = aggregation.collection
+        analysis = aggregation.analysis
+        flows = collection.flow_state
+        topology = analysis.topology
+        controller = collection.controller_state
+        convergence = analysis.convergence
+        freshness = collection.freshness_state
+        temporal = analysis.temporal
+        identity = analysis.identity
+        openflow = analysis.openflow
+        paths = analysis.paths
+        reconciliation = analysis.reconciliation
+        drift = analysis.drift
+        confidence = analysis.confidence
         running = _stack_running()
         checks.extend(
             [

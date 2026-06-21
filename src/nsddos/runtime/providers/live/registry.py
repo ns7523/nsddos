@@ -8,7 +8,7 @@ from typing import Any
 from nsddos.providers.floodlight.provider import FloodlightProvider
 from nsddos.providers.mininet.provider import MininetProvider
 from nsddos.providers.ovs.provider import OVSProvider
-from nsddos.providers.sflow.provider import SFlowProvider
+from nsddos.providers.sflow.provider import SFlowProvider, resolve_sflowrt_api_url
 from nsddos.runtime.providers.live.connection_pool import ConnectionPolicy, DeterministicConnectionPool
 
 
@@ -39,7 +39,7 @@ def build_live_provider_registry(config: dict[str, Any]) -> LiveProviderRegistry
             retry_count=int(live_config.get("retry_count", 1)),
         )
     )
-    sflow_endpoint = providers.get("sflowrt", {}).get("endpoint", f"http://127.0.0.1:{config.get('api_port', 8008)}")
+    sflow_endpoint = providers.get("sflowrt", {}).get("endpoint", resolve_sflowrt_api_url(config))
     floodlight_endpoint = providers.get("floodlight", {}).get("endpoint", f"http://127.0.0.1:{lab.get('floodlight_port', 8080)}")
     mininet_host = providers.get("mininet", {}).get("controller_host", "127.0.0.1")
     mininet_port = int(providers.get("mininet", {}).get("controller_port", lab.get("controller_port", 6653)))

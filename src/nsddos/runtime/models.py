@@ -159,6 +159,8 @@ class OVSBridgeState:
     interfaces: list[str] = field(default_factory=list)
     controller_connected: bool = False
     sflow_attached: bool = False
+    protocols: list[str] = field(default_factory=list)
+    forwarding_programmed: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize bridge state."""

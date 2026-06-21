@@ -7,7 +7,7 @@ from typing import Any
 from nsddos.providers.mininet.provider import MininetProvider
 from nsddos.providers.docker_helper import helper_link_index_map, helper_running
 from nsddos.providers.ovs.provider import OVSProvider
-from nsddos.providers.sflow.provider import SFlowProvider
+from nsddos.providers.sflow.provider import SFlowProvider, resolve_sflowrt_api_url
 from nsddos.runtime.controller_state import controller_history_summary
 from nsddos.runtime.identity import build_identity_map
 from nsddos.runtime.models import InterfaceCorrelation, InterfaceRecord
@@ -49,12 +49,13 @@ def correlate_interfaces(config: dict[str, Any]) -> InterfaceCorrelation:
         sampling=config.get("lab", {}).get("ovs_sampling", 10),
         polling=config.get("lab", {}).get("ovs_polling", 20),
     )
-    sflow = SFlowProvider(api_url=f"http://127.0.0.1:{config.get('api_port', 8008)}")
+    sflow = SFlowProvider(api_url=resolve_sflowrt_api_url(config))
 
     metadata = mininet.topology_metadata()
     identity_map = build_identity_map(config)
-    sflow_ifaces = _extract_sflow_interfaces(sflow.topology() if sflow.is_reachable() else None)
-    if not sflow_ifaces and sflow.is_reachable():
+    sflow_reachable = sflow.is_reachable()
+    sflow_ifaces = _extract_sflow_interfaces(sflow.topology() if sflow_reachable else None)
+    if not sflow_ifaces and sflow_reachable:
         sflow_ifaces = _extract_sflow_interfaces(sflow.flows())
     if helper_running():
         helper_ifaces = [name for name in helper_link_index_map().values() if name.startswith("s1-eth")]

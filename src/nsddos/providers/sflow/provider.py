@@ -84,3 +84,17 @@ class SFlowProvider(BaseProvider):
             "active_flow_count": len(flows),
             "ready": artifact_exists and reachable,
         }
+
+
+def resolve_sflowrt_api_url(config: dict[str, Any]) -> str:
+    """Resolve sFlow-RT HTTP endpoint from runtime config."""
+    runtime_endpoint = (
+        config.get("runtime", {})
+        .get("live", {})
+        .get("providers", {})
+        .get("sflowrt", {})
+        .get("endpoint")
+    )
+    if isinstance(runtime_endpoint, str) and runtime_endpoint.strip():
+        return runtime_endpoint.strip()
+    return f"http://127.0.0.1:{DEFAULT_SFLOWRT_PORT}"

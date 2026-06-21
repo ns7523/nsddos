@@ -170,7 +170,7 @@ def test_ovs_provider_installs_and_matches_drop_flow(monkeypatch):
         if args[:2] == ["add-flow", "s1"]:
             state["installed"] = True
             return CompletedProcess(args, 0, stdout="", stderr="")
-        if args[:2] == ["dump-flows", "s1"]:
+        if args[:3] == ["-O", "OpenFlow13", "dump-flows"] and args[3] == "s1":
             stdout = " cookie=0x0, duration=1.0s, table=0, n_packets=0, n_bytes=0, priority=50000,ip,nw_src=10.0.0.8 actions=drop\n" if state["installed"] else ""
             return CompletedProcess(args, 0, stdout=stdout, stderr="")
         raise AssertionError(f"unexpected ovs-ofctl args: {args}")

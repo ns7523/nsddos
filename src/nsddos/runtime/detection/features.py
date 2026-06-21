@@ -86,7 +86,7 @@ def _http_rate(flow: dict[str, Any]) -> float:
     protocol = str(flow.get("protocol", flow.get("ipProtocol", ""))).lower()
     if protocol in {"http", "https", "slowloris"}:
         return _packet_count(flow)
-    if _port_value(flow) in {80, 8080, 8081}:
+    if any(flow.get(key) for key in ("http_method", "method", "url", "uri", "host", "user_agent")):
         return _packet_count(flow)
     return 0.0
 

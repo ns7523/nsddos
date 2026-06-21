@@ -58,7 +58,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
             "buffer_batch_size": 3,
             "providers": {
                 "sflowrt": {
-                    "endpoint": "http://127.0.0.1:8008",
+                    "endpoint": "http://127.0.0.1:8009",
                 },
                 "floodlight": {
                     "endpoint": "http://127.0.0.1:8080",

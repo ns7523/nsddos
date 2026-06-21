@@ -35,6 +35,7 @@ class MininetProvider(BaseProvider):
         controller_host: str = "127.0.0.1",
         controller_port: int = DEFAULT_FLOODLIGHT_OF_PORT,
         topology: str = "single,3",
+        ovs_protocol: str = "OpenFlow13",
     ) -> None:
         self.mininet_bin = mininet_bin
         self.controller_host = controller_host
@@ -42,6 +43,7 @@ class MininetProvider(BaseProvider):
             self.controller_host = "floodlight"
         self.controller_port = controller_port
         self.topology = topology
+        self.ovs_protocol = ovs_protocol
         self.log_file = LOG_DIR / "mininet.log"
 
     @staticmethod
@@ -124,20 +126,26 @@ class MininetProvider(BaseProvider):
             return
 
         if helper_running():
-            cleanup = helper_exec(["sh", "-lc", "pkill -f labhost-mininet.py || true; mn -c"], timeout=30)
-            logger.info("Mininet helper cleanup rc={}", cleanup.returncode)
+            cleanup_kill = helper_exec(["sh", "-lc", "pkill -f '[l]abhost-mininet.py' || true"], timeout=10)
+            cleanup = helper_exec(["sh", "-lc", "mn -c"], timeout=30)
+            logger.info(
+                "Mininet helper cleanup kill_rc={} cleanup_rc={}",
+                cleanup_kill.returncode,
+                cleanup.returncode,
+            )
             process = helper_exec(
                 [
                     "sh",
                     "-lc",
                     (
                         "nohup python3 /usr/local/bin/labhost-mininet.py "
-                        "{host} {port} {fanout} "
+                        "{host} {port} {fanout} {protocol} "
                         ">/var/log/mininet.log 2>&1 </dev/null &"
                     ).format(
                         host=self.controller_host,
                         port=self.controller_port,
                         fanout=self.topology.split(",")[-1],
+                        protocol=self.ovs_protocol,
                     ),
                 ],
                 detached=False,
@@ -158,7 +166,7 @@ class MininetProvider(BaseProvider):
             self._binary(),
             f"--controller=remote,ip={self.controller_host},port={self.controller_port}",
             f"--topo={self.topology}",
-            "--switch=ovsk",
+            f"--switch=ovsk,protocols={self.ovs_protocol}",
         ]
         logger.info("Starting Mininet: {}", " ".join(command))
         self.log_file.parent.mkdir(parents=True, exist_ok=True)
@@ -182,7 +190,8 @@ class MininetProvider(BaseProvider):
         """Stop Mininet topology."""
         state = load_runtime_state()
         if helper_running():
-            helper_exec(["sh", "-lc", "pkill -f labhost-mininet.py || true; mn -c"], timeout=30)
+            helper_exec(["sh", "-lc", "pkill -f '[l]abhost-mininet.py' || true"], timeout=10)
+            helper_exec(["sh", "-lc", "mn -c"], timeout=30)
             state.topology_state = "stopped"
             state.topology_pid = None
             state.updated_at = datetime.now(timezone.utc).isoformat()
@@ -245,6 +254,17 @@ class MininetProvider(BaseProvider):
             "attempted": True,
             "blocked": blocked,
             "detail": output[-500:] or "no output",
+            "source_host": source_host,
+            "destination_ip": destination_ip,
+        }
+
+    def probe_connectivity(self, source_host: str, destination_ip: str) -> dict[str, Any]:
+        """Probe host connectivity and report whether traffic reaches the destination."""
+        probe = self.probe_traffic_drop(source_host, destination_ip)
+        return {
+            "attempted": probe["attempted"],
+            "reachable": not probe["blocked"],
+            "detail": probe["detail"],
             "source_host": source_host,
             "destination_ip": destination_ip,
         }

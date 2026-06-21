@@ -65,8 +65,9 @@ def normalize_controller_topology(config: dict[str, Any]) -> ControllerTopology:
     provider = FloodlightProvider(
         api_url=f"http://127.0.0.1:{config.get('lab', {}).get('floodlight_port', 8080)}"
     )
-    raw_switches = provider.switches()
-    raw_links = provider._json_get("/wm/topology/links/json") if provider.is_reachable() else []
+    reachable = provider.is_reachable()
+    raw_switches = provider.switches() if reachable else []
+    raw_links = provider._json_get("/wm/topology/links/json") if reachable else []
     switches = [_normalize_switch(item) for item in raw_switches if isinstance(item, dict)]
     links = [_normalize_link(item) for item in raw_links if isinstance(item, dict)] if isinstance(raw_links, list) else []
 

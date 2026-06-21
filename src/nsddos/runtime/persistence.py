@@ -12,7 +12,7 @@ from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from io import TextIOWrapper
 
-from nsddos.runtime.models import SCHEMA_VERSION
+from nsddos.runtime.domain.versions import SCHEMA_VERSION
 
 
 class PersistenceError(RuntimeError):
@@ -32,17 +32,6 @@ def _file_lock_path(path: Path) -> Path:
 
 def _directory_lock_path(path: Path) -> Path:
     return path / ".persistence.lock"
-
-
-def _fsync_directory(path: Path) -> None:
-    try:
-        fd = os.open(path, os.O_RDONLY)
-    except OSError:
-        return
-    try:
-        os.fsync(fd)
-    finally:
-        os.close(fd)
 
 
 @contextmanager
@@ -89,11 +78,8 @@ def atomic_write_json(path: Path, payload: dict[str, Any], *, lock_scope: TextIO
     temp_path = Path(temp_name)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
-            json.dump(data, handle, indent=2)
-            handle.flush()
-            os.fsync(handle.fileno())
+            json.dump(data, handle, separators=(",", ":"))
         os.replace(temp_path, path)
-        _fsync_directory(path.parent)
     except Exception:
         try:
             temp_path.unlink(missing_ok=True)

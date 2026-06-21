@@ -7,7 +7,7 @@ from typing import Any
 from nsddos.providers.floodlight.provider import FloodlightProvider
 from nsddos.providers.mininet.provider import MininetProvider
 from nsddos.providers.ovs.provider import OVSProvider
-from nsddos.providers.sflow.provider import SFlowProvider
+from nsddos.providers.sflow.provider import SFlowProvider, resolve_sflowrt_api_url
 from nsddos.runtime.controller_state import controller_history_summary
 from nsddos.runtime.models import IdentityMap, IdentityRecord
 
@@ -41,12 +41,13 @@ def build_identity_map(config: dict[str, Any]) -> IdentityMap:
     floodlight = FloodlightProvider(
         api_url=f"http://127.0.0.1:{config.get('lab', {}).get('floodlight_port', 8080)}"
     )
-    sflow = SFlowProvider(api_url=f"http://127.0.0.1:{config.get('api_port', 8008)}")
+    sflow = SFlowProvider(api_url=resolve_sflowrt_api_url(config))
 
     metadata = mininet.topology_metadata()
     ovs_bridges = ovs.list_bridges() if ovs.is_installed() else []
     controller_switches = floodlight.switches()
-    sflow_agents = _extract_sflow_agents(sflow.topology() if sflow.is_reachable() else None)
+    sflow_reachable = sflow.is_reachable()
+    sflow_agents = _extract_sflow_agents(sflow.topology() if sflow_reachable else None)
 
     records: list[IdentityRecord] = []
     conflicts: list[str] = []

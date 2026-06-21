@@ -10,7 +10,7 @@ from typing import Any
 from nsddos.config import load_runtime_state
 from nsddos.providers.docker_helper import helper_link_index_map, helper_running
 from nsddos.providers.mininet.provider import MininetProvider
-from nsddos.providers.sflow.provider import SFlowProvider
+from nsddos.providers.sflow.provider import SFlowProvider, resolve_sflowrt_api_url
 from nsddos.runtime.models import FlowState, TelemetryFreshness, VerificationResult
 
 
@@ -57,11 +57,22 @@ def _extract_switches(flows: list[dict[str, Any]]) -> list[str]:
 
 def sample_flow_visibility(config: dict[str, Any], interval: float = 2.0) -> FlowState:
     """Sample flow visibility twice, compare for movement."""
-    provider = SFlowProvider(api_url=f"http://127.0.0.1:{config.get('api_port', 8008)}")
+    provider = SFlowProvider(api_url=resolve_sflowrt_api_url(config))
     status = provider.status()
-    first = provider.flows() if status.get("reachable") else []
+    reachable = bool(status.get("reachable"))
+    if not reachable:
+        return FlowState(
+            collector_reachable=False,
+            telemetry_present=bool(status.get("flows_accessible")),
+            flow_count=0,
+            switches_visible=[],
+            interfaces_visible=[],
+            metrics_changed=False,
+            detail="provider_unreachable",
+        )
+    first = provider.flows()
     time.sleep(interval)
-    second = provider.flows() if status.get("reachable") else []
+    second = provider.flows()
     first_sig = {_flow_signature(flow) for flow in first}
     second_sig = {_flow_signature(flow) for flow in second}
     changed = first_sig != second_sig
@@ -79,14 +90,22 @@ def sample_flow_visibility(config: dict[str, Any], interval: float = 2.0) -> Flo
 
 def telemetry_freshness(config: dict[str, Any], interval: float = 2.0) -> TelemetryFreshness:
     """Infer freshness from two flow samples."""
-    provider = SFlowProvider(api_url=f"http://127.0.0.1:{config.get('api_port', 8008)}")
+    provider = SFlowProvider(api_url=resolve_sflowrt_api_url(config))
     observed_at = datetime.now(timezone.utc).isoformat()
-    first = provider.flows() if provider.is_reachable() else []
+    reachable = provider.is_reachable()
+    if not reachable:
+        return TelemetryFreshness(
+            last_flow_timestamp=observed_at,
+            sample_interval_seconds=0.0,
+            stale=False,
+            detail="provider_unreachable",
+        )
+    first = provider.flows()
     time.sleep(interval)
-    second = provider.flows() if provider.is_reachable() else []
+    second = provider.flows()
     changed = {_flow_signature(flow) for flow in first} != {_flow_signature(flow) for flow in second}
     flows = second if second else first
-    stale = not changed and provider.is_reachable() and not flows
+    stale = not changed and not flows
     last_flow_timestamp = observed_at
     return TelemetryFreshness(
         last_flow_timestamp=last_flow_timestamp,

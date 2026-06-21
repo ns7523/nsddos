@@ -12,6 +12,23 @@ from nsddos.ui.synchronization import deterministic_poll
 
 def test_ui_routes_render() -> None:
     client = TestClient(create_ui_app())
+    html_routes = {
+        "/",
+        "/dashboard",
+        "/docs",
+        "/ui",
+        "/ui/verification",
+        "/ui/convergence",
+        "/ui/graph",
+        "/ui/timeline",
+        "/ui/evidence",
+        "/ui/replay",
+        "/ui/sessions",
+        "/ui/service",
+        "/ui/diagnostics",
+        "/ui/drift",
+        "/ui/synchronization",
+    }
     for path in (
         "/",
         "/dashboard",
@@ -37,7 +54,10 @@ def test_ui_routes_render() -> None:
         assert response.status_code == 200
         if path == "/favicon.ico":
             continue
-        assert "<html>" in response.text or "openapi" in response.text.lower()
+        if path in html_routes:
+            assert "<html>" in response.text or "openapi" in response.text.lower()
+        else:
+            assert response.headers["content-type"].startswith("application/json")
 
 
 def test_ui_route_presence() -> None:

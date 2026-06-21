@@ -84,6 +84,33 @@ class FloodlightProvider(BaseProvider):
         payload = self._json_get("/wm/core/controller/switches/json")
         return payload if isinstance(payload, list) else []
 
+    def flow_stats(self) -> dict[str, Any]:
+        """Return switch flow stats payload."""
+        payload = self._json_get("/wm/core/switch/all/flow/json")
+        return payload if isinstance(payload, dict) else {}
+
+    def flow_stats_accessible(self) -> bool:
+        """Check whether Floodlight can query switch flow stats."""
+        payload = self.flow_stats()
+        if not payload:
+            return False
+        first_value = next(iter(payload.values()), None)
+        if isinstance(first_value, dict):
+            flattened = " ".join(str(item) for item in first_value.values())
+            if "not supported by the switch's OpenFlow version" in flattened:
+                return False
+        return True
+
+    def forwarding_programmed(self) -> bool:
+        """Check whether controller reports at least one installed flow."""
+        payload = self.flow_stats()
+        if not payload or not self.flow_stats_accessible():
+            return False
+        for switch_entries in payload.values():
+            if isinstance(switch_entries, list) and switch_entries:
+                return True
+        return False
+
     def push_static_flow(self, payload: dict[str, Any]) -> dict[str, Any]:
         """Push static flow entry."""
         response = self._json_request("/wm/staticflowentrypusher/json", method="POST", payload=payload)
@@ -114,7 +141,8 @@ class FloodlightProvider(BaseProvider):
         """Return provider status."""
         artifact_exists = self.artifact_exists()
         reachable = self.is_reachable()
-        switches = self.switches()
+        switches = self.switches() if reachable else []
+        flow_stats_accessible = self.flow_stats_accessible() if reachable and switches else False
         return {
             "provider": "floodlight",
             "artifact": str(self.artifact_path),
@@ -125,5 +153,7 @@ class FloodlightProvider(BaseProvider):
             "reachable": reachable,
             "switch_count": len(switches),
             "switches": [switch.get("switchDPID", "unknown") for switch in switches],
+            "flow_stats_accessible": flow_stats_accessible,
+            "forwarding_programmed": self.forwarding_programmed() if flow_stats_accessible else False,
             "ready": artifact_exists and reachable,
         }

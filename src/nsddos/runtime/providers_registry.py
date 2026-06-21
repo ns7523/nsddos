@@ -7,7 +7,7 @@ from typing import Any
 from nsddos.providers.floodlight.provider import FloodlightProvider
 from nsddos.providers.mininet.provider import MininetProvider
 from nsddos.providers.ovs.provider import OVSProvider
-from nsddos.providers.sflow.provider import SFlowProvider
+from nsddos.providers.sflow.provider import SFlowProvider, resolve_sflowrt_api_url
 
 
 def build_provider_registry(config: dict[str, Any]) -> dict[str, Any]:
@@ -15,7 +15,7 @@ def build_provider_registry(config: dict[str, Any]) -> dict[str, Any]:
     lab = config.get("lab", {})
     return {
         "floodlight": FloodlightProvider(api_url=f"http://127.0.0.1:{lab.get('floodlight_port', 8080)}"),
-        "sflowrt": SFlowProvider(api_url=f"http://127.0.0.1:{config.get('api_port', 8008)}"),
+        "sflowrt": SFlowProvider(api_url=resolve_sflowrt_api_url(config)),
         "mininet": MininetProvider(
             controller_port=lab.get("controller_port", 6653),
             topology=lab.get("mininet_topology", "single,3"),
@@ -32,4 +32,3 @@ def build_provider_registry(config: dict[str, Any]) -> dict[str, Any]:
 def collect_provider_status_from_registry(registry: dict[str, Any]) -> dict[str, dict[str, Any]]:
     """Collect status from provider registry."""
     return {name: provider.status() for name, provider in registry.items()}
-

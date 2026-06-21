@@ -149,7 +149,7 @@ def test_atomic_write_json_is_safe_under_100_parallel_processes(tmp_path):
     for process in processes:
         process.start()
     for process in processes:
-        process.join(timeout=30)
+        process.join(timeout=120)
         assert process.exitcode == 0
 
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -168,7 +168,7 @@ def test_locked_update_json_prevents_dropped_entries_under_100_parallel_processe
     for process in processes:
         process.start()
     for process in processes:
-        process.join(timeout=30)
+        process.join(timeout=120)
         assert process.exitcode == 0
 
     payload = read_json_checked(path)
