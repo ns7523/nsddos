@@ -38,10 +38,10 @@ COMPOSE_FILE = Path(
     os.getenv(APP_COMPOSE_ENV, PROJECT_ROOT / "docker" / "docker-compose.yml")
 ).expanduser()
 
-FLOODLIGHT_JAR = REPOSITORY_ROOT / "floodlight" / "target" / "floodlight.jar"
-SFLOWRT_JAR = REPOSITORY_ROOT / "ns-ddos" / "lib" / "sflowrt.jar"
+FLOODLIGHT_JAR = REPOSITORY_ROOT / "external" / "floodlight" / "target" / "floodlight.jar"
+SFLOWRT_JAR = REPOSITORY_ROOT / "external" / "sflowrt" / "lib" / "sflowrt.jar"
 MININET_BIN = Path(
-    os.getenv("NSDDOS_MININET_BIN", REPOSITORY_ROOT / "mininet" / "bin" / "mn")
+    os.getenv("NSDDOS_MININET_BIN", "mn")
 ).expanduser()
 OVS_VSCTL_BIN = Path(os.getenv("NSDDOS_OVS_VSCTL_BIN", "ovs-vsctl")).expanduser()
 OVS_OFCTL_BIN = Path(os.getenv("NSDDOS_OVS_OFCTL_BIN", "ovs-ofctl")).expanduser()

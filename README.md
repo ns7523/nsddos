@@ -19,6 +19,22 @@ source .venv/bin/activate
 pip install -e .
 ```
 
+## Linux Quickstart
+
+Single clone is enough. No sibling `floodlight`, `ns-ddos`, or `mininet` repo checkouts required.
+
+```bash
+git clone https://github.com/ns7523/nsddos.git
+cd nsddos
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .[dev]
+cp .env.example .env
+docker compose -f docker/docker-compose.yml up -d floodlight labhost sflowrt detector
+python -m nsddos health
+python -m nsddos verify
+```
+
 ## CLI Usage
 
 ```bash
@@ -116,6 +132,11 @@ Current runtime services:
 - `detector`
 - `mininet` via provider orchestration on host
 
+Bundled runtime assets live inside repo:
+- `external/floodlight/target/floodlight.jar`
+- `external/floodlight/logback.xml`
+- `external/sflowrt/`
+
 Runtime state persists in `~/.nsddos/runtime/state.json`.
 Evidence bundles persist in `~/.nsddos/runtime/evidence/`.
 Temporal history exports persist in `~/.nsddos/runtime/history/`.
@@ -141,6 +162,7 @@ Current providers:
 - `NSDDOS_HOME`
 - `NSDDOS_CONFIG`
 - `NSDDOS_COMPOSE_FILE`
+- `NSDDOS_MININET_BIN`
 
 ## Runtime Profiles
 

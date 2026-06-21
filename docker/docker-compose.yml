@@ -36,8 +36,8 @@ services:
     networks:
       - nsddos-lab
     volumes:
-      - ../../../floodlight:/opt/floodlight:ro
-      - ${NSDDOS_HOME:-../../../.nsddos-home}/runtime/floodlight:/var/lib/nsddos/floodlight
+      - ../external/floodlight:/opt/floodlight:ro
+      - ${NSDDOS_HOME:-../.nsddos-home}/runtime/floodlight:/var/lib/nsddos/floodlight
     healthcheck:
       test: ["CMD-SHELL", "tr '\\0' ' ' </proc/1/cmdline | grep -q '[f]loodlight.jar'"]
       interval: 10s
@@ -60,8 +60,8 @@ services:
     networks:
       - nsddos-lab
     volumes:
-      - ../../../ns-ddos:/opt/ns-ddos:ro
-      - ${NSDDOS_HOME:-../../../.nsddos-home}/runtime/sflowrt:/var/lib/nsddos/sflowrt
+      - ../external/sflowrt:/opt/ns-ddos:ro
+      - ${NSDDOS_HOME:-../.nsddos-home}/runtime/sflowrt:/var/lib/nsddos/sflowrt
     healthcheck:
       test: ["CMD-SHELL", "tr '\\0' ' ' </proc/1/cmdline | grep -q '[s]flowrt.jar'"]
       interval: 10s
@@ -82,7 +82,7 @@ services:
     networks:
       - nsddos-lab
     volumes:
-      - ${NSDDOS_HOME:-../../../.nsddos-home}/runtime/detector:/var/lib/nsddos/detector
+      - ${NSDDOS_HOME:-../.nsddos-home}/runtime/detector:/var/lib/nsddos/detector
     healthcheck:
       test: ["CMD-SHELL", "tr '\\0' ' ' </proc/1/cmdline | grep -q 'http.server 9000'"]
       interval: 10s
