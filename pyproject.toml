@@ -60,6 +60,7 @@ line-length = 88
 
 [tool.ruff]
 line-length = 88
+exclude = ["external"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
