@@ -76,8 +76,6 @@ def _run_host_command(args: list[str], timeout: int = 30) -> subprocess.Complete
 
 
 def _namespace_runner(host: str) -> list[str]:
-    if helper_running():
-        return ["docker", "exec", "nsddos-labhost", "ip", "netns", "exec", host]
     if MininetProvider.is_root():
         return ["ip", "netns", "exec", host]
     if MininetProvider.has_passwordless_sudo():
@@ -85,7 +83,21 @@ def _namespace_runner(host: str) -> list[str]:
     raise RuntimeError("Mininet namespace execution requires helper runtime or passwordless sudo.")
 
 
+def _helper_host_command(host: str, script: str) -> list[str]:
+    attach = (
+        "pid=$(ps -eo pid,args | awk '/mininet:"
+        f"{host}"
+        "$/ {print $1; exit}'); "
+        "[ -n \"$pid\" ] || { echo missing_mininet_host >&2; exit 1; }; "
+        "mnexec -a \"$pid\" sh -lc "
+        f"{shlex.quote(script)}"
+    )
+    return ["docker", "exec", "nsddos-labhost", "sh", "-lc", attach]
+
+
 def _namespace_shell(host: str, script: str, timeout: int = 30) -> subprocess.CompletedProcess[str]:
+    if helper_running():
+        return _run_host_command(_helper_host_command(host, script), timeout=timeout)
     prefix = _namespace_runner(host)
     return _run_host_command([*prefix, "sh", "-lc", script], timeout=timeout)
 
@@ -119,15 +131,17 @@ def _ensure_hping3() -> None:
         raise RuntimeError("Unable to install hping3 in Mininet runtime.")
 
 
-def _start_victim_service(victim: str, target_ip: str, target_port: int) -> None:
-    script = (
-        f"pkill -f 'http.server {target_port}' >/dev/null 2>&1 || true; "
-        f"nohup python3 -m http.server {target_port} --bind {shlex.quote(target_ip)} "
-        f">/tmp/nsddos-http-victim.log 2>&1 </dev/null &"
+def _start_victim_service(victim: str, target_ip: str, target_port: int) -> threading.Thread:
+    _namespace_shell(victim, f"pkill -f 'http.server {target_port}' >/dev/null 2>&1 || true", timeout=10)
+    thread = _background_namespace_task(
+        victim,
+        (
+            f"python3 -m http.server {target_port} --bind {shlex.quote(target_ip)} "
+            ">/tmp/nsddos-http-victim.log 2>&1"
+        ),
     )
-    result = _namespace_shell(victim, script, timeout=15)
-    if result.returncode != 0:
-        raise RuntimeError("Unable to start victim HTTP service.")
+    time.sleep(1)
+    return thread
 
 
 def _stop_victim_service(victim: str, target_port: int) -> None:
@@ -477,7 +491,8 @@ def _run_attack(
     cooldown: int,
 ) -> dict[str, Any]:
     attacker_ip = _host_ip(attacker)
-    _start_victim_service(victim, target_ip, target_port)
+    victim_thread: threading.Thread | None = None
+    victim_thread = _start_victim_service(victim, target_ip, target_port)
     first_sflow_seen_at = None
     first_dashboard_visible_at = None
     dropped_before = 0
@@ -550,6 +565,8 @@ def _run_attack(
         }
     finally:
         _stop_victim_service(victim, target_port)
+        if victim_thread is not None:
+            victim_thread.join(timeout=1)
 
 
 def run_live_attack_suite(

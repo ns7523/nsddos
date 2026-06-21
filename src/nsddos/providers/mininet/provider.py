@@ -223,7 +223,14 @@ class MininetProvider(BaseProvider):
         """Probe host connectivity and report whether traffic is blocked."""
         command = ["ip", "netns", "exec", source_host, "ping", "-c", "1", "-W", "1", destination_ip]
         if helper_running():
-            result = helper_exec(command, timeout=10)
+            attach = (
+                "pid=$(ps -eo pid,args | awk '/mininet:"
+                f"{source_host}"
+                "$/ {print $1; exit}'); "
+                "[ -n \"$pid\" ] || { echo missing_mininet_host >&2; exit 1; }; "
+                f"mnexec -a \"$pid\" ping -c 1 -W 1 {destination_ip}"
+            )
+            result = helper_exec(["sh", "-lc", attach], timeout=10)
         else:
             result = subprocess.run(
                 [*self._command_prefix(), *command],

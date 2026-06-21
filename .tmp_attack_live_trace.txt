@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "<stdin>", line 7, in <module>
+  File "/Users/143ns/BTECH/PORTFOLIO/Projects/P1/ns-ddosiot/code/nsddos/src/nsddos/runtime/attack/engine.py", line 587, in run_live_attack_suite
+    _run_attack(
+  File "/Users/143ns/BTECH/PORTFOLIO/Projects/P1/ns-ddosiot/code/nsddos/src/nsddos/runtime/attack/engine.py", line 492, in _run_attack
+    _start_victim_service(victim, target_ip, target_port)
+  File "/Users/143ns/BTECH/PORTFOLIO/Projects/P1/ns-ddosiot/code/nsddos/src/nsddos/runtime/attack/engine.py", line 142, in _start_victim_service
+    raise RuntimeError("Unable to start victim HTTP service.")
+RuntimeError: Unable to start victim HTTP service.

@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 from time import monotonic
 from typing import Any
 
-from fastapi.testclient import TestClient
+import httpx
 
 from nsddos.api.app import create_app
 from nsddos.runtime.domain.base import RuntimeRecord
@@ -17,11 +18,11 @@ class UiApiClient:
     """Deterministic API client for UI surfaces."""
 
     def __init__(self) -> None:
-        self._client = TestClient(create_app())
+        self._app = create_app()
 
     def get(self, path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         start = monotonic()
-        response = self._client.get(path, params=params or {})
+        response = asyncio.run(self._request(path, params or {}))
         response.raise_for_status()
         duration_ms = (monotonic() - start) * 1000
         record_timing(f"ui.api.{path}", duration_ms)
@@ -37,3 +38,8 @@ class UiApiClient:
             )
         payload["items"] = typed_items
         return {"payload": payload, "duration_ms": duration_ms}
+
+    async def _request(self, path: str, params: dict[str, Any]) -> httpx.Response:
+        transport = httpx.ASGITransport(app=self._app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://nsddos.local") as client:
+            return await client.get(path, params=params)
