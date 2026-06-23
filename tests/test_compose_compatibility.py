@@ -6,6 +6,8 @@ import subprocess
 from pathlib import Path
 
 from nsddos.compose import compose_backend_name, resolve_compose_command
+from nsddos.bootstrap.stack import list_stack_services
+from nsddos.bootstrap.state import ComposeBackend
 from nsddos.docker_manager import DockerManager
 
 
@@ -64,6 +66,137 @@ def test_docker_manager_run_uses_resolved_compose_backend(monkeypatch, tmp_path)
 
     assert result.returncode == 0
     assert captured["argv"] == ("docker-compose", "-f", str(compose_file), "ps", "--format", "json")
+
+
+def test_docker_manager_get_service_states_falls_back_to_docker_ps(monkeypatch, tmp_path) -> None:
+    compose_file = tmp_path / "docker-compose.yml"
+    compose_file.write_text("services: {}\n", encoding="utf-8")
+    manager = DockerManager(compose_file=compose_file)
+
+    monkeypatch.setattr("nsddos.docker_manager.resolve_compose_command", lambda: ("docker-compose",))
+    monkeypatch.setattr("nsddos.docker_manager.DockerManager.is_docker_installed", staticmethod(lambda: True))
+    monkeypatch.setattr("nsddos.docker_manager.DockerManager.is_daemon_running", lambda self: True)
+
+    def fake_run(argv, **kwargs):
+        if tuple(argv) == ("docker-compose", "-f", str(compose_file), "ps", "--format", "json"):
+            return subprocess.CompletedProcess(argv, 1, stdout="", stderr="unknown flag: --format")
+        if tuple(argv) == ("docker", "ps", "--format", "{{.Names}}|{{.Status}}"):
+            return subprocess.CompletedProcess(
+                argv,
+                0,
+                stdout=(
+                    "nsddos-labhost|Up 10 minutes (healthy)\n"
+                    "nsddos-floodlight|Up 10 minutes (healthy)\n"
+                    "nsddos-sflowrt|Up 10 minutes (healthy)\n"
+                    "nsddos-detector|Up 10 minutes (healthy)\n"
+                ),
+                stderr="",
+            )
+        raise AssertionError(f"unexpected command: {argv}")
+
+    monkeypatch.setattr("nsddos.docker_manager.subprocess.run", fake_run)
+
+    services = manager.get_service_states()
+
+    assert [service.name for service in services] == [
+        "nsddos-labhost",
+        "nsddos-floodlight",
+        "nsddos-sflowrt",
+        "nsddos-detector",
+    ]
+    assert all(service.healthy for service in services)
+
+
+def test_docker_manager_get_service_states_uses_compose_json_when_available(monkeypatch, tmp_path) -> None:
+    compose_file = tmp_path / "docker-compose.yml"
+    compose_file.write_text("services: {}\n", encoding="utf-8")
+    manager = DockerManager(compose_file=compose_file)
+
+    monkeypatch.setattr("nsddos.docker_manager.resolve_compose_command", lambda: ("docker", "compose"))
+    monkeypatch.setattr("nsddos.docker_manager.DockerManager.is_docker_installed", staticmethod(lambda: True))
+    monkeypatch.setattr("nsddos.docker_manager.DockerManager.is_daemon_running", lambda self: True)
+
+    def fake_run(argv, **kwargs):
+        if tuple(argv) == ("docker", "compose", "-f", str(compose_file), "ps", "--format", "json"):
+            return subprocess.CompletedProcess(
+                argv,
+                0,
+                stdout='{"Service":"labhost","State":"running","Health":"healthy","Name":"nsddos-labhost"}',
+                stderr="",
+            )
+        raise AssertionError(f"unexpected command: {argv}")
+
+    monkeypatch.setattr("nsddos.docker_manager.subprocess.run", fake_run)
+
+    services = manager.get_service_states()
+
+    assert len(services) == 1
+    assert services[0].name == "labhost"
+    assert services[0].healthy is True
+
+
+def test_list_stack_services_uses_docker_manager_fallback(monkeypatch, tmp_path) -> None:
+    compose_file = tmp_path / "docker-compose.yml"
+    compose_file.write_text("services: {}\n", encoding="utf-8")
+
+    monkeypatch.setattr(
+        "nsddos.bootstrap.stack.DockerManager.get_service_states",
+        lambda self: [
+            type(
+                "Service",
+                (),
+                {
+                    "name": "nsddos-labhost",
+                    "status": "running",
+                    "healthy": True,
+                    "container_id": "abc123",
+                    "detail": "Up 10 minutes (healthy)",
+                },
+            )(),
+        ],
+    )
+
+    services = list_stack_services(
+        ComposeBackend(name="docker-compose-v1", command=("docker-compose",)),
+        compose_file=compose_file,
+    )
+
+    assert len(services) == 1
+    assert services[0].service_name == "nsddos-labhost"
+    assert services[0].container_name == "nsddos-labhost"
+    assert services[0].healthy is True
+
+
+def test_list_stack_services_prefixes_compose_service_name(monkeypatch, tmp_path) -> None:
+    compose_file = tmp_path / "docker-compose.yml"
+    compose_file.write_text("services: {}\n", encoding="utf-8")
+
+    monkeypatch.setattr(
+        "nsddos.bootstrap.stack.DockerManager.get_service_states",
+        lambda self: [
+            type(
+                "Service",
+                (),
+                {
+                    "name": "labhost",
+                    "status": "running",
+                    "healthy": True,
+                    "container_id": "abc123",
+                    "detail": "healthy",
+                },
+            )(),
+        ],
+    )
+
+    services = list_stack_services(
+        ComposeBackend(name="docker-compose-v2", command=("docker", "compose")),
+        compose_file=compose_file,
+    )
+
+    assert len(services) == 1
+    assert services[0].service_name == "labhost"
+    assert services[0].container_name == "nsddos-labhost"
+    assert services[0].healthy is True
 
 
 def test_tracked_runtime_code_has_single_compose_probe_site() -> None:

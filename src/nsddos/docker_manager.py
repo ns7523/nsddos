@@ -168,6 +168,44 @@ class DockerManager:
                 services.append(parsed)
         return services
 
+    @staticmethod
+    def _parse_docker_ps_output(raw: str) -> list[ServiceState]:
+        """Parse `docker ps --format` fallback output."""
+        services: list[ServiceState] = []
+        for line in raw.splitlines():
+            line = line.strip()
+            if not line or "|" not in line:
+                continue
+            name, status = line.split("|", 1)
+            name = name.strip()
+            status = status.strip()
+            if not name:
+                continue
+            services.append(
+                ServiceState(
+                    name=name,
+                    status="running" if status.lower().startswith("up") else status,
+                    healthy="(healthy)" in status.lower() or ("up" in status.lower() and "(unhealthy)" not in status.lower()),
+                    container_id=None,
+                    provider="docker",
+                    endpoint=None,
+                    detail=status,
+                )
+            )
+        return services
+
+    def _docker_ps_fallback(self) -> list[ServiceState]:
+        """Return service states via `docker ps` when compose JSON unsupported."""
+        result = subprocess.run(
+            ["docker", "ps", "--format", "{{.Names}}|{{.Status}}"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            return []
+        return self._parse_docker_ps_output(result.stdout.strip())
+
     def get_service_states(self) -> list[ServiceState]:
         """Return normalized service states."""
         if not self.compose_exists():
@@ -177,9 +215,11 @@ class DockerManager:
 
         result = self._run(["ps", "--format", "json"])
         if result.returncode != 0:
-            return []
+            return self._docker_ps_fallback()
 
         parsed = self._parse_compose_ps_output(result.stdout.strip())
+        if not parsed:
+            return self._docker_ps_fallback()
         return [self._normalize_service(entry) for entry in parsed]
 
     def get_service_status(self) -> dict[str, Any]:

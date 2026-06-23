@@ -5,10 +5,10 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from nsddos.bootstrap.service_monitor import parse_compose_ps_output
 from nsddos.bootstrap.state import ComposeBackend, StartupServiceStatus
 from nsddos.constants import COMPOSE_FILE
 from nsddos.compose import compose_backend_name, resolve_compose_command
+from nsddos.docker_manager import DockerManager
 
 
 def detect_compose_backend() -> ComposeBackend | None:
@@ -51,11 +51,19 @@ def list_stack_services(
     compose_file: Path = COMPOSE_FILE,
 ) -> tuple[StartupServiceStatus, ...]:
     """List compose services."""
-
-    result = run_compose_command(backend, ("ps", "--format", "json"), compose_file)
-    if result.returncode != 0:
-        return ()
-    return parse_compose_ps_output(result.stdout.strip())
+    _ = backend
+    services = DockerManager(compose_file=compose_file).get_service_states()
+    return tuple(
+        StartupServiceStatus(
+            service_name=service.name,
+            container_name=service.name if service.name.startswith("nsddos-") else f"nsddos-{service.name}",
+            state=service.status,
+            health=service.detail or service.status,
+            healthy=service.healthy,
+            container_id=service.container_id,
+        )
+        for service in services
+    )
 
 
 def stack_is_healthy(
