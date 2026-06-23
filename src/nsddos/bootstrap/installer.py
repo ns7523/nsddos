@@ -9,7 +9,12 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 
-from nsddos.bootstrap.commands import SystemCommand, runtime_init_command, subprocess_command, venv_command
+from nsddos.bootstrap.commands import (
+    SystemCommand,
+    compose_subprocess_command,
+    runtime_init_command,
+    venv_command,
+)
 from nsddos.bootstrap.docker_install import (
     build_docker_compose_install_commands,
     build_docker_daemon_commands,
@@ -63,7 +68,7 @@ def commands_for_requirement(
         return build_runtime_directory_commands(scan.missing_runtime_directories)
     if requirement.title == "Build Containers":
         return (
-            subprocess_command("Build container images", ("docker", "compose", "build")),
+            compose_subprocess_command("Build container images", ("build",)),
         )
     if requirement.title == "Initialize Runtime":
         return (runtime_init_command("Initialize runtime directories and state"),)

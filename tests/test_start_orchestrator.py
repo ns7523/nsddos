@@ -53,11 +53,7 @@ def _healthy_services() -> tuple[StartupServiceStatus, ...]:
 
 
 def test_detect_compose_backend_prefers_docker_compose(monkeypatch) -> None:
-    monkeypatch.setattr("nsddos.bootstrap.stack.which", lambda name: "/usr/bin/docker" if name == "docker" else None)
-    monkeypatch.setattr(
-        "nsddos.bootstrap.stack.subprocess.run",
-        lambda *args, **kwargs: subprocess.CompletedProcess(args[0], 0, stdout="v2", stderr=""),
-    )
+    monkeypatch.setattr("nsddos.bootstrap.stack.resolve_compose_command", lambda: ("docker", "compose"))
 
     backend = detect_compose_backend()
 
@@ -65,14 +61,7 @@ def test_detect_compose_backend_prefers_docker_compose(monkeypatch) -> None:
 
 
 def test_detect_compose_backend_falls_back_to_docker_compose_binary(monkeypatch) -> None:
-    monkeypatch.setattr(
-        "nsddos.bootstrap.stack.which",
-        lambda name: "/usr/bin/docker-compose" if name == "docker-compose" else "/usr/bin/docker" if name == "docker" else None,
-    )
-    monkeypatch.setattr(
-        "nsddos.bootstrap.stack.subprocess.run",
-        lambda *args, **kwargs: subprocess.CompletedProcess(args[0], 1, stdout="", stderr="missing"),
-    )
+    monkeypatch.setattr("nsddos.bootstrap.stack.resolve_compose_command", lambda: ("docker-compose",))
 
     backend = detect_compose_backend()
 

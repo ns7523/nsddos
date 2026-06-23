@@ -9,6 +9,8 @@ from pathlib import Path
 
 from nsddos.bootstrap.commands import SystemCommand
 from nsddos.config import ensure_default_config, ensure_runtime_directories, ensure_runtime_state
+from nsddos.constants import COMPOSE_FILE
+from nsddos.compose import resolve_compose_command
 
 
 @dataclass(frozen=True)
@@ -25,6 +27,27 @@ class CommandExecutionResult:
 def run_system_command(command: SystemCommand) -> CommandExecutionResult:
     """Execute typed installer command."""
 
+    if command.kind == "compose":
+        backend = resolve_compose_command()
+        if backend is None:
+            return CommandExecutionResult(command, False, 1, "", "Compose backend unavailable")
+        try:
+            completed = subprocess.run(
+                (*backend, "-f", str(COMPOSE_FILE), *command.compose_args),
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=600,
+            )
+        except OSError as exc:
+            return CommandExecutionResult(command, False, 1, "", str(exc))
+        return CommandExecutionResult(
+            command=command,
+            success=completed.returncode == 0,
+            returncode=completed.returncode,
+            stdout=completed.stdout,
+            stderr=completed.stderr,
+        )
     if command.kind == "subprocess":
         try:
             completed = subprocess.run(

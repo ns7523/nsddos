@@ -12,6 +12,7 @@ import typer
 from loguru import logger
 
 from nsddos.config import build_runtime_state, load_runtime_state, write_runtime_state
+from nsddos.compose import resolve_compose_command
 from nsddos.constants import COMPOSE_FILE
 from nsddos.runtime.models import ServiceState
 
@@ -46,18 +47,8 @@ class DockerManager:
     @staticmethod
     def _compose_backend() -> list[str] | None:
         """Detect compose backend command."""
-        if which("docker") is not None:
-            result = subprocess.run(
-                ["docker", "compose", "version"],
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            if result.returncode == 0:
-                return ["docker", "compose"]
-        if which("docker-compose") is not None:
-            return ["docker-compose"]
-        return None
+        command = resolve_compose_command()
+        return list(command) if command is not None else None
 
     def _run(self, args: list[str]) -> subprocess.CompletedProcess[str]:
         """Run subprocess for Docker operations."""

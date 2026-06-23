@@ -10,6 +10,8 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from nsddos.compose import resolve_compose_command
+
 
 @dataclass(frozen=True)
 class ToolStatus:
@@ -66,25 +68,18 @@ def _detect_docker_daemon(docker: ToolStatus) -> bool:
 
 
 def _detect_docker_compose(docker: ToolStatus) -> ToolStatus:
-    direct = shutil.which("docker-compose")
-    if direct is not None:
-        return ToolStatus(name="docker-compose", installed=True, detail=direct)
     if not docker.installed:
         return ToolStatus(name="docker-compose", installed=False, detail=None)
     try:
-        result = subprocess.run(
-            ["docker", "compose", "version"],
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=3,
-        )
+        command = resolve_compose_command()
     except (OSError, subprocess.SubprocessError):
+        return ToolStatus(name="docker-compose", installed=False, detail=None)
+    if command is None:
         return ToolStatus(name="docker-compose", installed=False, detail=None)
     return ToolStatus(
         name="docker-compose",
-        installed=result.returncode == 0,
-        detail="docker compose" if result.returncode == 0 else None,
+        installed=True,
+        detail=" ".join(command),
     )
 
 

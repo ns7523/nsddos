@@ -56,6 +56,33 @@ def test_collect_environment_scan_detects_extended_fields(monkeypatch) -> None:
     assert isinstance(scan.missing_runtime_directories, tuple)
 
 
+def test_collect_environment_scan_reports_legacy_compose_detail(monkeypatch) -> None:
+    monkeypatch.setattr("nsddos.bootstrap.setup.platform.system", lambda: "Linux")
+    monkeypatch.setattr("nsddos.bootstrap.setup.platform.python_version", lambda: "3.11.10")
+    monkeypatch.setattr(
+        "nsddos.bootstrap.environment.shutil.which",
+        lambda name: f"/usr/bin/{name}" if name in {"docker", "git", "docker-compose"} else None,
+    )
+    monkeypatch.setattr("nsddos.bootstrap.environment.sys.prefix", "/tmp/venv")
+    monkeypatch.setattr("nsddos.bootstrap.environment.sys.base_prefix", "/usr")
+    monkeypatch.setattr("nsddos.bootstrap.environment.os.sysconf", lambda name: 4096 if name == "SC_PAGE_SIZE" else 1024)
+    monkeypatch.setattr("nsddos.bootstrap.environment.shutil.disk_usage", lambda path: (100, 40, 60))
+
+    def fake_run(command, **kwargs):
+        if command == ["docker", "info"]:
+            return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
+        if command == ["docker", "compose", "version"]:
+            return subprocess.CompletedProcess(command, 1, stdout="", stderr="missing")
+        raise AssertionError(f"unexpected command: {command}")
+
+    monkeypatch.setattr("nsddos.bootstrap.environment.subprocess.run", fake_run)
+
+    scan = collect_environment_scan()
+
+    assert scan.docker_compose.installed is True
+    assert scan.docker_compose.detail == "docker-compose"
+
+
 def test_get_profile_by_choice_returns_profile() -> None:
     profile = get_profile_by_choice(3)
     assert profile == DOCKER_RUNTIME_ONLY

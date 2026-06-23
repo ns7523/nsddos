@@ -4,29 +4,20 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
-from shutil import which
 
 from nsddos.bootstrap.service_monitor import parse_compose_ps_output
 from nsddos.bootstrap.state import ComposeBackend, StartupServiceStatus
 from nsddos.constants import COMPOSE_FILE
+from nsddos.compose import compose_backend_name, resolve_compose_command
 
 
 def detect_compose_backend() -> ComposeBackend | None:
     """Detect compose backend preference."""
 
-    if which("docker") is not None:
-        result = subprocess.run(
-            ["docker", "compose", "version"],
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=5,
-        )
-        if result.returncode == 0:
-            return ComposeBackend(name="docker-compose-v2", command=("docker", "compose"))
-    if which("docker-compose") is not None:
-        return ComposeBackend(name="docker-compose-v1", command=("docker-compose",))
-    return None
+    command = resolve_compose_command()
+    if command is None:
+        return None
+    return ComposeBackend(name=compose_backend_name(command), command=command)
 
 
 def compose_command(
