@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+{% set lab = page.lab_console %}
+<section class="lab-console-shell">
+  <div class="lab-grid">
+    <section class="lab-panel topology-panel">
+      <div class="lab-panel-head">
+        <div class="lab-kicker">TOPOLOGY</div>
+        <div class="lab-heading">Mininet Fabric</div>
+      </div>
+      <div class="lab-topology" id="labTopology">
+        {% for edge in lab.edges %}
+        <div class="lab-edge" data-source="{{ edge.source }}" data-target="{{ edge.target }}"></div>
+        {% endfor %}
+        {% for node in lab.nodes %}
+        <button type="button" class="lab-node {{ node.state }}" data-node-id="{{ node.node_id }}">
+          <span class="lab-node-label">{{ node.label }}</span>
+          <span class="lab-node-detail">{{ node.detail }}</span>
+        </button>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="lab-panel telemetry-panel">
+      <div class="lab-panel-head">
+        <div class="lab-kicker">TELEMETRY</div>
+        <div class="lab-heading">Live Attack Data</div>
+      </div>
+      <div class="lab-telemetry-grid" id="labTelemetryGrid">
+        {% for item in lab.telemetry %}
+        <article class="lab-telemetry-card {{ item.state }}">
+          <div class="lab-telemetry-label">{{ item.label }}</div>
+          <div class="lab-telemetry-value">{{ item.value }}</div>
+          <div class="lab-telemetry-detail">{{ item.detail }}</div>
+        </article>
+        {% endfor %}
+      </div>
+      <div class="lab-action-status" id="labActionStatus">
+        <span class="lab-status-label">STATUS</span>
+        <span class="lab-status-value">{{ lab.action_status.state }}</span>
+        <span class="lab-status-detail">{{ lab.action_status.detail }}</span>
+      </div>
+    </section>
+  </div>
+
+  <section class="lab-panel actions-panel">
+    <div class="lab-panel-head">
+      <div class="lab-kicker">QUICK ACTIONS</div>
+      <div class="lab-heading">Operator Rail</div>
+    </div>
+    <div class="lab-actions" id="labActions">
+      {% for button in lab.action_buttons %}
+      <button
+        type="button"
+        class="lab-action-button {{ button.kind }}"
+        data-action="{{ button.action }}"
+      >{{ button.label }}</button>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="lab-panel terminal-panel">
+    <div class="lab-panel-head">
+      <div class="lab-kicker">TERMINAL</div>
+      <div class="lab-heading">Host Namespace Shell</div>
+    </div>
+    <div class="lab-terminal-tabs" id="labTerminalTabs">
+      {% for tab in lab.terminal_tabs %}
+      <button
+        type="button"
+        class="lab-terminal-tab{% if loop.first %} active{% endif %}"
+        data-host="{{ tab.host }}"
+      >{{ tab.label }}</button>
+      {% endfor %}
+    </div>
+    <div class="lab-terminal-status" id="labTerminalStatus">
+      {% for tab in lab.terminal_tabs %}
+      <span class="lab-terminal-chip">{{ tab.host }} {{ tab.state }}</span>
+      {% endfor %}
+    </div>
+    <pre class="lab-terminal-output" id="labTerminalOutput"></pre>
+    <div class="lab-terminal-input-row">
+      <span class="lab-terminal-prompt" id="labTerminalPrompt">{{ lab.terminal_tabs[0].prompt if lab.terminal_tabs else "h1#" }}</span>
+      <input type="text" id="labTerminalInput" class="lab-terminal-input" autocomplete="off" spellcheck="false" />
+    </div>
+  </section>
+</section>
+
+<aside class="lab-drawer" id="labDrawer" hidden>
+  <div class="lab-drawer-head">
+    <div class="lab-kicker">NODE DETAIL</div>
+    <button type="button" class="lab-drawer-close" id="labDrawerClose">close</button>
+  </div>
+  <div class="lab-drawer-title" id="labDrawerTitle">Node</div>
+  <div class="lab-drawer-state" id="labDrawerState"></div>
+  <div class="lab-drawer-detail" id="labDrawerDetail"></div>
+  <div class="lab-drawer-meta" id="labDrawerMeta"></div>
+</aside>
+
+<script id="pageSnapshot" type="application/json">{{ page_json|tojson }}</script>
+{% endblock %}

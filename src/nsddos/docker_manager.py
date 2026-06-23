@@ -43,10 +43,28 @@ class DockerManager:
         """Check compose file availability."""
         return self.compose_file.exists()
 
+    @staticmethod
+    def _compose_backend() -> list[str] | None:
+        """Detect compose backend command."""
+        if which("docker") is not None:
+            result = subprocess.run(
+                ["docker", "compose", "version"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if result.returncode == 0:
+                return ["docker", "compose"]
+        if which("docker-compose") is not None:
+            return ["docker-compose"]
+        return None
+
     def _run(self, args: list[str]) -> subprocess.CompletedProcess[str]:
         """Run subprocess for Docker operations."""
-        command = ["docker", "compose", "-f", str(self.compose_file), *args]
-        logger.info("Running compose command: {}", " ".join(command))
+        backend = self._compose_backend()
+        if backend is None:
+            return subprocess.CompletedProcess(args=[], returncode=1, stdout="", stderr="Compose backend unavailable")
+        command = [*backend, "-f", str(self.compose_file), *args]
         result = subprocess.run(
             command,
             capture_output=True,
@@ -59,8 +77,10 @@ class DockerManager:
 
     def _run_attached(self, args: list[str]) -> int:
         """Run compose command attached to terminal."""
-        command = ["docker", "compose", "-f", str(self.compose_file), *args]
-        logger.info("Running compose command: {}", " ".join(command))
+        backend = self._compose_backend()
+        if backend is None:
+            return 1
+        command = [*backend, "-f", str(self.compose_file), *args]
         process = subprocess.Popen(command)
         try:
             return process.wait()
@@ -72,6 +92,9 @@ class DockerManager:
         """Validate Docker execution prerequisites."""
         if not self.is_docker_installed():
             logger.error("Docker CLI not installed.")
+            raise typer.Exit(code=1)
+        if self._compose_backend() is None:
+            logger.error("Docker Compose backend not available.")
             raise typer.Exit(code=1)
         if not self.is_daemon_running():
             logger.error("Docker daemon not running.")

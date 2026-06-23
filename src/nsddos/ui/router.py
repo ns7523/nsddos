@@ -2,140 +2,239 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable
+import asyncio
+from pathlib import Path
+from typing import Any
 
-from fastapi import APIRouter, Query
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
 
 from nsddos.ui.api_client import UiApiClient
-from nsddos.ui.components.convergence_view import render_convergence_view
-from nsddos.ui.components.diagnostics_view import render_diagnostics_view
-from nsddos.ui.components.evidence_view import render_evidence_view
-from nsddos.ui.components.graph_view import render_graph_view
-from nsddos.ui.components.layout import page_layout
-from nsddos.ui.components.navigation import render_navigation
-from nsddos.ui.components.replay_view import render_replay_view
-from nsddos.ui.components.session_view import render_session_view
-from nsddos.ui.components.status_bar import render_status_bar
-from nsddos.ui.components.tables import render_items_table
-from nsddos.ui.components.timeline_view import render_timeline_view
-from nsddos.ui.components.verification_view import render_verification_view
-from nsddos.ui.convergence import build_convergence_payload
-from nsddos.ui.diagnostics import build_diagnostics_payload
-from nsddos.ui.evidence import build_evidence_payload
-from nsddos.ui.graph import build_graph_payload
-from nsddos.ui.replay import build_replay_payload
-from nsddos.ui.sessions import build_sessions_payload
-from nsddos.ui.synchronization import deterministic_poll
-from nsddos.ui.timeline import build_timeline_payload
-from nsddos.ui.verification import build_verification_payload
+from nsddos.ui.dashboard_pages import EXPLORER_PATHS, PRIMARY_PATHS, UiPageBuilder
+from nsddos.ui.lab_console import control_manager, stream_terminal, terminal_manager
+from nsddos.ui.models import UiNavItem, UiPagePayload
 
 router = APIRouter(prefix="/ui", tags=["ui"])
 client = UiApiClient()
+builder = UiPageBuilder(client)
+templates = Jinja2Templates(directory=str(Path(__file__).with_name("templates")))
 
 
-def _wrap(title: str, body: str, summary: dict[str, Any]) -> HTMLResponse:
-    return HTMLResponse(page_layout(title, render_navigation(), render_status_bar(summary), body))
+def build_navigation(active_path: str) -> tuple[UiNavItem, ...]:
+    primary = (
+        ("OVERVIEW", "/ui", "Primary", ""),
+        ("INFRASTRUCTURE", "/ui/infrastructure", "Primary", ""),
+        ("DETECTION", "/ui/detection", "Primary", ""),
+        ("MITIGATION", "/ui/mitigation", "Primary", ""),
+        ("LIVE TRAFFIC", "/ui/live-traffic", "Primary", ""),
+        ("ATTACK LOGS", "/ui/attack-logs", "Primary", ""),
+        ("DOCTOR", "/ui/doctor", "Primary", ""),
+        ("SESSION", "/ui/session", "Primary", ""),
+    )
+    explorer = (
+        ("LAB CONSOLE", "/ui/lab-console", "Explorer", ""),
+        ("VERIFICATION", "/ui/verification", "Explorer", ""),
+        ("CONVERGENCE", "/ui/convergence", "Explorer", ""),
+        ("GRAPH", "/ui/graph", "Explorer", ""),
+        ("TIMELINE", "/ui/timeline", "Explorer", ""),
+        ("EVIDENCE", "/ui/evidence", "Explorer", ""),
+        ("REPLAY", "/ui/replay", "Explorer", ""),
+        ("SESSIONS", "/ui/sessions", "Explorer", ""),
+        ("SERVICE", "/ui/service", "Explorer", ""),
+        ("DIAGNOSTICS", "/ui/diagnostics", "Explorer", ""),
+        ("DRIFT", "/ui/drift", "Explorer", ""),
+        ("SYNCHRONIZATION", "/ui/synchronization", "Explorer", ""),
+    )
+    return tuple(
+        UiNavItem(label=label, path=path, group=group, icon=icon, active=active_path == path)
+        for label, path, group, icon in (*primary, *explorer)
+    )
+
+
+def render_page(request: Request, page: UiPagePayload, *, landing: bool = False) -> HTMLResponse:
+    del landing
+    ws_path = f"/ui/ws/{page.name}" if page.active_path in PRIMARY_PATHS else ""
+    template_name = "lab_console.html" if page.lab_console is not None else "page.html"
+    return templates.TemplateResponse(
+        request=request,
+        name=template_name,
+        context={
+            "request": request,
+            "page": page,
+            "page_json": page.to_dict(),
+            "nav_items": build_navigation(page.active_path),
+            "ws_path": ws_path,
+            "primary_paths": PRIMARY_PATHS,
+            "explorer_paths": EXPLORER_PATHS,
+        },
+    )
 
 
 def _payload(path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
     return client.get(path, params=params or {})
 
 
-def _render_query_page(
-    path: str,
-    title: str,
-    builder: Callable[[dict[str, Any]], Any],
-    renderer: Callable[[Any], str],
-    params: dict[str, Any] | None = None,
-) -> HTMLResponse:
-    data = _payload(path, params)
-    page = builder(data)
-    sync = deterministic_poll({"items": page.items})
-    summary = {**page.summary, **page.timings, "sync_items": sync["item_count"]}
-    return _wrap(title, renderer(page), summary)
-
-
 @router.get("", response_class=HTMLResponse)
-def ui_overview(limit: int = Query(default=25, ge=1, le=500)) -> HTMLResponse:
-    service = _payload("/runtime/service", {"limit": limit, "offset": 0})
-    verification = _payload("/runtime/verification", {"limit": limit, "offset": 0})
-    convergence = _payload("/runtime/convergence", {"limit": limit, "offset": 0})
-    replay = _payload("/runtime/replay", {"limit": limit, "offset": 0})
-    items = (
-        service["payload"].get("items", [])
-        + verification["payload"].get("items", [])[:5]
-        + convergence["payload"].get("items", [])[:5]
-        + replay["payload"].get("items", [])[:5]
-    )
-    sync = deterministic_poll({"items": items})
-    body = "<h2>Runtime Overview</h2><p>runtime truth + service + convergence + verification + replay</p>" + render_items_table(sync["items"], limit=limit)
-    return _wrap(
-        "Runtime Overview",
-        body,
-        {
-            "service_total": service["payload"].get("total", 0),
-            "verification_total": verification["payload"].get("total", 0),
-            "convergence_total": convergence["payload"].get("total", 0),
-            "replay_total": replay["payload"].get("total", 0),
-            "sync_items": sync["item_count"],
-        },
-    )
+def ui_overview(request: Request) -> HTMLResponse:
+    return render_page(request, builder.overview())
+
+
+@router.get("/lab-console", response_class=HTMLResponse)
+def ui_lab_console(request: Request) -> HTMLResponse:
+    return render_page(request, builder.lab_console())
+
+
+@router.get("/infrastructure", response_class=HTMLResponse)
+def ui_infrastructure(request: Request) -> HTMLResponse:
+    return render_page(request, builder.infrastructure())
+
+
+@router.get("/detection", response_class=HTMLResponse)
+def ui_detection(request: Request) -> HTMLResponse:
+    return render_page(request, builder.detection())
+
+
+@router.get("/mitigation", response_class=HTMLResponse)
+def ui_mitigation(request: Request) -> HTMLResponse:
+    return render_page(request, builder.mitigation())
+
+
+@router.get("/live-traffic", response_class=HTMLResponse)
+def ui_live_traffic(request: Request) -> HTMLResponse:
+    return render_page(request, builder.live_traffic())
+
+
+@router.get("/attack-logs", response_class=HTMLResponse)
+def ui_attack_logs(request: Request) -> HTMLResponse:
+    return render_page(request, builder.attack_logs())
+
+
+@router.get("/doctor", response_class=HTMLResponse)
+def ui_doctor(request: Request) -> HTMLResponse:
+    return render_page(request, builder.doctor())
+
+
+@router.get("/session", response_class=HTMLResponse)
+def ui_session(request: Request) -> HTMLResponse:
+    return render_page(request, builder.session())
 
 
 @router.get("/verification", response_class=HTMLResponse)
-def ui_verification(limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return _render_query_page("/runtime/verification", "Verification State", build_verification_payload, render_verification_view, {"limit": limit, "offset": offset})
+def ui_verification(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
+    return render_page(request, builder.explorer("/ui/verification", "Verification", "/runtime/verification", "verification rules and evidence", {"limit": limit, "offset": offset}))
 
 
 @router.get("/convergence", response_class=HTMLResponse)
-def ui_convergence(limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return _render_query_page("/runtime/convergence", "Convergence State", build_convergence_payload, render_convergence_view, {"limit": limit, "offset": offset})
+def ui_convergence(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
+    return render_page(request, builder.explorer("/ui/convergence", "Convergence", "/runtime/convergence", "convergence snapshots", {"limit": limit, "offset": offset}))
 
 
 @router.get("/graph", response_class=HTMLResponse)
-def ui_graph(limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return _render_query_page("/runtime/graph", "Runtime Graph", build_graph_payload, render_graph_view, {"limit": limit, "offset": offset})
+def ui_graph(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
+    return render_page(request, builder.explorer("/ui/graph", "Graph", "/runtime/graph", "runtime graph entities", {"limit": limit, "offset": offset}))
 
 
 @router.get("/timeline", response_class=HTMLResponse)
-def ui_timeline(limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return _render_query_page("/runtime/timeline", "Timeline Explorer", build_timeline_payload, render_timeline_view, {"limit": limit, "offset": offset})
+def ui_timeline(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
+    return render_page(request, builder.explorer("/ui/timeline", "Timeline", "/runtime/timeline", "time-ordered runtime events", {"limit": limit, "offset": offset}))
 
 
 @router.get("/evidence", response_class=HTMLResponse)
-def ui_evidence(limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return _render_query_page("/runtime/evidence", "Evidence Explorer", build_evidence_payload, render_evidence_view, {"limit": limit, "offset": offset})
+def ui_evidence(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
+    return render_page(request, builder.explorer("/ui/evidence", "Evidence", "/runtime/evidence", "evidence bundles", {"limit": limit, "offset": offset}))
 
 
 @router.get("/replay", response_class=HTMLResponse)
-def ui_replay(limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return _render_query_page("/runtime/replay", "Replay Explorer", build_replay_payload, render_replay_view, {"limit": limit, "offset": offset})
+def ui_replay(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
+    return render_page(request, builder.explorer("/ui/replay", "Replay", "/runtime/replay", "replay-safe history", {"limit": limit, "offset": offset}))
 
 
 @router.get("/sessions", response_class=HTMLResponse)
-def ui_sessions(limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return _render_query_page("/runtime/service", "Session State", build_sessions_payload, render_session_view, {"limit": limit, "offset": offset})
+def ui_sessions(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
+    return render_page(request, builder.explorer("/ui/sessions", "Sessions", "/runtime/service", "runtime sessions", {"limit": limit, "offset": offset}))
 
 
 @router.get("/service", response_class=HTMLResponse)
-def ui_service(limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return _render_query_page("/runtime/service", "Service Coordination", build_sessions_payload, render_session_view, {"limit": limit, "offset": offset})
+def ui_service(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
+    return render_page(request, builder.explorer("/ui/service", "Service", "/runtime/service", "service ownership and state", {"limit": limit, "offset": offset}))
 
 
 @router.get("/diagnostics", response_class=HTMLResponse)
-def ui_diagnostics(limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return _render_query_page("/runtime/service", "Diagnostics", build_diagnostics_payload, render_diagnostics_view, {"limit": limit, "offset": offset})
+def ui_diagnostics(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
+    return render_page(request, builder.explorer("/ui/diagnostics", "Diagnostics", "/runtime/service", "service diagnostics", {"limit": limit, "offset": offset}))
 
 
 @router.get("/drift", response_class=HTMLResponse)
-def ui_drift(limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return _render_query_page("/runtime/drift", "Runtime Drift", build_timeline_payload, render_timeline_view, {"limit": limit, "offset": offset})
+def ui_drift(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
+    return render_page(request, builder.explorer("/ui/drift", "Drift", "/runtime/drift", "temporal drift analysis", {"limit": limit, "offset": offset}))
 
 
 @router.get("/synchronization", response_class=HTMLResponse)
-def ui_synchronization(limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    data = _payload("/runtime/service", {"limit": limit, "offset": offset})
-    items = deterministic_poll(data["payload"])["items"]
-    body = "<h2>Synchronization State</h2><p>deterministic poll replay-safe stable ordering</p>" + render_items_table(items, limit=limit)
-    return _wrap("Synchronization State", body, {"items": len(items), "api_ms": float(data.get("duration_ms", 0.0))})
+def ui_synchronization(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
+    return render_page(request, builder.explorer("/ui/synchronization", "Synchronization", "/runtime/service", "runtime synchronization state", {"limit": limit, "offset": offset}))
+
+
+@router.post("/api/lab/actions/{action}")
+def ui_lab_action(action: str) -> JSONResponse:
+    return JSONResponse(control_manager.run_action(action))
+
+
+async def _stream_snapshot(websocket: WebSocket, name: str) -> None:
+    await websocket.accept()
+    try:
+        while True:
+            await websocket.send_json(builder.snapshot_for(name).to_dict())
+            await asyncio.sleep(2)
+    except WebSocketDisconnect:
+        return
+
+
+@router.websocket("/ws/overview")
+async def ws_overview(websocket: WebSocket) -> None:
+    await _stream_snapshot(websocket, "overview")
+
+
+@router.websocket("/ws/lab-console")
+async def ws_lab_console(websocket: WebSocket) -> None:
+    await _stream_snapshot(websocket, "lab-console")
+
+
+@router.websocket("/ws/lab-terminal/{host}")
+async def ws_lab_terminal(websocket: WebSocket, host: str) -> None:
+    await stream_terminal(websocket, host, terminal_manager)
+
+
+@router.websocket("/ws/infrastructure")
+async def ws_infrastructure(websocket: WebSocket) -> None:
+    await _stream_snapshot(websocket, "infrastructure")
+
+
+@router.websocket("/ws/detection")
+async def ws_detection(websocket: WebSocket) -> None:
+    await _stream_snapshot(websocket, "detection")
+
+
+@router.websocket("/ws/mitigation")
+async def ws_mitigation(websocket: WebSocket) -> None:
+    await _stream_snapshot(websocket, "mitigation")
+
+
+@router.websocket("/ws/live-traffic")
+async def ws_live_traffic(websocket: WebSocket) -> None:
+    await _stream_snapshot(websocket, "live-traffic")
+
+
+@router.websocket("/ws/attack-logs")
+async def ws_attack_logs(websocket: WebSocket) -> None:
+    await _stream_snapshot(websocket, "attack-logs")
+
+
+@router.websocket("/ws/doctor")
+async def ws_doctor(websocket: WebSocket) -> None:
+    await _stream_snapshot(websocket, "doctor")
+
+
+@router.websocket("/ws/session")
+async def ws_session(websocket: WebSocket) -> None:
+    await _stream_snapshot(websocket, "session")

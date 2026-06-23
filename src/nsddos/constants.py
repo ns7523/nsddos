@@ -38,11 +38,7 @@ COMPOSE_FILE = Path(
     os.getenv(APP_COMPOSE_ENV, REPOSITORY_ROOT / "docker-compose.yml")
 ).expanduser()
 
-<<<<<<< HEAD
-FLOODLIGHT_JAR = REPOSITORY_ROOT / "external" / "floodlight" / "target" / "floodlight.jar"
-=======
 FLOODLIGHT_JAR = REPOSITORY_ROOT / "external" / "floodlight" / "floodlight.jar"
->>>>>>> 7b0b4a3 (Initial NSDDOS v4.0 release candidate)
 SFLOWRT_JAR = REPOSITORY_ROOT / "external" / "sflowrt" / "lib" / "sflowrt.jar"
 MININET_BIN = Path(
     os.getenv("NSDDOS_MININET_BIN", "mn")

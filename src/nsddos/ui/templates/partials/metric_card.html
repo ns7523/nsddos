@@ -1,0 +1,11 @@
+<article class="metric-card tone-{{ card.tone }}" data-card-label="{{ card.label }}">
+  <div class="metric-header">
+    <div class="metric-label">{{ card.label }}</div>
+    <div class="metric-tone">{{ card.tone }}</div>
+  </div>
+  <div class="metric-value">{{ card.value }}</div>
+  <div class="metric-detail">{{ card.detail }}</div>
+  {% if card.delta %}
+  <div class="metric-delta {{ card.tone }}">{{ card.delta }}</div>
+  {% endif %}
+</article>

@@ -2,58 +2,41 @@
 
 from __future__ import annotations
 
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from pathlib import Path
 
-from nsddos.api.router import router as api_router
+from fastapi import FastAPI
+from fastapi import Request
+from fastapi.responses import RedirectResponse, Response
+from fastapi.staticfiles import StaticFiles
+
 from nsddos.api.middleware import install_middleware
-from nsddos.ui.components.layout import page_layout
-from nsddos.ui.router import router as ui_router
-from nsddos.ui.components.navigation import render_navigation
-from nsddos.ui.components.status_bar import render_status_bar
+from nsddos.api.router import router as api_router
+from nsddos.ui.router import PRIMARY_PATHS, EXPLORER_PATHS, builder, render_page, router as ui_router
 from nsddos.ui.state import build_ui_state
+
+STATIC_DIR = Path(__file__).with_name("static")
 
 
 def create_ui_app() -> FastAPI:
     app = FastAPI(
         title="NS-DDoS Operational Observability UI",
         version="0.1.0",
-        description="Deterministic runtime observability interface",
+        description="Enterprise runtime observability interface",
     )
     install_middleware(app)
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-    @app.get("/", response_class=HTMLResponse)
-    def ui_root() -> HTMLResponse:
-        body = (
-            "<h1>NSDDOS Control Panel</h1>"
-            "<p>Operational entry surface for runtime UI and API checks.</p>"
-            "<ul>"
-            "<li><a href='/dashboard'>Dashboard</a></li>"
-            "<li><a href='/health'>Health</a></li>"
-            "<li><a href='/runtime/service'>Runtime Status</a></li>"
-            "<li><a href='/runtime/detection'>Detection</a></li>"
-            "<li><a href='/runtime/mitigation'>Mitigation</a></li>"
-            "<li><a href='/docs'>API Docs</a></li>"
-            "</ul>"
-        )
-        return HTMLResponse(
-            page_layout(
-                "NSDDOS Control Panel",
-                render_navigation(),
-                render_status_bar(
-                    {
-                        "readonly": True,
-                        "query_backed": True,
-                        "entrypoint": "/",
-                    }
-                ),
-                body,
-            )
-        )
+    @app.get("/")
+    def ui_root(request: Request):
+        return render_page(request, builder.overview(), landing=True)
 
     @app.get("/dashboard", include_in_schema=False)
     def ui_dashboard_redirect() -> RedirectResponse:
         return RedirectResponse(url="/ui", status_code=307)
+
+    @app.get("/ui/healthz", include_in_schema=False)
+    def ui_healthz() -> dict[str, str]:
+        return {"status": "ok"}
 
     @app.get("/favicon.ico", include_in_schema=False)
     def ui_favicon() -> Response:
@@ -71,20 +54,7 @@ def explain_ui() -> dict:
         "query_backed": True,
         "api_only": True,
         "replay_safe": True,
-        "surfaces": [
-            "overview",
-            "verification",
-            "convergence",
-            "graph",
-            "timeline",
-            "evidence",
-            "replay",
-            "sessions",
-            "service",
-            "diagnostics",
-            "drift",
-            "synchronization",
-        ],
+        "surfaces": [*PRIMARY_PATHS, *EXPLORER_PATHS],
         "state": state.to_dict(),
     }
 

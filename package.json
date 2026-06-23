@@ -1,0 +1,16 @@
+{
+  "name": "nsddos-ui-assets",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/nsddos/ui/static/css/input.css -o ./src/nsddos/ui/static/css/app.css --minify"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.7"
+  }
+}

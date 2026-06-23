@@ -1,0 +1,14 @@
+<article class="chart-panel">
+  <div class="panel-head">
+    <div>
+      <div class="panel-title">{{ chart.title }}</div>
+      <div class="panel-copy">analytics / {{ chart.unit }}</div>
+    </div>
+    <span class="badge neutral">{{ chart.chart_type }}</span>
+  </div>
+  <canvas
+    class="chart-canvas"
+    id="chart-{{ chart.chart_id }}"
+    data-chart='{{ chart.to_dict()|tojson }}'
+  ></canvas>
+</article>

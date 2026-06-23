@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="grid{% if page.name == 'overview' %} overview-grid{% endif %}">
+  {% if page.topology %}
+  <section class="panel topology-panel" id="topologyPanel">
+    <div class="panel-title">{{ page.topology.title }}</div>
+    <svg
+      class="topology-svg"
+      viewBox="0 0 1000 620"
+      aria-label="{{ page.topology.title }}"
+      data-topology="true"
+    >
+      {% for edge in page.topology.edges %}
+      {% set source = (page.topology.nodes | selectattr("node_id", "equalto", edge.source) | first) %}
+      {% set target = (page.topology.nodes | selectattr("node_id", "equalto", edge.target) | first) %}
+      <line
+        x1="{{ source.x }}"
+        y1="{{ source.y }}"
+        x2="{{ target.x }}"
+        y2="{{ target.y }}"
+        class="topology-edge {{ edge.state|lower }}{% if edge.pulse %} pulse{% endif %}"
+        data-edge-id="{{ edge.edge_id }}"
+      />
+      {% endfor %}
+      {% for node in page.topology.nodes %}
+      <g class="topology-node {{ node.state|lower }}" data-node-id="{{ node.node_id }}" transform="translate({{ node.x }},{{ node.y }})">
+        <rect x="-88" y="-20" width="176" height="40"></rect>
+        <text text-anchor="middle" dominant-baseline="middle">{{ node.label }}</text>
+      </g>
+      {% endfor %}
+    </svg>
+  </section>
+  {% endif %}
+
+  {% if page.traffic_chart %}
+  <section class="panel chart-panel">
+    <div class="panel-title">{{ page.traffic_chart.title }}</div>
+    <svg class="chart-svg" id="chart-{{ page.traffic_chart.chart_id }}" data-chart='{{ page.traffic_chart.to_dict()|tojson }}'></svg>
+  </section>
+  {% endif %}
+
+  {% if page.attack_chart %}
+  <section class="panel chart-panel">
+    <div class="panel-title">{{ page.attack_chart.title }}</div>
+    <svg class="chart-svg" id="chart-{{ page.attack_chart.chart_id }}" data-chart='{{ page.attack_chart.to_dict()|tojson }}'></svg>
+  </section>
+  {% endif %}
+
+  {% for chart in page.charts %}
+  <section class="panel chart-panel">
+    <div class="panel-title">{{ chart.title }}</div>
+    <svg class="chart-svg" id="chart-{{ chart.chart_id }}" data-chart='{{ chart.to_dict()|tojson }}'></svg>
+  </section>
+  {% endfor %}
+
+  {% if page.feed %}
+  <section class="panel feed-panel" id="feedPanel">
+    <div class="panel-title">{{ page.feed.title }}</div>
+    <div class="event-feed">
+      {% for entry in page.feed.entries %}
+      <div class="feed-row {{ entry.level|lower }}">
+        <span class="feed-time">[{{ entry.timestamp }}]</span>
+        <span class="feed-level">{{ entry.level }}</span>
+        <span class="feed-source">{{ entry.source }}</span>
+        <span class="feed-message">{{ entry.message }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if page.services %}
+  <section class="panel services-panel" id="servicesPanel">
+    <div class="panel-title">SERVICE STATUS</div>
+    <table class="terminal-table">
+      <tbody>
+        {% for service in page.services %}
+        <tr class="{{ service.status|lower }}">
+          <td>{{ service.name }}</td>
+          <td>{{ service.status }}</td>
+          <td>{{ service.detail }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% endif %}
+
+  {% if page.cta %}
+  <section class="panel cta-panel" id="pageCta">
+    <div class="panel-title">{{ page.cta.title }}</div>
+    <div class="cta-command">{{ page.cta.command }}</div>
+    <div class="cta-detail">{{ page.cta.detail }}</div>
+  </section>
+  {% endif %}
+
+  {% for table in page.tables %}
+  <section class="panel data-panel">
+    <div class="panel-title">{{ table.title }}</div>
+    {% if table.rows %}
+    <table class="terminal-table">
+      <thead>
+        <tr>
+          {% for column in table.columns %}
+          <th>{{ column.label }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in table.rows %}
+        <tr class="{{ row.state }}">
+          {% for value in row.values %}
+          <td>{{ value }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">{{ table.empty_message }}</div>
+    {% endif %}
+  </section>
+  {% endfor %}
+</section>
+
+<script id="pageSnapshot" type="application/json">{{ page_json|tojson }}</script>
+{% endblock %}

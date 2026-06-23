@@ -9,10 +9,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import typer
+import uvicorn
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from nsddos.bootstrap import render_welcome_screen, run_doctor_command, run_reset_command, run_setup_wizard, run_startup_command
+from nsddos.bootstrap.doctor import ensure_doctor_success
+from nsddos.bootstrap.reset import ensure_reset_success
+from nsddos.bootstrap.ui_launcher import replace_listener_on_port
 from nsddos.config import load_config, load_runtime_state, write_runtime_state
 from nsddos.constants import APP_NAME, APP_VERSION, CONFIG_PATH, STATE_PATH
 from nsddos.dashboard import dashboard_alerts, dashboard_diagnostics, dashboard_report, generate_dashboard_state
@@ -60,13 +65,7 @@ from nsddos.runtime.analysis_layer import aggregate_runtime
 from nsddos.runtime.attack import run_live_attack_suite
 from nsddos.runtime.cache import cache_summary
 from nsddos.runtime.stability import analyze_runtime_stability
-from nsddos.runtime.telemetry import (
-    build_runtime_snapshot,
-    compare_snapshots,
-    doctor_runtime,
-    snapshot_file_path,
-    verify_runtime,
-)
+from nsddos.runtime.telemetry import build_runtime_snapshot, compare_snapshots, snapshot_file_path, verify_runtime
 from nsddos.runtime.timeline import build_runtime_history_timeline
 from nsddos.runtime.verification.engine import explain_verification
 from nsddos.runtime.verification.replay import replay_verification_runs
@@ -101,7 +100,8 @@ from nsddos.service.manager import RuntimeServiceManager
 app = typer.Typer(
     name=APP_NAME,
     help="NS-DDoS command line interface.",
-    no_args_is_help=True,
+    no_args_is_help=False,
+    invoke_without_command=True,
 )
 lab_app = typer.Typer(help="Manage local lab runtime.")
 runtime_app = typer.Typer(help="Inspect runtime evidence and timeline.")
@@ -114,6 +114,13 @@ app.add_typer(api_app, name="api")
 app.add_typer(service_app, name="service")
 app.add_typer(ui_app, name="ui")
 console = Console()
+
+
+@app.callback()
+def root(ctx: typer.Context) -> None:
+    """Render premium welcome when no subcommand is provided."""
+    if ctx.invoked_subcommand is None:
+        render_welcome_screen(console)
 
 
 def _bootstrap() -> dict:
@@ -408,19 +415,17 @@ def verify() -> None:
 
 @app.command()
 def doctor(deep: bool = typer.Option(False, "--deep")) -> None:
-    """Inspect environment and provider prerequisites."""
-    config = _bootstrap()
-    results = doctor_runtime(config, deep=deep)
-    _render_verification_table("NS-DDoS Doctor", results)
-    passed, failed, warned, stale = _verification_summary(results)
-    console.print(
-        Panel.fit(
-            f"Passed: {passed}\nFailed: {failed}\nWarnings: {warned}\nStale: {stale}",
-            title="Doctor Summary",
-        )
-    )
-    if failed:
-        raise typer.Exit(code=1)
+    """Run doctor diagnostics and self-healing."""
+    _ = deep
+    result = run_doctor_command(console)
+    ensure_doctor_success(result)
+
+
+@app.command()
+def reset() -> None:
+    """Reset runtime/session/log state while preserving config."""
+    result = run_reset_command(console)
+    ensure_reset_success(result)
 
 
 @runtime_app.command("timeline")
@@ -780,11 +785,13 @@ def api_start(
     port: int | None = typer.Option(None, "--port"),
 ) -> None:
     """Start read-only runtime API server."""
+    if hasattr(host, "default"):
+        host = host.default
+    if hasattr(port, "default"):
+        port = port.default
     config = _bootstrap()
     api_port = int(port or config.get("api_port", 8008))
     try:
-        import uvicorn
-
         uvicorn.run("nsddos.api.app:app", host=host, port=api_port, reload=False)
     except KeyboardInterrupt:
         console.print("[yellow]API stopped.[/yellow]")
@@ -920,11 +927,14 @@ def ui_start(
     port: int = typer.Option(8010, "--port"),
 ) -> None:
     """Start operational observability UI server."""
+    if hasattr(host, "default"):
+        host = host.default
+    if hasattr(port, "default"):
+        port = port.default
     _bootstrap()
     url = f"http://{host}:{port}/"
     try:
-        import uvicorn
-
+        replace_listener_on_port(port)
         threading.Timer(0.75, lambda: webbrowser.open(url)).start()
 
         uvicorn.run("nsddos.ui.app:app", host=host, port=port, reload=False)
@@ -2473,8 +2483,10 @@ def release_security_audit_command() -> None:
 
 @app.command()
 def start() -> None:
-    """Alias for lab start."""
-    lab_start()
+    """Run one-command startup orchestration."""
+    result = run_startup_command(console)
+    if result.failed_checks:
+        raise typer.Exit(code=1)
 
 
 @app.command()
@@ -2493,6 +2505,18 @@ def status() -> None:
 def version() -> None:
     """Show installed version."""
     console.print(f"[bold]{APP_NAME}[/bold] {APP_VERSION}")
+
+
+@app.command("welcome")
+def welcome() -> None:
+    """Render premium terminal onboarding."""
+    render_welcome_screen(console)
+
+
+@app.command("setup")
+def setup() -> None:
+    """Run interactive setup wizard."""
+    run_setup_wizard()
 
 
 def main() -> None:

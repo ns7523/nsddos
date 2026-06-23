@@ -1,0 +1,18 @@
+<div class="panel-head">
+  <div>
+    <div class="panel-title">Threat Feed</div>
+    <div class="panel-copy">Latest runtime chronology</div>
+  </div>
+</div>
+<div class="timeline-list">
+  {% for item in page.timeline %}
+  <article class="timeline-item {{ item.severity }}">
+    <div class="timeline-meta">
+      <span class="badge {{ item.severity }}">{{ item.severity }}</span>
+      <span>{{ item.timestamp }}</span>
+    </div>
+    <div class="timeline-title">{{ item.title }}</div>
+    <div class="timeline-detail">{{ item.detail }}</div>
+  </article>
+  {% endfor %}
+</div>

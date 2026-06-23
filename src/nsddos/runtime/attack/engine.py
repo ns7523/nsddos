@@ -111,6 +111,20 @@ def _background_namespace_task(host: str, script: str) -> threading.Thread:
     return thread
 
 
+def _stop_attack_processes(attacker: str) -> None:
+    _namespace_shell(
+        attacker,
+        "pkill -f hping3 >/dev/null 2>&1 || true; pkill -f python3 >/dev/null 2>&1 || true",
+        timeout=10,
+    )
+
+
+def stop_active_attack(attacker: str, victim: str, target_port: int) -> None:
+    """Best-effort stop for LAB-managed active attack processes."""
+    _stop_attack_processes(attacker)
+    _stop_victim_service(victim, target_port)
+
+
 def _ensure_hping3() -> None:
     check = _namespace_shell("h1", "command -v hping3", timeout=10)
     if check.returncode == 0:
@@ -489,6 +503,7 @@ def _run_attack(
     warmup: int,
     attack_seconds: int,
     cooldown: int,
+    stop_event: threading.Event | None = None,
 ) -> dict[str, Any]:
     attacker_ip = _host_ip(attacker)
     victim_thread: threading.Thread | None = None
@@ -504,6 +519,8 @@ def _run_attack(
     try:
         warmup_started_at = _now()
         for _ in range(max(warmup, 1)):
+            if stop_event is not None and stop_event.is_set():
+                break
             snapshot, raw_flows, events = _collect_live_inputs(config, attack_type, target_ip, target_port, warmup_started_at)
             dropped_before = int(snapshot.dropped_packets)
             latest_evaluation = process_stream_events(config, session_id=f"attack-{attack_type}-warmup", events=events)
@@ -517,6 +534,9 @@ def _run_attack(
         attack_thread = _background_namespace_task(attacker, attack_script)
         deadline = time.time() + attack_seconds
         while time.time() < deadline:
+            if stop_event is not None and stop_event.is_set():
+                stop_active_attack(attacker, victim, target_port)
+                break
             snapshot, raw_flows, events = _collect_live_inputs(config, attack_type, target_ip, target_port, attack_started_at)
             if first_sflow_seen_at is None and (_attack_seen(raw_flows, attack_type, attacker_ip, target_ip, target_port) or snapshot.active_flows > 0):
                 first_sflow_seen_at = _now()
@@ -529,6 +549,8 @@ def _run_attack(
         attack_thread.join(timeout=5)
         attack_stopped_at = _now()
         for _ in range(max(cooldown, 1)):
+            if stop_event is not None and stop_event.is_set():
+                break
             snapshot, raw_flows, events = _collect_live_inputs(config, attack_type, target_ip, target_port, attack_started_at)
             dropped_after = int(snapshot.dropped_packets)
             latest_evaluation = process_stream_events(config, session_id=f"attack-{attack_type}-cooldown", events=events)
@@ -581,6 +603,7 @@ def run_live_attack_suite(
     warmup: int = 10,
     attack_seconds: int = 15,
     cooldown: int = 15,
+    stop_event: threading.Event | None = None,
 ) -> dict[str, Any]:
     runtime_config = _runtime_config(config)
     selected = ATTACK_ORDER if attack == "all" else (attack,)
@@ -600,6 +623,7 @@ def run_live_attack_suite(
                 warmup,
                 attack_seconds,
                 cooldown,
+                stop_event,
             )
         )
     suite = {

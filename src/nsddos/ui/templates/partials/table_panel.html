@@ -1,0 +1,30 @@
+<div class="panel-head">
+  <div>
+    <div class="panel-title">{{ table.title }}</div>
+    <div class="panel-copy">{{ table.rows|length }} rows / operator telemetry</div>
+  </div>
+</div>
+{% if table.rows %}
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        {% for column in table.columns %}
+        <th>{{ column.label }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in table.rows %}
+      <tr>
+        {% for column in table.columns %}
+        <td>{{ row.get(column.key, "") }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">{{ table.empty_message }}</div>
+{% endif %}

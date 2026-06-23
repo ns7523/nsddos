@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ page.title }} | NSDDOS</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <script defer src="/static/js/charts.js"></script>
+    <script defer src="/static/js/dashboard.js"></script>
+    <script defer src="/static/js/lab-console.js"></script>
+  </head>
+  <body data-page-name="{{ page.name }}"{% if ws_path %} data-ws-path="{{ ws_path }}"{% endif %}>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="sidebar-brand">NSDDOS</div>
+        <nav class="sidebar-nav">
+          {% for item in nav_items if item.group == "Primary" %}
+          <a href="{{ item.path }}" class="sidebar-link{% if item.active %} active{% endif %}">{{ item.label }}</a>
+          {% endfor %}
+        </nav>
+        <section class="sidebar-hidden">
+          <div class="sidebar-hidden-title">EXPLORER</div>
+          <nav class="sidebar-nav hidden-nav">
+            {% for item in nav_items if item.group == "Explorer" %}
+            <a href="{{ item.path }}" class="sidebar-link{% if item.active %} active{% endif %}">{{ item.label }}</a>
+            {% endfor %}
+          </nav>
+        </section>
+      </aside>
+
+      <main class="main">
+        <header class="status-bar" id="statusBar">
+          {% set status_fields = page.status_bar.fields if page.status_bar else [] %}
+          {% for field in status_fields %}
+          <div class="status-field {{ field.state }}">
+            <span class="status-label">{{ field.label }}</span>
+            <span class="status-value">{{ field.value }}</span>
+          </div>
+          {% endfor %}
+        </header>
+
+        <section class="page-head">
+          <div class="page-title">{{ page.title }}</div>
+          <div class="page-subtitle">{{ page.description }}</div>
+          <div class="page-meta">
+            <span>ROUTE {{ page.active_path }}</span>
+            <span id="liveStateBadge">{{ page.status_bar.live_state if page.status_bar else "live" }}</span>
+            <span id="updatedAt">{{ page.updated_at or "LIVE" }}</span>
+          </div>
+        </section>
+
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </body>
+</html>

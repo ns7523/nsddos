@@ -6,7 +6,6 @@ services:
       file: ../docker-compose.yml
       service: labhost
   floodlight:
-<<<<<<< HEAD
     image: eclipse-temurin:8-jre
     container_name: nsddos-floodlight
     working_dir: /opt/floodlight
@@ -80,19 +79,6 @@ services:
       timeout: 5s
       retries: 6
       start_period: 5s
-=======
-    extends:
-      file: ../docker-compose.yml
-      service: floodlight
-  sflowrt:
-    extends:
-      file: ../docker-compose.yml
-      service: sflowrt
-  detector:
-    extends:
-      file: ../docker-compose.yml
-      service: detector
->>>>>>> 7b0b4a3 (Initial NSDDOS v4.0 release candidate)
 
 networks:
   nsddos-lab:
