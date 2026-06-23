@@ -7,7 +7,7 @@ COPY external/sflowrt/lib /opt/nsddos/lib
 COPY external/sflowrt/app /opt/nsddos/app
 COPY external/sflowrt/resources /opt/nsddos/resources
 COPY external/sflowrt/store /opt/nsddos-seed/store
-COPY code/nsddos/docker/sflowrt-entrypoint.sh /usr/local/bin/sflowrt-entrypoint.sh
+COPY docker/sflowrt-entrypoint.sh /usr/local/bin/sflowrt-entrypoint.sh
 
 RUN chmod +x /opt/nsddos/start.sh /usr/local/bin/sflowrt-entrypoint.sh \
     && mkdir -p /var/lib/nsddos/sflowrt

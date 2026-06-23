@@ -1,10 +1,8 @@
-name: nsddos
-
 services:
   labhost:
     build:
-      context: ../..
-      dockerfile: code/nsddos/docker/labhost.Dockerfile
+      context: .
+      dockerfile: docker/labhost.Dockerfile
     container_name: nsddos-labhost
     privileged: true
     restart: unless-stopped
@@ -19,8 +17,8 @@ services:
 
   floodlight:
     build:
-      context: ../..
-      dockerfile: code/nsddos/docker/floodlight.Dockerfile
+      context: .
+      dockerfile: docker/floodlight.Dockerfile
     container_name: nsddos-floodlight
     working_dir: /opt/floodlight
     ports:
@@ -43,8 +41,8 @@ services:
 
   sflowrt:
     build:
-      context: ../..
-      dockerfile: code/nsddos/docker/sflowrt.Dockerfile
+      context: .
+      dockerfile: docker/sflowrt.Dockerfile
     container_name: nsddos-sflowrt
     working_dir: /opt/nsddos
     ports:

@@ -15,14 +15,14 @@ except PackageNotFoundError:
     APP_VERSION = "unknown"
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
+REPOSITORY_ROOT = PROJECT_ROOT
 
 
 def _default_app_dir() -> Path:
     explicit = os.getenv(APP_HOME_ENV)
     if explicit:
         return Path(explicit).expanduser()
-    return REPOSITORY_ROOT / ".nsddos-home"
+    return PROJECT_ROOT / ".nsddos-home"
 
 
 APP_DIR = _default_app_dir()
@@ -35,7 +35,7 @@ CONFIG_PATH = Path(os.getenv(APP_CONFIG_ENV, APP_DIR / "config.yaml")).expanduse
 STATE_PATH = RUNTIME_DIR / "state.json"
 EVENTS_PATH = RUNTIME_DIR / "events.log"
 COMPOSE_FILE = Path(
-    os.getenv(APP_COMPOSE_ENV, REPOSITORY_ROOT / "docker-compose.yml")
+    os.getenv(APP_COMPOSE_ENV, PROJECT_ROOT / "docker-compose.yml")
 ).expanduser()
 
 FLOODLIGHT_JAR = REPOSITORY_ROOT / "external" / "floodlight" / "floodlight.jar"
