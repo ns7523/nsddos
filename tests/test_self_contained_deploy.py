@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import tomllib
+
 import yaml
 
 from nsddos.constants import COMPOSE_FILE, FLOODLIGHT_JAR, REPOSITORY_ROOT, SFLOWRT_JAR
@@ -63,17 +65,30 @@ def test_repo_has_no_stale_monorepo_paths() -> None:
             assert pattern not in text, f"{pattern} leaked in {path}"
 
 
-def test_manifest_includes_runtime_payloads() -> None:
+def test_manifest_excludes_repo_runtime_payloads() -> None:
     manifest = (REPOSITORY_ROOT / "MANIFEST.in").read_text(encoding="utf-8")
-    assert "recursive-include docker *" in manifest
-    assert "recursive-include external *" in manifest
-    assert "include docker-compose.yml" in manifest
+    assert "recursive-include docker *" not in manifest
+    assert "recursive-include deployment *" not in manifest
+    assert "recursive-include external *" not in manifest
+    assert "include docker-compose.yml" not in manifest
     assert "include .env.example" in manifest
 
 
-def test_setup_py_packages_runtime_payloads_for_wheel() -> None:
+def test_setup_py_does_not_package_runtime_payloads_for_wheel() -> None:
     setup_py = (REPOSITORY_ROOT / "setup.py").read_text(encoding="utf-8")
-    assert "_collect_tree(\"docker\")" in setup_py
-    assert "_collect_tree(\"deployment\")" in setup_py
-    assert "_collect_tree(\"external\")" in setup_py
-    assert "\"docker-compose.yml\"" in setup_py
+    assert "data_files" not in setup_py
+    assert "_collect_tree(" not in setup_py
+    assert "docker-compose.yml" not in setup_py
+    assert "\"external\"" not in setup_py
+
+
+def test_pyproject_limits_packaged_assets_to_in_package_ui_files() -> None:
+    pyproject = tomllib.loads((REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    setuptools_cfg = pyproject["tool"]["setuptools"]
+    package_data = setuptools_cfg["package-data"]["nsddos"]
+
+    assert setuptools_cfg["include-package-data"] is True
+    assert "ui/templates/**/*.html" in package_data
+    assert "ui/static/**/*.css" in package_data
+    assert "ui/static/**/*.js" in package_data
+    assert "ui/static/**/*.ttf" in package_data

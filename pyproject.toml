@@ -53,6 +53,14 @@ nsddos = "nsddos.cli:main"
 include-package-data = true
 package-dir = {"" = "src"}
 
+[tool.setuptools.package-data]
+nsddos = [
+  "ui/templates/**/*.html",
+  "ui/static/**/*.css",
+  "ui/static/**/*.js",
+  "ui/static/**/*.ttf",
+]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["nsddos*"]
