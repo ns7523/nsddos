@@ -30,6 +30,7 @@ from nsddos.constants import (
     APP_NAME,
     APP_VERSION,
     APP_ASSET_ROOT_ENV,
+    APP_RUNTIME_ASSET_BASE_URL_ENV,
     APP_RUNTIME_VERSION_ENV,
     ASSET_CACHE_DIR,
     REPOSITORY_ROOT,
@@ -147,6 +148,11 @@ def release_bundle_name(version: str) -> str:
 def release_download_base_url(version: str) -> str:
     """Return GitHub Releases download base URL."""
 
+    from os import getenv
+
+    override = getenv(APP_RUNTIME_ASSET_BASE_URL_ENV)
+    if override:
+        return override.rstrip("/")
     return f"https://github.com/{RUNTIME_ASSET_RELEASE_REPO}/releases/download/v{version}"
 
 

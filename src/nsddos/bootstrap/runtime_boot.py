@@ -10,7 +10,7 @@ from nsddos.bootstrap.profiles import LOCAL_DEVELOPMENT
 from nsddos.bootstrap.setup import collect_environment_scan
 from nsddos.bootstrap.startup_profiles import DEFAULT_STARTUP_PROFILE, REQUIRED_STARTUP_REQUIREMENTS
 from nsddos.bootstrap.state import EnvironmentScan
-from nsddos.health import collect_runtime_health
+from nsddos.health_checks import collect_runtime_health
 from nsddos.runtime.models import HealthResult
 
 

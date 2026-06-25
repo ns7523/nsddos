@@ -10,7 +10,7 @@ from uuid import uuid4
 
 from nsddos.config import load_runtime_state
 from nsddos.docker_manager import DockerManager
-from nsddos.health import collect_runtime_health, collect_static_health
+from nsddos.health_checks import collect_runtime_health, collect_static_health
 from nsddos.runtime.analysis_layer import aggregate_runtime
 from nsddos.runtime.cache import set_cache
 from nsddos.runtime.collection_layer import collect_runtime_bundle

@@ -5,8 +5,8 @@ from __future__ import annotations
 from time import perf_counter
 
 from nsddos.docker_manager import DockerManager
-from nsddos.health import collect_runtime_health, collect_static_health
 from nsddos.deployment.contracts import ContainerContract, DeploymentHealthState
+from nsddos.health_checks import collect_runtime_health, collect_static_health
 
 
 def compute_deployment_health(container_contracts: tuple[ContainerContract, ...]) -> tuple[DeploymentHealthState, float]:

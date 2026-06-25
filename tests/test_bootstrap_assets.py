@@ -146,3 +146,15 @@ def test_detect_runtime_asset_status_uses_override(monkeypatch, tmp_path) -> Non
     assert isinstance(status, RuntimeAssetStatus)
     assert status.source == "override"
     assert status.ready is True
+
+
+def test_release_download_base_url_uses_override(monkeypatch) -> None:
+    monkeypatch.setenv("NSDDOS_RUNTIME_ASSET_BASE_URL", "http://127.0.0.1:8999/runtime/")
+
+    base_url = assets.release_download_base_url("0.9.0b2")
+    manifest_url = assets.release_manifest_url("0.9.0b2")
+    bundle_url = assets.release_bundle_url("0.9.0b2")
+
+    assert base_url == "http://127.0.0.1:8999/runtime"
+    assert manifest_url.endswith("/nsddos-runtime-0.9.0b2.manifest.json")
+    assert bundle_url.endswith("/nsddos-runtime-0.9.0b2.tar.gz")

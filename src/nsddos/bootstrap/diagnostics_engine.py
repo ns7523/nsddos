@@ -9,7 +9,7 @@ from nsddos.bootstrap.stack import detect_compose_backend, list_stack_services, 
 from nsddos.bootstrap.startup_profiles import DEFAULT_STARTUP_PROFILE
 from nsddos.bootstrap.state import DiagnosticFinding
 from nsddos.bootstrap.ui_launcher import ui_reachable
-from nsddos.health import collect_runtime_health
+from nsddos.health_checks import collect_runtime_health
 
 
 def _restart_loop_names(raw: str) -> tuple[str, ...]:

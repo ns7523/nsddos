@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import subprocess
-
+import nsddos.health_checks as health_checks
 from nsddos.runtime.models import HealthResult, ServiceState
 
 
@@ -16,11 +15,11 @@ class _StubProvider:
 
 
 def test_collect_static_health_only_checks_orchestration_prereqs(monkeypatch, tmp_path) -> None:
-    monkeypatch.setattr("nsddos.health.which", lambda name: "/usr/bin/docker" if name == "docker" else None)
-    monkeypatch.setattr("nsddos.health.load_config", lambda: {"api_port": 8011, "lab": {}})
-    monkeypatch.setattr("nsddos.health.ensure_runtime_directories", lambda: (tmp_path / "runtime",))
+    monkeypatch.setattr("nsddos.health_checks.which", lambda name: "/usr/bin/docker" if name == "docker" else None)
+    monkeypatch.setattr("nsddos.health_checks.load_config", lambda: {"api_port": 8011, "lab": {}})
+    monkeypatch.setattr("nsddos.health_checks.ensure_runtime_directories", lambda: (tmp_path / "runtime",))
 
-    results = {item.name: item for item in __import__("nsddos.health", fromlist=["collect_static_health"]).collect_static_health()}
+    results = {item.name: item for item in health_checks.collect_static_health()}
 
     assert "mininet_binary" not in results
     assert "ovs_vswitch" not in results
@@ -36,9 +35,9 @@ def test_collect_runtime_health_requires_exact_stack_containers_only(monkeypatch
         ServiceState(name="detector", status="running", healthy=True, detail="healthy"),
         ServiceState(name="unrelated", status="exited", healthy=False, detail="exited"),
     ]
-    monkeypatch.setattr("nsddos.health.check_docker_daemon", lambda: True)
+    monkeypatch.setattr("nsddos.health_checks.check_docker_daemon", lambda: True)
     monkeypatch.setattr(
-        "nsddos.health.DockerManager",
+        "nsddos.health_checks.DockerManager",
         lambda: type(
             "Docker",
             (),
@@ -52,15 +51,15 @@ def test_collect_runtime_health_requires_exact_stack_containers_only(monkeypatch
         )(),
     )
     monkeypatch.setattr(
-        "nsddos.health.FloodlightProvider",
+        "nsddos.health_checks.FloodlightProvider",
         lambda: _StubProvider({"reachable": True, "endpoint": "http://127.0.0.1:8080"}),
     )
     monkeypatch.setattr(
-        "nsddos.health.SFlowProvider",
+        "nsddos.health_checks.SFlowProvider",
         lambda: _StubProvider({"reachable": True, "endpoint": "http://127.0.0.1:8008"}),
     )
     monkeypatch.setattr(
-        "nsddos.health.MininetProvider",
+        "nsddos.health_checks.MininetProvider",
         lambda: _StubProvider(
             {
                 "installed": True,
@@ -73,10 +72,10 @@ def test_collect_runtime_health_requires_exact_stack_containers_only(monkeypatch
         ),
     )
     monkeypatch.setattr(
-        "nsddos.health.OVSProvider",
+        "nsddos.health_checks.OVSProvider",
         lambda: _StubProvider({"ready": True, "detail": "ovs-vswitchd running"}),
     )
-    results = {item.name: item for item in __import__("nsddos.health", fromlist=["collect_runtime_health"]).collect_runtime_health()}
+    results = {item.name: item for item in health_checks.collect_runtime_health()}
 
     assert results["containers"].ok is True
     assert "nsddos-labhost:healthy" in results["containers"].detail
@@ -92,9 +91,9 @@ def test_collect_runtime_health_fails_when_required_container_missing(monkeypatc
         ServiceState(name="sflowrt", status="running", healthy=True, detail="healthy"),
         ServiceState(name="detector", status="running", healthy=True, detail="healthy"),
     ]
-    monkeypatch.setattr("nsddos.health.check_docker_daemon", lambda: True)
+    monkeypatch.setattr("nsddos.health_checks.check_docker_daemon", lambda: True)
     monkeypatch.setattr(
-        "nsddos.health.DockerManager",
+        "nsddos.health_checks.DockerManager",
         lambda: type(
             "Docker",
             (),
@@ -108,20 +107,20 @@ def test_collect_runtime_health_fails_when_required_container_missing(monkeypatc
         )(),
     )
     monkeypatch.setattr(
-        "nsddos.health.FloodlightProvider",
+        "nsddos.health_checks.FloodlightProvider",
         lambda: _StubProvider({"reachable": True, "endpoint": "http://127.0.0.1:8080"}),
     )
     monkeypatch.setattr(
-        "nsddos.health.SFlowProvider",
+        "nsddos.health_checks.SFlowProvider",
         lambda: _StubProvider({"reachable": True, "endpoint": "http://127.0.0.1:8008"}),
     )
     monkeypatch.setattr(
-        "nsddos.health.MininetProvider",
+        "nsddos.health_checks.MininetProvider",
         lambda: _StubProvider({"installed": False, "controller_reachable": False, "controller": "floodlight:6653", "ready": False, "detail": "labhost unavailable"}),
     )
-    monkeypatch.setattr("nsddos.health.OVSProvider", lambda: _StubProvider({"ready": True, "detail": "ovs-vswitchd running"}))
+    monkeypatch.setattr("nsddos.health_checks.OVSProvider", lambda: _StubProvider({"ready": True, "detail": "ovs-vswitchd running"}))
 
-    results = {item.name: item for item in __import__("nsddos.health", fromlist=["collect_runtime_health"]).collect_runtime_health()}
+    results = {item.name: item for item in health_checks.collect_runtime_health()}
 
     assert results["containers"].ok is False
     assert "nsddos-labhost:missing" in results["containers"].detail
