@@ -76,6 +76,7 @@ Issues = "https://github.com/nsakash7523/nsddos/issues"
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["nsddos*"]
+exclude = ["tests*"]
 
 [tool.black]
 line-length = 88
@@ -101,7 +102,3 @@ ignore_missing_imports = true
 [tool.isort]
 profile = "black"
 
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["nsddos*"]
-exclude = ["tests*"]
