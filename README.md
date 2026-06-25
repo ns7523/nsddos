@@ -1,7 +1,6 @@
 # NSDDOS
 
 [![PyPI](https://img.shields.io/pypi/v/nsddos.svg)](https://pypi.org/project/nsddos/)
-[![CI](https://img.shields.io/github/actions/workflow/status/ns7523/nsddos/lint.yml?branch=main&label=ci)](https://github.com/ns7523/nsddos/actions/workflows/lint.yml)
 [![Python](https://img.shields.io/pypi/pyversions/nsddos.svg)](https://pypi.org/project/nsddos/)
 [![License](https://img.shields.io/github/license/ns7523/nsddos.svg)](LICENSE)
 
