@@ -23,6 +23,7 @@ from nsddos.bootstrap.terminal import (
     create_console,
     section_panel,
 )
+from . import theme
 
 
 def _build_readiness_table(snapshot: EnvironmentSnapshot) -> Table:
@@ -46,7 +47,7 @@ def build_welcome_renderable(snapshot: EnvironmentSnapshot) -> RenderableType:
     header = build_operator_header(
         "Runtime Operator Surface",
         f"{snapshot.os_family} boot channel",
-        "Network Defense Runtime Engine",
+        theme.APP_DISPLAY_TAGLINE,
     )
     return Group(
         header,

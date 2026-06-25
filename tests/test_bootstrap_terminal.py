@@ -87,7 +87,7 @@ def test_welcome_render_contains_expected_sections() -> None:
     output = console.export_text()
 
     assert "NSDDOS" in output
-    assert "Network Defense Runtime Engine" in output
+    assert "AI Defensive Network Security Platform" in output
     assert "Environment Scan" in output
     assert "Command Deck" in output
     assert "nsddos setup" in output
@@ -160,8 +160,27 @@ def test_cli_welcome_command_renders_welcome() -> None:
     result = runner.invoke(app, ["welcome"])
 
     assert result.exit_code == 0
-    assert "Network Defense Runtime Engine" in result.output
+    assert "AI Defensive Network Security Platform" in result.output
     assert "Environment Scan" in result.output
+
+
+def test_welcome_render_includes_release_banner() -> None:
+    snapshot = EnvironmentSnapshot(
+        os_name="Linux",
+        os_family="Linux",
+        python_version="3.11.9",
+        docker=ToolStatus(name="docker", installed=True, detail="/usr/bin/docker"),
+        docker_daemon_running=True,
+        git=ToolStatus(name="git", installed=True, detail="/usr/bin/git"),
+        virtualenv_active=True,
+    )
+    console = create_console(record=True)
+
+    console.print(build_welcome_renderable(snapshot))
+    output = console.export_text()
+
+    assert "███████" in output
+    assert "AI Defensive Network Security Platform" in output
 
 
 def test_cli_version_still_works() -> None:

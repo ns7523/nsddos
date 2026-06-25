@@ -6,7 +6,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi import Request
-from fastapi.responses import RedirectResponse, Response
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from nsddos.api.middleware import install_middleware
@@ -15,6 +15,7 @@ from nsddos.ui.router import PRIMARY_PATHS, EXPLORER_PATHS, builder, render_page
 from nsddos.ui.state import build_ui_state
 
 STATIC_DIR = Path(__file__).with_name("static")
+FAVICON_PATH = STATIC_DIR / "brand" / "favicon.svg"
 
 
 def create_ui_app() -> FastAPI:
@@ -39,8 +40,8 @@ def create_ui_app() -> FastAPI:
         return {"status": "ok"}
 
     @app.get("/favicon.ico", include_in_schema=False)
-    def ui_favicon() -> Response:
-        return Response(content=b"", media_type="image/x-icon")
+    def ui_favicon() -> FileResponse:
+        return FileResponse(FAVICON_PATH, media_type="image/svg+xml")
 
     app.include_router(ui_router)
     app.include_router(api_router)

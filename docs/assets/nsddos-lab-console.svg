@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none">
+  <rect width="1600" height="900" fill="#050A11"/>
+  <rect x="0" y="0" width="248" height="900" fill="#071019"/>
+  <rect x="20" y="28" width="52" height="52" rx="12" fill="#06111A" stroke="#61F2FF" stroke-opacity=".35" stroke-width="2"/>
+  <path d="M36 68V40H46L56 58V40H66V68H56L46 50V68H36Z" fill="#61F2FF"/>
+  <text x="20" y="122" fill="#D8FBFF" font-family="monospace" font-size="34" font-weight="700" letter-spacing="8">NSDDOS</text>
+  <text x="20" y="154" fill="#7CB9C4" font-family="monospace" font-size="16" letter-spacing="4">SECURITY APPLIANCE</text>
+  <rect x="18" y="198" width="214" height="76" fill="#0A1622" stroke="#61F2FF" stroke-opacity=".24"/>
+  <text x="34" y="228" fill="#7CB9C4" font-family="monospace" font-size="14" letter-spacing="3">MISSION</text>
+  <text x="34" y="255" fill="#7CFF6B" font-family="monospace" font-size="22" font-weight="700">COMMAND CENTER</text>
+  <rect x="18" y="348" width="214" height="44" fill="#122031" stroke="#61F2FF" stroke-opacity=".75"/>
+  <text x="32" y="377" fill="#61F2FF" font-family="monospace" font-size="18">LAB CONSOLE</text>
+
+  <rect x="274" y="24" width="1270" height="60" fill="#08121C" stroke="#61F2FF" stroke-opacity=".28"/>
+  <text x="292" y="54" fill="#61F2FF" font-family="monospace" font-size="24" font-weight="700" letter-spacing="2">ENTERPRISE CYBER DEFENSE DASHBOARD</text>
+  <text x="292" y="71" fill="#7CB9C4" font-family="monospace" font-size="14" letter-spacing="3">host = orchestration / containers = runtime / websocket = live signal</text>
+
+  <rect x="274" y="100" width="1270" height="84" fill="#08121C" stroke="#61F2FF" stroke-opacity=".22"/>
+  <text x="294" y="130" fill="#7CB9C4" font-family="monospace" font-size="14" letter-spacing="4">LIVE OPS</text>
+  <text x="294" y="160" fill="#D8FBFF" font-family="monospace" font-size="46" font-weight="700">LAB CONSOLE</text>
+
+  <rect x="274" y="200" width="412" height="220" fill="#08121C" stroke="#61F2FF" stroke-opacity=".22"/>
+  <text x="292" y="230" fill="#7CB9C4" font-family="monospace" font-size="14" letter-spacing="4">ACTIVE HOSTS</text>
+  <rect x="292" y="250" width="110" height="36" fill="#112031" stroke="#61F2FF" stroke-opacity=".75"/>
+  <rect x="414" y="250" width="110" height="36" fill="#09131D" stroke="#61F2FF" stroke-opacity=".18"/>
+  <rect x="536" y="250" width="110" height="36" fill="#09131D" stroke="#61F2FF" stroke-opacity=".18"/>
+  <text x="334" y="274" fill="#61F2FF" font-family="monospace" font-size="18">h1</text>
+  <text x="456" y="274" fill="#D8FBFF" font-family="monospace" font-size="18">h2</text>
+  <text x="578" y="274" fill="#D8FBFF" font-family="monospace" font-size="18">h3</text>
+  <rect x="292" y="304" width="356" height="94" fill="#040B12" stroke="#61F2FF" stroke-opacity=".16"/>
+  <text x="308" y="330" fill="#7CB9C4" font-family="monospace" font-size="14">h1 shell</text>
+  <text x="308" y="356" fill="#61F2FF" font-family="monospace" font-size="16">$ python3 -m http.server 8081</text>
+  <text x="308" y="380" fill="#7CFF6B" font-family="monospace" font-size="16">Serving HTTP on 10.0.0.2 port 8081</text>
+
+  <rect x="702" y="200" width="842" height="500" fill="#08121C" stroke="#61F2FF" stroke-opacity=".22"/>
+  <text x="722" y="230" fill="#7CB9C4" font-family="monospace" font-size="14" letter-spacing="4">TERMINAL MATRIX</text>
+  <rect x="722" y="250" width="804" height="430" fill="#040B12" stroke="#61F2FF" stroke-opacity=".14"/>
+  <text x="744" y="288" fill="#61F2FF" font-family="monospace" font-size="18">$ nsddos runtime attack-live --attack udp_flood</text>
+  <text x="744" y="322" fill="#7CB9C4" font-family="monospace" font-size="16">warmup: 3s</text>
+  <text x="744" y="348" fill="#7CB9C4" font-family="monospace" font-size="16">attack: udp flood h1 -&gt; h2:8081</text>
+  <text x="744" y="374" fill="#61F2FF" font-family="monospace" font-size="16">telemetry: packet_rate=4382.0 flow_count=12</text>
+  <text x="744" y="400" fill="#7CFF6B" font-family="monospace" font-size="16">detection: attack_detected=True type=udp_flood confidence=0.97</text>
+  <text x="744" y="426" fill="#FFCB68" font-family="monospace" font-size="16">policy: recommended_action=rate_limit</text>
+  <text x="744" y="452" fill="#7CFF6B" font-family="monospace" font-size="16">mitigation: ovs flow inserted / controller mutation applied</text>
+  <text x="744" y="478" fill="#7CB9C4" font-family="monospace" font-size="16">report: .nsddos-home/runtime/attacks/latest.json</text>
+  <text x="744" y="532" fill="#D8FBFF" font-family="monospace" font-size="16">[BOOT] FLOODLIGHT online</text>
+  <text x="744" y="558" fill="#D8FBFF" font-family="monospace" font-size="16">[BOOT] SFLOWRT online</text>
+  <text x="744" y="584" fill="#D8FBFF" font-family="monospace" font-size="16">[BOOT] DETECTOR online</text>
+  <text x="744" y="610" fill="#D8FBFF" font-family="monospace" font-size="16">[BOOT] OVS verified</text>
+  <text x="744" y="636" fill="#7CFF6B" font-family="monospace" font-size="16">[OK] traffic block verified</text>
+
+  <rect x="274" y="438" width="412" height="262" fill="#08121C" stroke="#61F2FF" stroke-opacity=".22"/>
+  <text x="292" y="468" fill="#7CB9C4" font-family="monospace" font-size="14" letter-spacing="4">QUICK ACTIONS</text>
+  <rect x="292" y="490" width="174" height="70" fill="#0D1824" stroke="#FFCB68" stroke-opacity=".44"/>
+  <rect x="474" y="490" width="174" height="70" fill="#0D1824" stroke="#FF6F78" stroke-opacity=".36"/>
+  <rect x="292" y="572" width="174" height="70" fill="#0D1824" stroke="#61F2FF" stroke-opacity=".30"/>
+  <rect x="474" y="572" width="174" height="70" fill="#0D1824" stroke="#61F2FF" stroke-opacity=".30"/>
+  <text x="310" y="520" fill="#D8FBFF" font-family="monospace" font-size="18">Run UDP Flood</text>
+  <text x="310" y="544" fill="#7CB9C4" font-family="monospace" font-size="14">bounded live traffic</text>
+  <text x="492" y="520" fill="#D8FBFF" font-family="monospace" font-size="18">Stop Attack</text>
+  <text x="492" y="544" fill="#7CB9C4" font-family="monospace" font-size="14">kill active generators</text>
+  <text x="310" y="602" fill="#D8FBFF" font-family="monospace" font-size="18">Ping All Hosts</text>
+  <text x="492" y="602" fill="#D8FBFF" font-family="monospace" font-size="18">Open Terminal Tabs</text>
+</svg>

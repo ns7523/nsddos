@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import json
+import re
+import subprocess
 import threading
 import webbrowser
 from datetime import datetime, timezone
 from pathlib import Path
+from shutil import which
 
 import typer
 import uvicorn
@@ -18,7 +21,8 @@ from nsddos.bootstrap import render_welcome_screen, run_doctor_command, run_rese
 from nsddos.bootstrap.assets import download_runtime_assets
 from nsddos.bootstrap.doctor import ensure_doctor_success
 from nsddos.bootstrap.reset import ensure_reset_success
-from nsddos.bootstrap.ui_launcher import replace_listener_on_port
+from nsddos.bootstrap.startup_profiles import DEFAULT_STARTUP_PROFILE
+from nsddos.bootstrap.ui_launcher import launch_ui_background, replace_listener_on_port
 from nsddos.config import load_config, load_runtime_state, write_runtime_state
 from nsddos.constants import APP_NAME, APP_VERSION, CONFIG_PATH, STATE_PATH
 from nsddos.dashboard import dashboard_alerts, dashboard_diagnostics, dashboard_report, generate_dashboard_state
@@ -183,6 +187,40 @@ def _verification_summary(results: list) -> tuple[int, int, int, int]:
     warned = sum(1 for result in results if result.status == "warn")
     stale = sum(1 for result in results if result.status == "stale")
     return passed, failed, warned, stale
+
+
+def _open_browser(url: str) -> None:
+    """Open browser shortly after CLI returns control."""
+
+    threading.Timer(0.75, lambda: webbrowser.open(url)).start()
+
+
+def _dashboard_url(base_url: str) -> str:
+    """Return operator dashboard URL."""
+
+    return f"{base_url.rstrip('/')}/ui"
+
+
+def _render_failed_health(results: list) -> tuple[str, ...]:
+    """Render failing health rows and return names."""
+
+    failed = [result for result in results if not result.ok]
+    if failed:
+        _render_health_table("NS-DDoS Demo Prerequisites", results)
+    return tuple(result.name for result in failed)
+
+
+def _parse_trycloudflare_url(line: str) -> str | None:
+    """Extract public trycloudflare URL from output line."""
+
+    match = re.search(r"https://[A-Za-z0-9.-]+\.trycloudflare\.com", line)
+    return match.group(0) if match else None
+
+
+def _cloudflared_install_hint() -> str:
+    """Return short install guidance for Cloudflare Tunnel."""
+
+    return "Install `cloudflared` first. macOS: `brew install cloudflared`. Docs: docs/installation.md#cloudflare-tunnel"
 
 
 def _render_query_result(title: str, result) -> None:
@@ -938,7 +976,7 @@ def ui_start(
     url = f"http://{host}:{port}/"
     try:
         replace_listener_on_port(port)
-        threading.Timer(0.75, lambda: webbrowser.open(url)).start()
+        _open_browser(url)
 
         uvicorn.run("nsddos.ui.app:app", host=host, port=port, reload=False)
     except KeyboardInterrupt:
@@ -984,6 +1022,52 @@ def ui_status() -> None:
             ("updated_at", str(state.get("refresh_metadata", {}).get("updated_at", ""))),
         ],
     )
+
+
+@ui_app.command("expose")
+def ui_expose() -> None:
+    """Expose local UI through Cloudflare Tunnel."""
+
+    _bootstrap()
+    binary = which("cloudflared")
+    if binary is None:
+        console.print(f"[bold red]cloudflared not found.[/bold red] {_cloudflared_install_hint()}")
+        raise typer.Exit(code=1)
+
+    ui_result = launch_ui_background()
+    if not ui_result.reachable:
+        console.print("[bold red]UI expose failed:[/bold red] local UI not reachable on port 8010.")
+        raise typer.Exit(code=1)
+
+    local_url = ui_result.ui_url.rstrip("/")
+    console.print(Panel.fit(f"Local UI:   {local_url}\nPublic UI:  waiting for tunnel...", title="NSDDOS UI Expose"))
+
+    process = subprocess.Popen(
+        [binary, "tunnel", "--url", local_url],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    public_url: str | None = None
+    try:
+        assert process.stdout is not None
+        for raw_line in process.stdout:
+            line = raw_line.rstrip()
+            if not line:
+                continue
+            if public_url is None:
+                public_url = _parse_trycloudflare_url(line)
+                if public_url:
+                    console.print(f"Public UI:  {public_url}")
+            console.print(line)
+        code = process.wait()
+    except KeyboardInterrupt:
+        process.terminate()
+        console.print("[yellow]Cloudflare tunnel stopped.[/yellow]")
+        raise typer.Exit(code=130) from None
+
+    if code != 0:
+        raise typer.Exit(code=code)
 
 
 @runtime_app.command("validate-traffic")
@@ -2520,6 +2604,79 @@ def welcome() -> None:
 def setup() -> None:
     """Run interactive setup wizard."""
     run_setup_wizard()
+
+
+@app.command("demo")
+def demo(
+    attack: str = typer.Option("udp_flood", "--attack"),
+    attacker: str = typer.Option("h1", "--attacker"),
+    victim: str = typer.Option("h2", "--victim"),
+    probe: str = typer.Option("h3", "--probe"),
+    target_ip: str = typer.Option("10.0.0.2", "--target-ip"),
+    target_port: int = typer.Option(8081, "--target-port"),
+    warmup: int = typer.Option(3, "--warmup"),
+    attack_seconds: int = typer.Option(12, "--attack-seconds"),
+    cooldown: int = typer.Option(5, "--cooldown"),
+) -> None:
+    """Run end-to-end live demo flow."""
+
+    config = _bootstrap()
+    failed = _render_failed_health(collect_static_health())
+    if failed:
+        if "runtime_assets" in failed:
+            console.print("[bold yellow]Hint:[/bold yellow] runtime assets missing. Run `nsddos bootstrap download` if repo payloads are not present.")
+        raise typer.Exit(code=1)
+
+    startup = run_startup_command(console)
+    if startup.failed_checks:
+        raise typer.Exit(code=1)
+
+    ui_url = startup.ui_url or DEFAULT_STARTUP_PROFILE.ui_url
+    dashboard_url = _dashboard_url(ui_url)
+    _open_browser(dashboard_url)
+
+    report = run_live_attack_suite(
+        config,
+        attack=attack,
+        attacker=attacker,
+        victim=victim,
+        probe=probe,
+        target_ip=target_ip,
+        target_port=target_port,
+        warmup=warmup,
+        attack_seconds=attack_seconds,
+        cooldown=cooldown,
+    )
+    detection = evaluate_detection(config)
+    mitigation_plan = evaluate_mitigation(config, detection=detection)
+    mitigation = enforce_mitigation(config, mitigation_plan)
+
+    _render_mapping_table(
+        "NSDDOS Demo",
+        [
+            ("attack", attack),
+            ("dashboard", dashboard_url),
+            ("report_path", str(report.get("report_path", ""))),
+            ("scenarios", str(len(report.get("scenarios", [])))),
+            ("attack_detected", str(detection.attack_detected)),
+            ("attack_type", detection.attack_type),
+            ("confidence", f"{detection.confidence_score:.4f}"),
+            ("mitigation_required", str(mitigation.mitigation_required)),
+            ("mitigation_action", mitigation.mitigation_action),
+            ("mitigation_status", mitigation.mitigation_status),
+            ("execution_result", mitigation.execution_result),
+        ],
+    )
+
+    if not detection.attack_detected:
+        console.print("[bold red]Demo failed:[/bold red] detection engine did not classify live attack.")
+        raise typer.Exit(code=1)
+    if not mitigation.mitigation_required:
+        console.print("[bold red]Demo failed:[/bold red] mitigation policy did not trigger.")
+        raise typer.Exit(code=1)
+    if mitigation.mitigation_status not in {"enforced", "verified"}:
+        console.print(f"[bold red]Demo failed:[/bold red] mitigation ended in `{mitigation.mitigation_status}`.")
+        raise typer.Exit(code=1)
 
 
 @bootstrap_app.command("download")

@@ -87,8 +87,16 @@ input {
 }
 
 .sidebar-brand-block {
+  display: grid;
+  gap: 12px;
   padding-bottom: 18px;
   border-bottom: 1px solid rgba(97, 242, 255, 0.15);
+}
+
+.sidebar-logo {
+  width: 54px;
+  height: 54px;
+  filter: drop-shadow(0 0 16px rgba(97, 242, 255, 0.22));
 }
 
 .sidebar-brand {

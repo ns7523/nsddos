@@ -187,6 +187,16 @@ def test_ui_route_presence() -> None:
     assert "/ui/attack-logs" in paths
     assert "/ui/ws/attack-logs" in paths
     assert "/ui/healthz" in paths
+    assert "/favicon.ico" in paths
+
+
+def test_ui_favicon_serves_real_asset(monkeypatch) -> None:
+    _stub_ui_sources(monkeypatch)
+    with TestClient(create_ui_app()) as client:
+        response = client.get("/favicon.ico")
+        assert response.status_code == 200
+        assert response.headers["content-type"].startswith("image/svg+xml")
+        assert response.content.startswith(b"<svg")
 
 
 def test_ui_root_redesign_markers(monkeypatch) -> None:

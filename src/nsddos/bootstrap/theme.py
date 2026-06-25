@@ -2,8 +2,8 @@
 
 APP_DISPLAY_NAME = "NSDDOS"
 APP_DISPLAY_VERSION = "v3.0"
-APP_DISPLAY_TAGLINE = "Network Defense Runtime Engine"
-APP_DISPLAY_SUBTITLE = "Premium Operator Console"
+APP_DISPLAY_TAGLINE = "AI Defensive Network Security Platform"
+APP_DISPLAY_SUBTITLE = "Production Release Operator Console"
 
 BG = "black"
 TEXT = "white"
