@@ -27,4 +27,4 @@ jobs:
         run: ruff check src tests
 
       - name: Black
-        run: black --check src tests
+        run: black --check --target-version py311 src tests
