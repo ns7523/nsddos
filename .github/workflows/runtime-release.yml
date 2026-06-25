@@ -1,0 +1,68 @@
+name: Runtime Asset Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish runtime assets for.
+        required: true
+        type: string
+      version:
+        description: Runtime version override without v prefix.
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  runtime-release:
+    name: Build and Upload Runtime Assets
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Resolve release metadata
+        id: meta
+        shell: bash
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            tag="${{ inputs.tag }}"
+            version="${{ inputs.version }}"
+          else
+            tag="${GITHUB_REF_NAME}"
+            version=""
+          fi
+          if [[ -z "${version}" ]]; then
+            version="${tag#v}"
+          fi
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build runtime release assets
+        run: |
+          python3 scripts/build_runtime_release.py \
+            --repo-root . \
+            --output-dir dist/runtime-release \
+            --github-repo "${GITHUB_REPOSITORY}" \
+            --tag "${{ steps.meta.outputs.tag }}" \
+            --version "${{ steps.meta.outputs.version }}"
+
+      - name: Upload runtime assets to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          files: |
+            dist/runtime-release/nsddos-runtime-${{ steps.meta.outputs.version }}.tar.gz
+            dist/runtime-release/nsddos-runtime-${{ steps.meta.outputs.version }}.manifest.json
+          overwrite_files: true
