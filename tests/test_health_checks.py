@@ -1,4 +1,4 @@
-"""Tests for helper-aware health checks."""
+"""Tests for container-aware health checks."""
 
 from __future__ import annotations
 
@@ -15,30 +15,17 @@ class _StubProvider:
         return dict(self.payload)
 
 
-def test_collect_static_health_prefers_helper_container_for_mininet_and_ovs(monkeypatch, tmp_path) -> None:
-    missing_mininet = tmp_path / "missing-mn"
-    monkeypatch.setattr("nsddos.health.MININET_BIN", missing_mininet)
+def test_collect_static_health_only_checks_orchestration_prereqs(monkeypatch, tmp_path) -> None:
     monkeypatch.setattr("nsddos.health.which", lambda name: "/usr/bin/docker" if name == "docker" else None)
     monkeypatch.setattr("nsddos.health.load_config", lambda: {"api_port": 8011, "lab": {}})
     monkeypatch.setattr("nsddos.health.ensure_runtime_directories", lambda: (tmp_path / "runtime",))
-    monkeypatch.setattr("nsddos.health.helper_running", lambda: True)
-    monkeypatch.setattr("nsddos.health.OVSProvider.is_installed", staticmethod(lambda: True))
-
-    def fake_helper_exec(args, timeout=5):
-        if args == ["which", "mn"]:
-            return subprocess.CompletedProcess(args, 0, stdout="/usr/bin/mn\n", stderr="")
-        if args == ["ovs-vsctl", "show"]:
-            return subprocess.CompletedProcess(args, 0, stdout="connected to /var/run/openvswitch/db.sock\n", stderr="")
-        raise AssertionError(f"unexpected helper command: {args}")
-
-    monkeypatch.setattr("nsddos.health.helper_exec", fake_helper_exec)
 
     results = {item.name: item for item in __import__("nsddos.health", fromlist=["collect_static_health"]).collect_static_health()}
 
-    assert results["mininet_binary"].ok is True
-    assert results["mininet_binary"].detail == "/usr/bin/mn"
-    assert results["ovs_vswitch"].ok is True
-    assert "openvswitch/db.sock" in results["ovs_vswitch"].detail
+    assert "mininet_binary" not in results
+    assert "ovs_vswitch" not in results
+    assert results["docker"].ok is True
+    assert results["runtime_assets"].category == "static"
 
 
 def test_collect_runtime_health_requires_exact_stack_containers_only(monkeypatch) -> None:
@@ -50,7 +37,20 @@ def test_collect_runtime_health_requires_exact_stack_containers_only(monkeypatch
         ServiceState(name="unrelated", status="exited", healthy=False, detail="exited"),
     ]
     monkeypatch.setattr("nsddos.health.check_docker_daemon", lambda: True)
-    monkeypatch.setattr("nsddos.health.DockerManager", lambda: type("Docker", (), {"get_service_states": lambda self: services})())
+    monkeypatch.setattr(
+        "nsddos.health.DockerManager",
+        lambda: type(
+            "Docker",
+            (),
+            {
+                "stack_health": lambda self, required: (
+                    True,
+                    "nsddos-floodlight:healthy, nsddos-sflowrt:healthy, nsddos-labhost:healthy, nsddos-detector:healthy",
+                    services,
+                )
+            },
+        )(),
+    )
     monkeypatch.setattr(
         "nsddos.health.FloodlightProvider",
         lambda: _StubProvider({"reachable": True, "endpoint": "http://127.0.0.1:8080"}),
@@ -66,7 +66,9 @@ def test_collect_runtime_health_requires_exact_stack_containers_only(monkeypatch
                 "installed": True,
                 "controller_reachable": True,
                 "controller": "floodlight:6653",
-                "running": False,
+                "running": True,
+                "ready": True,
+                "detail": "controller=floodlight:6653",
             }
         ),
     )
@@ -74,25 +76,14 @@ def test_collect_runtime_health_requires_exact_stack_containers_only(monkeypatch
         "nsddos.health.OVSProvider",
         lambda: _StubProvider({"ready": True, "detail": "ovs-vswitchd running"}),
     )
-    monkeypatch.setattr("nsddos.health.helper_running", lambda: True)
-
-    def fake_helper_exec(args, timeout=5):
-        if args == ["which", "mn"]:
-            return subprocess.CompletedProcess(args, 0, stdout="/usr/bin/mn\n", stderr="")
-        if args == ["ovs-vsctl", "show"]:
-            return subprocess.CompletedProcess(args, 0, stdout="Bridge s1\n", stderr="")
-        raise AssertionError(f"unexpected helper command: {args}")
-
-    monkeypatch.setattr("nsddos.health.helper_exec", fake_helper_exec)
-
     results = {item.name: item for item in __import__("nsddos.health", fromlist=["collect_runtime_health"]).collect_runtime_health()}
 
     assert results["containers"].ok is True
     assert "nsddos-labhost:healthy" in results["containers"].detail
     assert results["mininet"].ok is True
-    assert "controller=floodlight:6653" in results["mininet"].detail
+    assert results["mininet"].detail == "controller=floodlight:6653"
     assert results["ovs"].ok is True
-    assert results["ovs"].detail == "Bridge s1"
+    assert results["ovs"].detail == "ovs-vswitchd running"
 
 
 def test_collect_runtime_health_fails_when_required_container_missing(monkeypatch) -> None:
@@ -102,7 +93,20 @@ def test_collect_runtime_health_fails_when_required_container_missing(monkeypatc
         ServiceState(name="detector", status="running", healthy=True, detail="healthy"),
     ]
     monkeypatch.setattr("nsddos.health.check_docker_daemon", lambda: True)
-    monkeypatch.setattr("nsddos.health.DockerManager", lambda: type("Docker", (), {"get_service_states": lambda self: services})())
+    monkeypatch.setattr(
+        "nsddos.health.DockerManager",
+        lambda: type(
+            "Docker",
+            (),
+            {
+                "stack_health": lambda self, required: (
+                    False,
+                    "nsddos-labhost:missing, nsddos-floodlight:healthy, nsddos-sflowrt:healthy, nsddos-detector:healthy",
+                    services,
+                )
+            },
+        )(),
+    )
     monkeypatch.setattr(
         "nsddos.health.FloodlightProvider",
         lambda: _StubProvider({"reachable": True, "endpoint": "http://127.0.0.1:8080"}),
@@ -113,16 +117,9 @@ def test_collect_runtime_health_fails_when_required_container_missing(monkeypatc
     )
     monkeypatch.setattr(
         "nsddos.health.MininetProvider",
-        lambda: _StubProvider({"installed": True, "controller_reachable": True, "controller": "floodlight:6653"}),
+        lambda: _StubProvider({"installed": False, "controller_reachable": False, "controller": "floodlight:6653", "ready": False, "detail": "labhost unavailable"}),
     )
     monkeypatch.setattr("nsddos.health.OVSProvider", lambda: _StubProvider({"ready": True, "detail": "ovs-vswitchd running"}))
-    monkeypatch.setattr("nsddos.health.helper_running", lambda: True)
-    monkeypatch.setattr(
-        "nsddos.health.helper_exec",
-        lambda args, timeout=5: subprocess.CompletedProcess(args, 0, stdout="/usr/bin/mn\n", stderr="")
-        if args == ["which", "mn"]
-        else subprocess.CompletedProcess(args, 0, stdout="Bridge s1\n", stderr=""),
-    )
 
     results = {item.name: item for item in __import__("nsddos.health", fromlist=["collect_runtime_health"]).collect_runtime_health()}
 
@@ -139,8 +136,7 @@ def test_deployment_health_uses_corrected_helper_aware_results(monkeypatch) -> N
         lambda: [
             HealthResult("docker", True, "ok", "static"),
             HealthResult("compose", True, "ok", "static"),
-            HealthResult("mininet_binary", True, "/usr/bin/mn", "static"),
-            HealthResult("ovs_vswitch", True, "Bridge s1", "static"),
+            HealthResult("runtime_assets", True, "ok", "static"),
         ],
     )
     monkeypatch.setattr(

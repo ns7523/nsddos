@@ -194,6 +194,17 @@ class DockerManager:
             )
         return services
 
+    @staticmethod
+    def _service_aliases(name: str) -> set[str]:
+        """Return service/container aliases."""
+
+        aliases = {name}
+        if name.startswith("nsddos-"):
+            aliases.add(name.removeprefix("nsddos-"))
+        else:
+            aliases.add(f"nsddos-{name}")
+        return aliases
+
     def _docker_ps_fallback(self) -> list[ServiceState]:
         """Return service states via `docker ps` when compose JSON unsupported."""
         result = subprocess.run(
@@ -221,6 +232,51 @@ class DockerManager:
         if not parsed:
             return self._docker_ps_fallback()
         return [self._normalize_service(entry) for entry in parsed]
+
+    def get_stack_service_states(self, required_names: tuple[str, ...]) -> list[ServiceState]:
+        """Return service states matched to required stack containers."""
+
+        services = self.get_service_states()
+        matched: list[ServiceState] = []
+        for required_name in required_names:
+            service = next(
+                (
+                    entry
+                    for entry in services
+                    if required_name in self._service_aliases(entry.name)
+                ),
+                None,
+            )
+            if service is None:
+                matched.append(
+                    ServiceState(
+                        name=required_name,
+                        status="missing",
+                        healthy=False,
+                        detail="missing",
+                    )
+                )
+                continue
+            matched.append(
+                ServiceState(
+                    name=required_name,
+                    status=service.status,
+                    healthy=service.healthy,
+                    container_id=service.container_id,
+                    provider=getattr(service, "provider", "docker"),
+                    endpoint=getattr(service, "endpoint", None),
+                    detail=getattr(service, "detail", service.status),
+                )
+            )
+        return matched
+
+    def stack_health(self, required_names: tuple[str, ...]) -> tuple[bool, str, list[ServiceState]]:
+        """Return normalized stack health tuple."""
+
+        services = self.get_stack_service_states(required_names)
+        detail = ", ".join(f"{service.name}:{service.detail or service.status}" for service in services)
+        healthy = all(service.healthy for service in services)
+        return healthy and bool(services), detail or "no containers", services
 
     def get_service_status(self) -> dict[str, Any]:
         """Return compose service status."""

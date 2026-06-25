@@ -161,10 +161,12 @@ def test_list_stack_services_uses_docker_manager_fallback(monkeypatch, tmp_path)
         compose_file=compose_file,
     )
 
-    assert len(services) == 1
-    assert services[0].service_name == "nsddos-labhost"
-    assert services[0].container_name == "nsddos-labhost"
-    assert services[0].healthy is True
+    by_name = {service.container_name: service for service in services}
+    assert len(services) == 4
+    assert by_name["nsddos-labhost"].service_name == "nsddos-labhost"
+    assert by_name["nsddos-labhost"].healthy is True
+    assert by_name["nsddos-floodlight"].healthy is False
+    assert by_name["nsddos-floodlight"].state == "missing"
 
 
 def test_list_stack_services_prefixes_compose_service_name(monkeypatch, tmp_path) -> None:
@@ -193,10 +195,11 @@ def test_list_stack_services_prefixes_compose_service_name(monkeypatch, tmp_path
         compose_file=compose_file,
     )
 
-    assert len(services) == 1
-    assert services[0].service_name == "labhost"
-    assert services[0].container_name == "nsddos-labhost"
-    assert services[0].healthy is True
+    by_name = {service.container_name: service for service in services}
+    assert len(services) == 4
+    assert by_name["nsddos-labhost"].service_name == "nsddos-labhost"
+    assert by_name["nsddos-labhost"].healthy is True
+    assert by_name["nsddos-detector"].state == "missing"
 
 
 def test_tracked_runtime_code_has_single_compose_probe_site() -> None:

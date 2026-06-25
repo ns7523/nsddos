@@ -33,10 +33,11 @@ def test_ovs_provider_marks_table_miss_only_as_not_forwarding(monkeypatch):
             )
         raise AssertionError(f"unexpected ovs-ofctl args: {args}")
 
-    monkeypatch.setattr("nsddos.providers.ovs.provider.helper_running", lambda: False)
+    monkeypatch.setattr("nsddos.providers.ovs.provider.RuntimeExecutor.lab_container_running", lambda self: True)
+    monkeypatch.setattr("nsddos.providers.ovs.utils.RuntimeExecutor.lab_container_running", lambda self: True)
+    monkeypatch.setattr("nsddos.providers.ovs.utils.ovs_process_running", lambda process_name='ovs-vswitchd': True)
     monkeypatch.setattr("nsddos.providers.ovs.provider.run_ovs_vsctl", _run_vsctl)
     monkeypatch.setattr("nsddos.providers.ovs.provider.run_ovs_ofctl", _run_ofctl)
-    monkeypatch.setattr("nsddos.providers.ovs.provider.resolve_ovs_vsctl", lambda: "/usr/bin/ovs-vsctl")
 
     provider = OVSProvider(expected_protocol="OpenFlow13")
 
@@ -61,10 +62,10 @@ def test_ovs_provider_installs_normal_flow_with_expected_protocol(monkeypatch):
             return CompletedProcess(args, 0, stdout="", stderr="")
         raise AssertionError(f"unexpected ovs-ofctl args: {args}")
 
-    monkeypatch.setattr("nsddos.providers.ovs.provider.helper_running", lambda: False)
+    monkeypatch.setattr("nsddos.providers.ovs.provider.RuntimeExecutor.lab_container_running", lambda self: True)
+    monkeypatch.setattr("nsddos.providers.ovs.utils.RuntimeExecutor.lab_container_running", lambda self: True)
     monkeypatch.setattr("nsddos.providers.ovs.provider.run_ovs_vsctl", _run_vsctl)
     monkeypatch.setattr("nsddos.providers.ovs.provider.run_ovs_ofctl", _run_ofctl)
-    monkeypatch.setattr("nsddos.providers.ovs.provider.resolve_ovs_vsctl", lambda: "/usr/bin/ovs-vsctl")
 
     provider = OVSProvider(expected_protocol="OpenFlow13")
 
@@ -98,8 +99,11 @@ def test_mininet_helper_start_pins_openflow13(monkeypatch):
             return CompletedProcess(args, 0, stdout="", stderr="")
         raise AssertionError(f"unexpected helper_exec args: {args}")
 
-    monkeypatch.setattr("nsddos.providers.mininet.provider.helper_running", lambda: True)
-    monkeypatch.setattr("nsddos.providers.mininet.provider.helper_exec", _helper_exec)
+    monkeypatch.setattr("nsddos.providers.mininet.provider.RuntimeExecutor.lab_container_running", lambda self: True)
+    monkeypatch.setattr(
+        "nsddos.providers.mininet.provider.RuntimeExecutor.execute_lab",
+        lambda self, args, detached=False, timeout=30: _helper_exec(args, detached=detached, timeout=timeout),
+    )
     monkeypatch.setattr("nsddos.providers.mininet.provider.load_runtime_state", lambda: _State())
     monkeypatch.setattr("nsddos.providers.mininet.provider.write_runtime_state", lambda state: None)
 

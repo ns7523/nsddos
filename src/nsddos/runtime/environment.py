@@ -34,9 +34,9 @@ def validate_runtime_environment(config: dict[str, Any]) -> EnvironmentCompatibi
     mark("docker", caps.docker_daemon, degrade=caps.docker_installed)
     mark("java", caps.java_available)
     mark("ovs", caps.ovs_service, degrade=caps.ovs_installed)
-    mark("mininet", caps.mininet_supported and caps.passwordless_sudo, degrade=caps.mininet_supported)
-    mark("openflow", caps.openflow_compatible, degrade=caps.linux_kernel)
-    mark("sflow", caps.sflow_capable, degrade=caps.ovs_installed)
+    mark("mininet", caps.mininet_supported, degrade=caps.docker_daemon)
+    mark("openflow", caps.openflow_compatible, degrade=caps.docker_daemon)
+    mark("sflow", caps.sflow_capable, degrade=caps.docker_daemon)
 
     if not caps.docker_installed:
         missing.append("docker-cli")
@@ -44,12 +44,10 @@ def validate_runtime_environment(config: dict[str, Any]) -> EnvironmentCompatibi
         missing.append("docker-daemon")
     if not caps.java_available:
         missing.append("java")
-    if not caps.ovs_installed:
-        missing.append("ovs-vsctl")
+    if not caps.ovs_service:
+        limits.append("labhost-runtime-not-running")
     if not caps.mininet_supported:
-        missing.append("mininet")
-    if caps.mininet_supported and not caps.passwordless_sudo:
-        limits.append("sudo-needed-for-mininet")
+        limits.append("mininet-runtime-not-running")
 
     for name, status in providers.items():
         if status.get("ready") or status.get("reachable") or status.get("artifact_exists"):

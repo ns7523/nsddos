@@ -21,7 +21,7 @@ def build_provider_registry(config: dict[str, Any]) -> dict[str, Any]:
             topology=lab.get("mininet_topology", "single,3"),
         ),
         "ovs": OVSProvider(
-            collector_target=lab.get("ovs_sflow_target", "127.0.0.1:6343"),
+            collector_target=lab.get("ovs_sflow_target", "sflowrt:6343"),
             agent_interface=lab.get("ovs_agent_interface", "lo"),
             sampling=lab.get("ovs_sampling", 10),
             polling=lab.get("ovs_polling", 20),

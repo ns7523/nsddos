@@ -129,20 +129,10 @@ def test_validate_runtime_health_prefers_helper_container_checks(monkeypatch) ->
             HealthResult("containers", True, "all healthy", "runtime"),
             HealthResult("floodlight", True, "http://127.0.0.1:8080", "runtime"),
             HealthResult("sflowrt", True, "http://127.0.0.1:8008", "runtime"),
-            HealthResult("mininet", False, "legacy topology not started", "runtime"),
-            HealthResult("ovs", False, "legacy host ovs missing", "runtime"),
+            HealthResult("mininet", True, "controller=floodlight:6653", "runtime"),
+            HealthResult("ovs", True, "ovs-vswitchd running", "runtime"),
         ],
     )
-    monkeypatch.setattr("nsddos.bootstrap.runtime_boot.helper_running", lambda: True)
-
-    def _helper_exec(args, timeout=10):
-        if args == ["mn", "--version"]:
-            return subprocess.CompletedProcess(args, 0, stdout="2.3.0\n", stderr="")
-        if args == ["ovs-vsctl", "show"]:
-            return subprocess.CompletedProcess(args, 0, stdout="Bridge s1\n", stderr="")
-        raise AssertionError(f"unexpected helper command: {args}")
-
-    monkeypatch.setattr("nsddos.bootstrap.runtime_boot.helper_exec", _helper_exec)
 
     results, failures = validate_runtime_health()
     by_name = {result.name: result for result in results}
@@ -150,8 +140,8 @@ def test_validate_runtime_health_prefers_helper_container_checks(monkeypatch) ->
     assert failures == ()
     assert by_name["mininet"].ok is True
     assert by_name["ovs"].ok is True
-    assert by_name["mininet"].detail == "2.3.0"
-    assert by_name["ovs"].detail == "Bridge s1"
+    assert by_name["mininet"].detail == "controller=floodlight:6653"
+    assert by_name["ovs"].detail == "ovs-vswitchd running"
 
 
 def test_validate_runtime_health_reports_helper_internal_failures(monkeypatch) -> None:
@@ -162,25 +152,17 @@ def test_validate_runtime_health_reports_helper_internal_failures(monkeypatch) -
             HealthResult("containers", True, "all healthy", "runtime"),
             HealthResult("floodlight", True, "http://127.0.0.1:8080", "runtime"),
             HealthResult("sflowrt", True, "http://127.0.0.1:8008", "runtime"),
+            HealthResult("mininet", False, "labhost unavailable", "runtime"),
+            HealthResult("ovs", True, "ovs-vswitchd running", "runtime"),
         ],
     )
-    monkeypatch.setattr("nsddos.bootstrap.runtime_boot.helper_running", lambda: True)
-
-    def _helper_exec(args, timeout=10):
-        if args == ["mn", "--version"]:
-            return subprocess.CompletedProcess(args, 1, stdout="", stderr="mn missing")
-        if args == ["ovs-vsctl", "show"]:
-            return subprocess.CompletedProcess(args, 0, stdout="Bridge s1\n", stderr="")
-        raise AssertionError(f"unexpected helper command: {args}")
-
-    monkeypatch.setattr("nsddos.bootstrap.runtime_boot.helper_exec", _helper_exec)
 
     results, failures = validate_runtime_health()
     by_name = {result.name: result for result in results}
 
     assert failures == ("mininet",)
     assert by_name["mininet"].ok is False
-    assert by_name["mininet"].detail == "mn missing"
+    assert by_name["mininet"].detail == "labhost unavailable"
 
 
 def test_wait_for_stack_health_times_out_with_pending_services(monkeypatch) -> None:

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import subprocess
 import time
 from datetime import datetime, timezone
 from typing import Any
@@ -133,30 +132,12 @@ def validate_traffic(config: dict[str, Any]) -> VerificationResult:
         return VerificationResult(
             "traffic_validation",
             "warn",
-            "Mininet not installed",
+            "labhost container not running",
             "traffic",
         )
     try:
-        command = [
-            *mininet._command_prefix(),
-            mininet._binary(),
-            f"--controller=remote,ip={mininet.controller_host},port={mininet.controller_port}",
-            f"--topo={mininet.topology}",
-            "--test",
-            "pingall",
-        ]
-        result = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=90,
-        )
+        result = mininet.pingall_test()
     except RuntimeError as exc:
         return VerificationResult("traffic_validation", "warn", str(exc), "traffic")
-    except subprocess.TimeoutExpired:
-        return VerificationResult("traffic_validation", "fail", "pingall timed out", "traffic")
-
-    output = f"{result.stdout}\n{result.stderr}".strip()
-    status = "pass" if result.returncode == 0 and "0% dropped" in output else "warn"
-    return VerificationResult("traffic_validation", status, output[-500:] or "no output", "traffic")
+    status = "pass" if result["ok"] else "warn"
+    return VerificationResult("traffic_validation", status, str(result["detail"]), "traffic")

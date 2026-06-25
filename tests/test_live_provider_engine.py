@@ -175,10 +175,11 @@ def test_ovs_provider_installs_and_matches_drop_flow(monkeypatch):
             return CompletedProcess(args, 0, stdout=stdout, stderr="")
         raise AssertionError(f"unexpected ovs-ofctl args: {args}")
 
-    monkeypatch.setattr("nsddos.providers.ovs.provider.helper_running", lambda: False)
+    monkeypatch.setattr("nsddos.providers.ovs.provider.RuntimeExecutor.lab_container_running", lambda self: True)
+    monkeypatch.setattr("nsddos.providers.ovs.utils.RuntimeExecutor.lab_container_running", lambda self: True)
+    monkeypatch.setattr("nsddos.providers.ovs.utils.ovs_process_running", lambda process_name='ovs-vswitchd': True)
     monkeypatch.setattr("nsddos.providers.ovs.provider.run_ovs_vsctl", _run)
     monkeypatch.setattr("nsddos.providers.ovs.provider.run_ovs_ofctl", _run)
-    monkeypatch.setattr("nsddos.providers.ovs.provider.resolve_ovs_vsctl", lambda: "/usr/bin/ovs-vsctl")
 
     provider = OVSProvider()
 

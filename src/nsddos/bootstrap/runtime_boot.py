@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from nsddos.providers.docker_helper import LAB_HELPER_CONTAINER, helper_exec, helper_running
 from rich.console import Console
 
 from nsddos.bootstrap.installer import InstallerRunResult, execute_install_plan
@@ -30,35 +29,11 @@ def ensure_startup_prerequisites(console: Console) -> tuple[EnvironmentScan, Ins
     return collect_environment_scan(), result
 
 
-def _helper_check(name: str, command: list[str], detail: str) -> HealthResult:
-    """Run startup health check inside lab helper container."""
-
-    result = helper_exec(command, timeout=10)
-    output = (result.stdout or result.stderr or detail).strip()
-    return HealthResult(
-        name=name,
-        ok=result.returncode == 0,
-        detail=output or detail,
-        category="runtime",
-    )
-
-
 def validate_runtime_health() -> tuple[tuple[HealthResult, ...], tuple[str, ...]]:
     """Validate required runtime health checks."""
 
     runtime_results = tuple(collect_runtime_health())
-    if helper_running():
-        runtime_by_name = {result.name: result for result in runtime_results}
-        results = tuple(
-            result
-            for name in ("docker_daemon", "containers", "floodlight", "sflowrt")
-            if (result := runtime_by_name.get(name)) is not None
-        ) + (
-            _helper_check("mininet", ["mn", "--version"], f"{LAB_HELPER_CONTAINER}: mn --version"),
-            _helper_check("ovs", ["ovs-vsctl", "show"], f"{LAB_HELPER_CONTAINER}: ovs-vsctl show"),
-        )
-    else:
-        results = runtime_results
+    results = runtime_results
     failures = tuple(
         result.name
         for result in results

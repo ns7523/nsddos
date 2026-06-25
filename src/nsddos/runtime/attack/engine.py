@@ -14,8 +14,8 @@ from typing import Any
 
 from nsddos.constants import RUNTIME_DIR
 from nsddos.dashboard import generate_dashboard_state
-from nsddos.providers.docker_helper import helper_running
 from nsddos.providers.mininet.provider import HOST_IPS, MininetProvider
+from nsddos.runtime.executor import RuntimeExecutor
 from nsddos.runtime.persistence import atomic_write_json, read_json_checked
 from nsddos.runtime.providers.live.registry import build_live_provider_registry
 from nsddos.runtime.providers.live.telemetry import collect_live_telemetry
@@ -32,6 +32,7 @@ ATTACK_ORDER = (
     "connection_exhaustion",
 )
 HTTP_PORTS = {80, 8080, 8081}
+EXECUTOR = RuntimeExecutor()
 
 
 def _now() -> str:
@@ -75,14 +76,6 @@ def _run_host_command(args: list[str], timeout: int = 30) -> subprocess.Complete
     return subprocess.run(args, capture_output=True, text=True, check=False, timeout=timeout)
 
 
-def _namespace_runner(host: str) -> list[str]:
-    if MininetProvider.is_root():
-        return ["ip", "netns", "exec", host]
-    if MininetProvider.has_passwordless_sudo():
-        return ["sudo", "-n", "ip", "netns", "exec", host]
-    raise RuntimeError("Mininet namespace execution requires helper runtime or passwordless sudo.")
-
-
 def _helper_host_command(host: str, script: str) -> list[str]:
     attach = (
         "pid=$(ps -eo pid,args | awk '/mininet:"
@@ -92,14 +85,13 @@ def _helper_host_command(host: str, script: str) -> list[str]:
         "mnexec -a \"$pid\" sh -lc "
         f"{shlex.quote(script)}"
     )
-    return ["docker", "exec", "nsddos-labhost", "sh", "-lc", attach]
+    return ["sh", "-lc", attach]
 
 
 def _namespace_shell(host: str, script: str, timeout: int = 30) -> subprocess.CompletedProcess[str]:
-    if helper_running():
-        return _run_host_command(_helper_host_command(host, script), timeout=timeout)
-    prefix = _namespace_runner(host)
-    return _run_host_command([*prefix, "sh", "-lc", script], timeout=timeout)
+    if not EXECUTOR.lab_container_running():
+        raise RuntimeError("Labhost container not running.")
+    return EXECUTOR.execute_lab(_helper_host_command(host, script), timeout=timeout)
 
 
 def _background_namespace_task(host: str, script: str) -> threading.Thread:

@@ -6,6 +6,7 @@ import subprocess
 from pathlib import Path
 
 from nsddos.bootstrap.state import ComposeBackend, StartupServiceStatus
+from nsddos.bootstrap.startup_profiles import DEFAULT_STARTUP_PROFILE
 from nsddos.constants import get_compose_file
 from nsddos.compose import compose_backend_name, resolve_compose_command
 from nsddos.docker_manager import DockerManager
@@ -52,12 +53,13 @@ def list_stack_services(
     compose_file: Path | None = None,
 ) -> tuple[StartupServiceStatus, ...]:
     """List compose services."""
-    _ = backend
-    services = DockerManager(compose_file=compose_file or get_compose_file()).get_service_states()
+    services = DockerManager(compose_file=compose_file or get_compose_file()).get_stack_service_states(
+        DEFAULT_STARTUP_PROFILE.container_names
+    )
     return tuple(
         StartupServiceStatus(
             service_name=service.name,
-            container_name=service.name if service.name.startswith("nsddos-") else f"nsddos-{service.name}",
+            container_name=service.name,
             state=service.status,
             health=service.detail or service.status,
             healthy=service.healthy,

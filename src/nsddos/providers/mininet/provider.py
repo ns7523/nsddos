@@ -3,12 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-import os
-import signal
-import socket
-import subprocess
 from pathlib import Path
-from shutil import which
 from typing import Any
 
 from loguru import logger
@@ -16,7 +11,7 @@ from loguru import logger
 from nsddos.config import load_runtime_state, write_runtime_state
 from nsddos.constants import DEFAULT_FLOODLIGHT_OF_PORT, LOG_DIR, MININET_BIN
 from nsddos.providers.base import BaseProvider
-from nsddos.providers.docker_helper import helper_exec, helper_running
+from nsddos.runtime.executor import RuntimeExecutor
 from nsddos.runtime.models import TopologyMetadata
 
 HOST_IPS = {
@@ -27,7 +22,7 @@ HOST_IPS = {
 
 
 class MininetProvider(BaseProvider):
-    """Mininet provider for local topology lifecycle."""
+    """Mininet provider for labhost topology lifecycle."""
 
     def __init__(
         self,
@@ -38,9 +33,8 @@ class MininetProvider(BaseProvider):
         ovs_protocol: str = "OpenFlow13",
     ) -> None:
         self.mininet_bin = mininet_bin
-        self.controller_host = controller_host
-        if helper_running() and self.controller_host == "127.0.0.1":
-            self.controller_host = "floodlight"
+        self.executor = RuntimeExecutor()
+        self.controller_host = "floodlight" if controller_host == "127.0.0.1" else controller_host
         self.controller_port = controller_port
         self.topology = topology
         self.ovs_protocol = ovs_protocol
@@ -48,173 +42,136 @@ class MininetProvider(BaseProvider):
 
     @staticmethod
     def has_passwordless_sudo() -> bool:
-        """Check if sudo can run non-interactively."""
-        if which("sudo") is None:
-            return False
-        try:
-            result = subprocess.run(
-                ["sudo", "-n", "true"],
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-        except OSError:
-            return False
-        return result.returncode == 0
+        """Legacy compatibility shim."""
+
+        return False
 
     @staticmethod
     def is_root() -> bool:
-        """Check current privilege level."""
-        geteuid = getattr(os, "geteuid", None)
-        return bool(geteuid and geteuid() == 0)
+        """Legacy compatibility shim."""
+
+        return False
 
     def is_installed(self) -> bool:
-        """Check Mininet binary availability."""
-        if helper_running():
-            return True
-        return self.mininet_bin.exists() or which("mn") is not None
+        """Check Mininet availability through labhost container."""
+
+        return self.executor.lab_container_running()
+
+    def _ensure_lab_runtime(self) -> None:
+        """Raise when labhost runtime unavailable."""
+
+        if not self.executor.lab_container_running():
+            raise RuntimeError("Labhost container not running.")
+
+    def _namespace_attach(self, host: str, command: str) -> list[str]:
+        """Return mnexec attach command for Mininet host namespace."""
+
+        attach = (
+            "pid=$(ps -eo pid,args | awk '/mininet:"
+            f"{host}"
+            "$/ {print $1; exit}'); "
+            "[ -n \"$pid\" ] || { echo missing_mininet_host >&2; exit 1; }; "
+            "mnexec -a \"$pid\" sh -lc "
+            f"'{command}'"
+        )
+        return ["sh", "-lc", attach]
 
     def controller_reachable(self) -> bool:
-        """Check remote controller TCP reachability."""
-        if helper_running():
-            result = helper_exec(
-                [
-                    "python3",
-                    "-c",
-                    (
-                        "import socket; "
-                        "sock=socket.create_connection(('{}', {}), 3); "
-                        "sock.close()"
-                    ).format(self.controller_host, self.controller_port),
-                ],
-                timeout=5,
-            )
-            return result.returncode == 0
-        try:
-            with socket.create_connection(
-                (self.controller_host, self.controller_port),
-                timeout=3,
-            ):
-                return True
-        except OSError:
+        """Check remote controller TCP reachability from labhost."""
+
+        if not self.is_installed():
             return False
-
-    def _command_prefix(self) -> list[str]:
-        """Return privilege prefix."""
-        if self.is_root():
-            return []
-        if self.has_passwordless_sudo():
-            return ["sudo", "-n"]
-        raise RuntimeError("Mininet requires root or passwordless sudo.")
-
-    def _binary(self) -> str:
-        """Resolve Mininet binary."""
-        if self.mininet_bin.exists():
-            return str(self.mininet_bin)
-        resolved = which("mn")
-        if resolved:
-            return resolved
-        raise RuntimeError("Mininet binary not found.")
+        result = self.executor.execute_lab(
+            [
+                "python3",
+                "-c",
+                (
+                    "import socket; "
+                    "sock=socket.create_connection(('{}', {}), 3); "
+                    "sock.close()"
+                ).format(self.controller_host, self.controller_port),
+            ],
+            timeout=5,
+        )
+        return result.returncode == 0
 
     def start(self) -> None:
-        """Start simple Mininet topology."""
-        if not self.is_installed():
-            raise RuntimeError("Mininet not installed.")
+        """Start simple Mininet topology in labhost container."""
 
+        self._ensure_lab_runtime()
         state = load_runtime_state()
-        if state.topology_state == "running" and state.topology_pid:
+        if state.topology_state == "running":
             return
-
-        if helper_running():
-            cleanup_kill = helper_exec(["sh", "-lc", "pkill -f '[l]abhost-mininet.py' || true"], timeout=10)
-            cleanup = helper_exec(["sh", "-lc", "mn -c"], timeout=30)
-            logger.info(
-                "Mininet helper cleanup kill_rc={} cleanup_rc={}",
-                cleanup_kill.returncode,
-                cleanup.returncode,
-            )
-            process = helper_exec(
-                [
-                    "sh",
-                    "-lc",
-                    (
-                        "nohup python3 /usr/local/bin/labhost-mininet.py "
-                        "{host} {port} {fanout} {protocol} "
-                        ">/var/log/mininet.log 2>&1 </dev/null &"
-                    ).format(
-                        host=self.controller_host,
-                        port=self.controller_port,
-                        fanout=self.topology.split(",")[-1],
-                        protocol=self.ovs_protocol,
-                    ),
-                ],
-                detached=False,
-                timeout=10,
-            )
-            if process.returncode != 0:
-                raise RuntimeError(process.stderr.strip() or process.stdout.strip() or "Mininet helper start failed.")
-            state.topology_state = "running"
-            state.topology_pid = None
-            state.updated_at = datetime.now(timezone.utc).isoformat()
-            state.last_error = None
-            state.provider_status["mininet"] = self.status()
-            write_runtime_state(state)
-            return
-
-        command = [
-            *self._command_prefix(),
-            self._binary(),
-            f"--controller=remote,ip={self.controller_host},port={self.controller_port}",
-            f"--topo={self.topology}",
-            f"--switch=ovsk,protocols={self.ovs_protocol}",
-        ]
-        logger.info("Starting Mininet: {}", " ".join(command))
-        self.log_file.parent.mkdir(parents=True, exist_ok=True)
-        log_handle = self.log_file.open("a", encoding="utf-8")
-        process = subprocess.Popen(
-            command,
-            stdin=subprocess.PIPE,
-            stdout=log_handle,
-            stderr=subprocess.STDOUT,
-            start_new_session=True,
-            text=True,
+        cleanup_kill = self.executor.execute_lab(["sh", "-lc", "pkill -f '[l]abhost-mininet.py' || true"], timeout=10)
+        cleanup = self.executor.execute_lab(["sh", "-lc", "mn -c"], timeout=30)
+        logger.info(
+            "Mininet helper cleanup kill_rc={} cleanup_rc={}",
+            cleanup_kill.returncode,
+            cleanup.returncode,
         )
+        process = self.executor.execute_lab(
+            [
+                "sh",
+                "-lc",
+                (
+                    "nohup python3 /usr/local/bin/labhost-mininet.py "
+                    "{host} {port} {fanout} {protocol} "
+                    ">/var/log/mininet.log 2>&1 </dev/null &"
+                ).format(
+                    host=self.controller_host,
+                    port=self.controller_port,
+                    fanout=self.topology.split(",")[-1],
+                    protocol=self.ovs_protocol,
+                ),
+            ],
+            timeout=10,
+        )
+        if process.returncode != 0:
+            raise RuntimeError(process.stderr.strip() or process.stdout.strip() or "Mininet helper start failed.")
         state.topology_state = "running"
-        state.topology_pid = process.pid
+        state.topology_pid = None
         state.updated_at = datetime.now(timezone.utc).isoformat()
         state.last_error = None
         state.provider_status["mininet"] = self.status()
         write_runtime_state(state)
 
     def stop(self) -> None:
-        """Stop Mininet topology."""
-        state = load_runtime_state()
-        if helper_running():
-            helper_exec(["sh", "-lc", "pkill -f '[l]abhost-mininet.py' || true"], timeout=10)
-            helper_exec(["sh", "-lc", "mn -c"], timeout=30)
-            state.topology_state = "stopped"
-            state.topology_pid = None
-            state.updated_at = datetime.now(timezone.utc).isoformat()
-            state.provider_status["mininet"] = self.status()
-            write_runtime_state(state)
-            return
-        if state.topology_pid:
-            try:
-                os.killpg(state.topology_pid, signal.SIGTERM)
-            except ProcessLookupError:
-                pass
+        """Stop Mininet topology in labhost container."""
 
-        if self.is_installed():
-            cleanup = [*self._command_prefix(), self._binary(), "-c"]
-            subprocess.run(cleanup, capture_output=True, text=True, check=False)
+        state = load_runtime_state()
+        if self.executor.lab_container_running():
+            self.executor.execute_lab(["sh", "-lc", "pkill -f '[l]abhost-mininet.py' || true"], timeout=10)
+            self.executor.execute_lab(["sh", "-lc", "mn -c"], timeout=30)
         state.topology_state = "stopped"
         state.topology_pid = None
         state.updated_at = datetime.now(timezone.utc).isoformat()
         state.provider_status["mininet"] = self.status()
         write_runtime_state(state)
 
+    def pingall_test(self) -> dict[str, Any]:
+        """Run one-shot Mininet pingall test inside labhost."""
+
+        self._ensure_lab_runtime()
+        result = self.executor.execute_lab(
+            [
+                "mn",
+                f"--controller=remote,ip={self.controller_host},port={self.controller_port}",
+                f"--topo={self.topology}",
+                f"--switch=ovsk,protocols={self.ovs_protocol}",
+                "--test",
+                "pingall",
+            ],
+            timeout=90,
+        )
+        output = f"{result.stdout}\n{result.stderr}".strip()
+        return {
+            "ok": result.returncode == 0 and "0% dropped" in output,
+            "detail": output[-500:] or "no output",
+        }
+
     def topology_metadata(self) -> TopologyMetadata:
         """Return fixed topology metadata."""
+
         switches = ["s1"]
         hosts = ["h1", "h2", "h3"]
         links = ["s1-h1", "s1-h2", "s1-h3"]
@@ -230,24 +187,12 @@ class MininetProvider(BaseProvider):
 
     def probe_traffic_drop(self, source_host: str, destination_ip: str) -> dict[str, Any]:
         """Probe host connectivity and report whether traffic is blocked."""
-        command = ["ip", "netns", "exec", source_host, "ping", "-c", "1", "-W", "1", destination_ip]
-        if helper_running():
-            attach = (
-                "pid=$(ps -eo pid,args | awk '/mininet:"
-                f"{source_host}"
-                "$/ {print $1; exit}'); "
-                "[ -n \"$pid\" ] || { echo missing_mininet_host >&2; exit 1; }; "
-                f"mnexec -a \"$pid\" ping -c 1 -W 1 {destination_ip}"
-            )
-            result = helper_exec(["sh", "-lc", attach], timeout=10)
-        else:
-            result = subprocess.run(
-                [*self._command_prefix(), *command],
-                capture_output=True,
-                text=True,
-                check=False,
-                timeout=10,
-            )
+
+        self._ensure_lab_runtime()
+        result = self.executor.execute_lab(
+            self._namespace_attach(source_host, f"ping -c 1 -W 1 {destination_ip}"),
+            timeout=10,
+        )
         output = f"{result.stdout}\n{result.stderr}".strip()
         blocked = result.returncode != 0 or "100% packet loss" in output or "Destination Host Unreachable" in output
         return {
@@ -259,7 +204,8 @@ class MininetProvider(BaseProvider):
         }
 
     def probe_connectivity(self, source_host: str, destination_ip: str) -> dict[str, Any]:
-        """Probe host connectivity and report whether traffic reaches the destination."""
+        """Probe host connectivity and report whether traffic reaches destination."""
+
         probe = self.probe_traffic_drop(source_host, destination_ip)
         return {
             "attempted": probe["attempted"],
@@ -271,30 +217,29 @@ class MininetProvider(BaseProvider):
 
     def status(self) -> dict[str, Any]:
         """Return topology provider status."""
+
         state = load_runtime_state()
         running = False
-        if helper_running():
-            result = helper_exec(["pgrep", "-af", "labhost-mininet.py"], timeout=5)
+        detail = "labhost unavailable"
+        if self.executor.lab_container_running():
+            result = self.executor.execute_lab(["pgrep", "-af", "labhost-mininet.py"], timeout=5)
             running = result.returncode == 0
-        elif state.topology_pid:
-            try:
-                os.kill(state.topology_pid, 0)
-                running = True
-            except OSError:
-                running = False
+            detail = (result.stdout or result.stderr or "").strip() or ("running" if running else "stopped")
         controller_reachable = self.controller_reachable()
         return {
             "provider": "mininet",
             "installed": self.is_installed(),
-            "requires_root": True,
-            "passwordless_sudo": self.has_passwordless_sudo() or self.is_root(),
+            "requires_root": False,
+            "passwordless_sudo": False,
             "topology": self.topology,
             "controller": f"{self.controller_host}:{self.controller_port}",
             "controller_reachable": controller_reachable,
             "reachable": controller_reachable,
             "running": running,
-            "pid": state.topology_pid,
+            "pid": None,
+            "detail": detail,
             "topology_ready": running and controller_reachable,
             "ready": running and controller_reachable,
             "metadata": self.topology_metadata().to_dict(),
+            "state": state.topology_state,
         }
