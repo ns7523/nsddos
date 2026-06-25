@@ -5,19 +5,27 @@ from __future__ import annotations
 from io import TextIOWrapper
 
 from nsddos.constants import RUNTIME_DIR
-from nsddos.runtime.persistence import atomic_write_json, recover_json, read_json_checked
+from nsddos.runtime.persistence import (
+    atomic_write_json,
+    recover_json,
+    read_json_checked,
+)
 from nsddos.runtime.policy.contracts_models import PolicyRollbackState
 
 POLICY_DIR = RUNTIME_DIR / "policy"
 ROLLBACK_PATH = POLICY_DIR / "rollback.json"
 
 
-def save_rollback_state(state: PolicyRollbackState, *, lock_scope: TextIOWrapper | None = None) -> None:
+def save_rollback_state(
+    state: PolicyRollbackState, *, lock_scope: TextIOWrapper | None = None
+) -> None:
     POLICY_DIR.mkdir(parents=True, exist_ok=True)
     atomic_write_json(ROLLBACK_PATH, state.to_dict(), lock_scope=lock_scope)
 
 
-def load_rollback_state(*, lock_scope: TextIOWrapper | None = None) -> PolicyRollbackState | None:
+def load_rollback_state(
+    *, lock_scope: TextIOWrapper | None = None
+) -> PolicyRollbackState | None:
     payload = recover_json(ROLLBACK_PATH, {}, lock_scope=lock_scope)
     if not payload:
         return None

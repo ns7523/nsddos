@@ -139,8 +139,12 @@ class ThreatIntelState:
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
-        payload["repeated_attacker_ips"] = [list(item) for item in self.repeated_attacker_ips]
-        payload["suspicious_protocol_concentration"] = [list(item) for item in self.suspicious_protocol_concentration]
+        payload["repeated_attacker_ips"] = [
+            list(item) for item in self.repeated_attacker_ips
+        ]
+        payload["suspicious_protocol_concentration"] = [
+            list(item) for item in self.suspicious_protocol_concentration
+        ]
         return payload
 
 
@@ -204,17 +208,27 @@ class DashboardEvaluation:
     timestamp: datetime
     schema_version: str = SCHEMA_VERSION
     environment: str = "ops"
-    metrics: MetricsState = field(default_factory=lambda: MetricsState(0.0, 0.0, 0, 0, 0))
+    metrics: MetricsState = field(
+        default_factory=lambda: MetricsState(0.0, 0.0, 0, 0, 0)
+    )
     streams: StreamState = field(default_factory=lambda: StreamState(0, 0.0, 0.0, 0, 0))
     attacks: AttackState = field(default_factory=lambda: AttackState(0, (), (), (), ()))
     timeline: tuple[TimelineEvent, ...] = field(default_factory=tuple)
     alerts: tuple[AlertRecord, ...] = field(default_factory=tuple)
     visualizations: tuple[VisualizationSeries, ...] = field(default_factory=tuple)
-    policy_analytics: PolicyAnalytics = field(default_factory=lambda: PolicyAnalytics(0, 0, 0, ()))
-    ml_metrics: MLMetricsState = field(default_factory=lambda: MLMetricsState(0.0, (), 0, (), ()))
-    threat_intel: ThreatIntelState = field(default_factory=lambda: ThreatIntelState((), 0, (), ()))
+    policy_analytics: PolicyAnalytics = field(
+        default_factory=lambda: PolicyAnalytics(0, 0, 0, ())
+    )
+    ml_metrics: MLMetricsState = field(
+        default_factory=lambda: MLMetricsState(0.0, (), 0, (), ())
+    )
+    threat_intel: ThreatIntelState = field(
+        default_factory=lambda: ThreatIntelState((), 0, (), ())
+    )
     reports: tuple[DashboardReport, ...] = field(default_factory=tuple)
-    diagnostics: DashboardDiagnostics = field(default_factory=lambda: DashboardDiagnostics(0.0, (), (), ()))
+    diagnostics: DashboardDiagnostics = field(
+        default_factory=lambda: DashboardDiagnostics(0.0, (), (), ())
+    )
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)

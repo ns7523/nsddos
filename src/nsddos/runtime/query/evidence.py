@@ -27,7 +27,9 @@ def _evidence_item(path: Path) -> dict[str, Any]:
 
 def query_evidence(config: dict[str, Any], query: RuntimeQuery) -> dict[str, Any]:
     """Query evidence bundles."""
-    files = sorted(EVIDENCE_DIR.glob("*/evidence.json")) if EVIDENCE_DIR.exists() else []
+    files = (
+        sorted(EVIDENCE_DIR.glob("*/evidence.json")) if EVIDENCE_DIR.exists() else []
+    )
     items = []
     for path in files:
         try:
@@ -35,7 +37,11 @@ def query_evidence(config: dict[str, Any], query: RuntimeQuery) -> dict[str, Any
         except Exception:
             continue
     relationships = [
-        {"source": item["id"], "target": item["convergence"], "type": "evidence_convergence"}
+        {
+            "source": item["id"],
+            "target": item["convergence"],
+            "type": "evidence_convergence",
+        }
         for item in items
         if item.get("convergence")
     ]

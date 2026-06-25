@@ -26,7 +26,9 @@ class QuickCommand:
     description: str
 
 
-def build_environment_diagnostics(snapshot: EnvironmentSnapshot) -> list[DiagnosticItem]:
+def build_environment_diagnostics(
+    snapshot: EnvironmentSnapshot,
+) -> list[DiagnosticItem]:
     """Convert environment snapshot into terminal rows."""
 
     return [
@@ -68,7 +70,11 @@ def build_quick_commands() -> list[QuickCommand]:
 def readiness_label(snapshot: EnvironmentSnapshot) -> str:
     """Compute onboarding readiness label."""
 
-    if snapshot.docker.installed and snapshot.git.installed and snapshot.docker_daemon_running:
+    if (
+        snapshot.docker.installed
+        and snapshot.git.installed
+        and snapshot.docker_daemon_running
+    ):
         return theme.READY_LABEL
     return theme.DEGRADED_LABEL
 

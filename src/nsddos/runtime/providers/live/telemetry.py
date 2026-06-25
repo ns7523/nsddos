@@ -7,7 +7,11 @@ from typing import Any
 
 from nsddos.runtime.models import FlowState, TelemetryFreshness, TelemetryState
 from nsddos.runtime.providers.live.controller_events import normalize_controller_events
-from nsddos.runtime.providers.live.contracts import LiveTelemetrySnapshot, TopologyLink, TopologySnapshot
+from nsddos.runtime.providers.live.contracts import (
+    LiveTelemetrySnapshot,
+    TopologyLink,
+    TopologySnapshot,
+)
 from nsddos.runtime.providers.live.discovery import discover_runtime_providers
 from nsddos.runtime.providers.live.floodlight import collect_floodlight_telemetry
 from nsddos.runtime.providers.live.health import evaluate_provider_health
@@ -31,10 +35,38 @@ def collect_live_telemetry(config: dict[str, Any]) -> LiveTelemetrySnapshot:
     floodlight = collect_floodlight_telemetry(registry.floodlight, registry.pool)
     now = datetime.now(timezone.utc)
     health_records = (
-        evaluate_provider_health("sflowrt", reachable=bool(sflow["reachable"]), latency_ms=float(sflow["latency_ms"]), malformed=bool(sflow["malformed"]), last_timestamp=now.isoformat(), error_count=0 if sflow["reachable"] else 1),
-        evaluate_provider_health("ovs", reachable=bool(ovs["reachable"]), latency_ms=float(ovs["latency_ms"]), malformed=bool(ovs["malformed"]), last_timestamp=now.isoformat(), error_count=0 if ovs["reachable"] else 1),
-        evaluate_provider_health("mininet", reachable=bool(mininet["reachable"]), latency_ms=float(mininet["latency_ms"]), malformed=bool(mininet["malformed"]), last_timestamp=now.isoformat(), error_count=0 if mininet["reachable"] else 1),
-        evaluate_provider_health("floodlight", reachable=bool(floodlight["reachable"]), latency_ms=float(floodlight["latency_ms"]), malformed=bool(floodlight["malformed"]), last_timestamp=now.isoformat(), error_count=0 if floodlight["reachable"] else 1),
+        evaluate_provider_health(
+            "sflowrt",
+            reachable=bool(sflow["reachable"]),
+            latency_ms=float(sflow["latency_ms"]),
+            malformed=bool(sflow["malformed"]),
+            last_timestamp=now.isoformat(),
+            error_count=0 if sflow["reachable"] else 1,
+        ),
+        evaluate_provider_health(
+            "ovs",
+            reachable=bool(ovs["reachable"]),
+            latency_ms=float(ovs["latency_ms"]),
+            malformed=bool(ovs["malformed"]),
+            last_timestamp=now.isoformat(),
+            error_count=0 if ovs["reachable"] else 1,
+        ),
+        evaluate_provider_health(
+            "mininet",
+            reachable=bool(mininet["reachable"]),
+            latency_ms=float(mininet["latency_ms"]),
+            malformed=bool(mininet["malformed"]),
+            last_timestamp=now.isoformat(),
+            error_count=0 if mininet["reachable"] else 1,
+        ),
+        evaluate_provider_health(
+            "floodlight",
+            reachable=bool(floodlight["reachable"]),
+            latency_ms=float(floodlight["latency_ms"]),
+            malformed=bool(floodlight["malformed"]),
+            last_timestamp=now.isoformat(),
+            error_count=0 if floodlight["reachable"] else 1,
+        ),
     )
     discovery = discover_runtime_providers(
         floodlight_switches=tuple(floodlight["switches"]),
@@ -43,7 +75,9 @@ def collect_live_telemetry(config: dict[str, Any]) -> LiveTelemetrySnapshot:
         controller_endpoint=str(mininet["controller"]),
     )
     topology = TopologySnapshot(
-        switches=tuple(sorted(set(tuple(mininet["switches"]) + tuple(floodlight["switches"])))),
+        switches=tuple(
+            sorted(set(tuple(mininet["switches"]) + tuple(floodlight["switches"])))
+        ),
         hosts=tuple(mininet["hosts"]),
         controllers=(str(mininet["controller"]),),
         links=tuple(TopologyLink("s1", host) for host in tuple(mininet["hosts"])),
@@ -61,9 +95,21 @@ def collect_live_telemetry(config: dict[str, Any]) -> LiveTelemetrySnapshot:
         source_ip_distribution=tuple(sflow["source_ip_distribution"]),
         destination_port_distribution=tuple(sflow["destination_port_distribution"]),
         topology_state=topology,
-        controller_status="connected" if floodlight["controller_port_open"] and mininet["controller_reachable"] else "degraded",
+        controller_status=(
+            "connected"
+            if floodlight["controller_port_open"] and mininet["controller_reachable"]
+            else "degraded"
+        ),
         timestamp=now,
-        health_state="healthy" if all(item.state == "healthy" for item in health_records) else "degraded" if any(item.state == "healthy" for item in health_records) else "disconnected",
+        health_state=(
+            "healthy"
+            if all(item.state == "healthy" for item in health_records)
+            else (
+                "degraded"
+                if any(item.state == "healthy" for item in health_records)
+                else "disconnected"
+            )
+        ),
         provider_health=health_records,
         controller_events=normalize_controller_events(discovery, health_records),
         created_at=now.isoformat(),
@@ -71,13 +117,21 @@ def collect_live_telemetry(config: dict[str, Any]) -> LiveTelemetrySnapshot:
     errors = validate_live_snapshot(snapshot)
     if errors:
         raise ValueError(f"live telemetry invalid: {','.join(errors)}")
-    buffer = TelemetryStreamBuffer(batch_size=int(config.get("runtime", {}).get("live", {}).get("buffer_batch_size", 3)))
+    buffer = TelemetryStreamBuffer(
+        batch_size=int(
+            config.get("runtime", {}).get("live", {}).get("buffer_batch_size", 3)
+        )
+    )
     buffer.push(snapshot)
     return snapshot
 
 
-def live_snapshot_to_collection_state(snapshot: LiveTelemetrySnapshot) -> dict[str, dict[str, Any]]:
-    provider_status = {item.provider: item.to_dict() for item in snapshot.provider_health}
+def live_snapshot_to_collection_state(
+    snapshot: LiveTelemetrySnapshot,
+) -> dict[str, dict[str, Any]]:
+    provider_status = {
+        item.provider: item.to_dict() for item in snapshot.provider_health
+    }
     flow_state = FlowState(
         collector_reachable=snapshot.health_state in {"healthy", "degraded"},
         telemetry_present=snapshot.active_flows > 0,
@@ -113,8 +167,16 @@ def live_snapshot_to_collection_state(snapshot: LiveTelemetrySnapshot) -> dict[s
 
 
 def snapshot_to_detection_telemetry(snapshot: LiveTelemetrySnapshot) -> dict[str, Any]:
-    top_source = snapshot.source_ip_distribution[0].key if snapshot.source_ip_distribution else "unknown"
-    top_port = int(float(snapshot.destination_port_distribution[0].key)) if snapshot.destination_port_distribution else 0
+    top_source = (
+        snapshot.source_ip_distribution[0].key
+        if snapshot.source_ip_distribution
+        else "unknown"
+    )
+    top_port = (
+        int(float(snapshot.destination_port_distribution[0].key))
+        if snapshot.destination_port_distribution
+        else 0
+    )
     return {
         "provider_source": snapshot.provider_source,
         "timestamp": snapshot.timestamp.isoformat(),

@@ -44,10 +44,10 @@ def build_docker_daemon_commands(os_profile: OSProfile) -> tuple[SystemCommand, 
                 rollback_argv=("sudo", "systemctl", "stop", "docker"),
                 reversible=True,
             ),
-            subprocess_command("Enable Docker daemon", ("sudo", "systemctl", "enable", "docker")),
+            subprocess_command(
+                "Enable Docker daemon", ("sudo", "systemctl", "enable", "docker")
+            ),
         )
     if os_profile.family == "macOS":
-        return (
-            subprocess_command("Launch Docker Desktop", ("open", "-a", "Docker")),
-        )
+        return (subprocess_command("Launch Docker Desktop", ("open", "-a", "Docker")),)
     return ()

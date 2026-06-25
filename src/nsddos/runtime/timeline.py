@@ -28,7 +28,11 @@ def build_runtime_history_timeline() -> list[TimelineEvent]:
                 timestamp=str(event.get("timestamp", "")),
                 event_type=str(event.get("event_type", "")),
                 affected_entities=affected,
-                convergence_impact="warning" if event.get("status") in {"warning", "stale"} else str(event.get("status", "none")),
+                convergence_impact=(
+                    "warning"
+                    if event.get("status") in {"warning", "stale"}
+                    else str(event.get("status", "none"))
+                ),
                 drift_impact="none",
                 topology_impact="none",
                 detail=str(event.get("message", "")),
@@ -59,7 +63,11 @@ def build_runtime_history_timeline() -> list[TimelineEvent]:
 def timeline_summary(timeline: list[TimelineEvent] | None = None) -> dict[str, Any]:
     """Summarize timeline."""
     items = timeline or build_runtime_history_timeline()
-    instability = [item for item in items if "warning" in item.convergence_impact or "diverged" in item.convergence_impact]
+    instability = [
+        item
+        for item in items
+        if "warning" in item.convergence_impact or "diverged" in item.convergence_impact
+    ]
     return {
         "events": len(items),
         "instability_events": len(instability),
@@ -73,12 +81,19 @@ def typed_timeline_transitions() -> list[dict[str, Any]]:
     typed: list[dict[str, Any]] = []
     for item in build_runtime_history_timeline():
         transition = RuntimeTransition(
-            transition_id=deterministic_id("transition", f"{item.timestamp}:{item.event_type}:{item.detail}"),
+            transition_id=deterministic_id(
+                "transition", f"{item.timestamp}:{item.event_type}:{item.detail}"
+            ),
             event_type=item.event_type,
             timestamp=item.timestamp,
             affected_entities=tuple(item.affected_entities),
             detail=item.detail,
         )
         typed.append(to_canonical_dict(transition))
-    typed.sort(key=lambda row: (str(row.get("timestamp", "")), str(row.get("transition_id", ""))))
+    typed.sort(
+        key=lambda row: (
+            str(row.get("timestamp", "")),
+            str(row.get("transition_id", "")),
+        )
+    )
     return typed

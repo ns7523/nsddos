@@ -10,4 +10,3 @@ from nsddos.runtime.providers_registry import build_provider_registry
 def runtime_registry(config: dict[str, Any]) -> dict[str, Any]:
     """Return runtime provider registry."""
     return build_provider_registry(config)
-

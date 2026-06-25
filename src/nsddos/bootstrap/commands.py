@@ -44,7 +44,9 @@ def mkdir_command(description: str, target_path: str) -> SystemCommand:
     return SystemCommand(kind="mkdir", description=description, target_path=target_path)
 
 
-def venv_command(description: str, python_executable: str, target_path: str) -> SystemCommand:
+def venv_command(
+    description: str, python_executable: str, target_path: str
+) -> SystemCommand:
     """Build virtualenv creation command."""
 
     return SystemCommand(
@@ -62,13 +64,17 @@ def runtime_init_command(description: str) -> SystemCommand:
     return SystemCommand(kind="runtime-init", description=description)
 
 
-def compose_subprocess_command(description: str, args: tuple[str, ...]) -> SystemCommand:
+def compose_subprocess_command(
+    description: str, args: tuple[str, ...]
+) -> SystemCommand:
     """Build compose-backed command resolved at execution time."""
 
     return SystemCommand(kind="compose", description=description, compose_args=args)
 
 
-def asset_download_command(description: str, version: str | None = None, force: bool = False) -> SystemCommand:
+def asset_download_command(
+    description: str, version: str | None = None, force: bool = False
+) -> SystemCommand:
     """Build runtime asset download command."""
 
     return SystemCommand(

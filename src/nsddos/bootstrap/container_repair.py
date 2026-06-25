@@ -13,7 +13,13 @@ def repair_containers(console: Console) -> bool:
 
     backend = detect_compose_backend()
     if backend is None:
-        console.print(Panel("Compose backend unavailable.", title="Container Repair", border_style="red"))
+        console.print(
+            Panel(
+                "Compose backend unavailable.",
+                title="Container Repair",
+                border_style="red",
+            )
+        )
         return False
     result = start_stack(backend, rebuild=True)
     if result.returncode != 0:

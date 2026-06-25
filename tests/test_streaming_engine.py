@@ -37,10 +37,58 @@ def _manual_events():
 
     base = datetime(2026, 1, 1, tzinfo=timezone.utc)
     return (
-        StreamEvent("e3", "collection", 3.0, 300.0, 3.0, "tcp", "10.0.0.3", "10.0.0.1", base.replace(second=3), 3, "valid"),
-        StreamEvent("e1", "collection", 1.0, 100.0, 1.0, "udp", "10.0.0.1", "10.0.0.1", base.replace(second=1), 1, "valid"),
-        StreamEvent("e2", "collection", 2.0, 200.0, 2.0, "udp", "10.0.0.2", "10.0.0.1", base.replace(second=2), 2, "valid"),
-        StreamEvent("e4", "collection", 4.0, 400.0, 4.0, "icmp", "10.0.0.4", "10.0.0.1", base.replace(second=4), 4, "valid"),
+        StreamEvent(
+            "e3",
+            "collection",
+            3.0,
+            300.0,
+            3.0,
+            "tcp",
+            "10.0.0.3",
+            "10.0.0.1",
+            base.replace(second=3),
+            3,
+            "valid",
+        ),
+        StreamEvent(
+            "e1",
+            "collection",
+            1.0,
+            100.0,
+            1.0,
+            "udp",
+            "10.0.0.1",
+            "10.0.0.1",
+            base.replace(second=1),
+            1,
+            "valid",
+        ),
+        StreamEvent(
+            "e2",
+            "collection",
+            2.0,
+            200.0,
+            2.0,
+            "udp",
+            "10.0.0.2",
+            "10.0.0.1",
+            base.replace(second=2),
+            2,
+            "valid",
+        ),
+        StreamEvent(
+            "e4",
+            "collection",
+            4.0,
+            400.0,
+            4.0,
+            "icmp",
+            "10.0.0.4",
+            "10.0.0.1",
+            base.replace(second=4),
+            4,
+            "valid",
+        ),
     )
 
 
@@ -51,36 +99,60 @@ def test_queue_ordering() -> None:
 
 def test_event_buffering() -> None:
     queue = build_queue_state(_manual_events())
-    buffer_state = build_buffer_state(queue.events, max_size=3, overflow_policy="drop_oldest")
+    buffer_state = build_buffer_state(
+        queue.events, max_size=3, overflow_policy="drop_oldest"
+    )
     assert [item.event_id for item in buffer_state.events] == ["e2", "e3", "e4"]
     assert buffer_state.dropped_events == 1
 
 
 def test_sliding_window_processing() -> None:
-    buffer_state = build_buffer_state(build_queue_state(_manual_events()).events, max_size=4, overflow_policy="drop_oldest")
-    windows = build_window_state(buffer_state.events, window_kind="sliding", window_seconds=10)
+    buffer_state = build_buffer_state(
+        build_queue_state(_manual_events()).events,
+        max_size=4,
+        overflow_policy="drop_oldest",
+    )
+    windows = build_window_state(
+        buffer_state.events, window_kind="sliding", window_seconds=10
+    )
     assert windows.window_kind == "sliding"
     assert windows.active_events == 4
     assert len(windows.windows[-1].events) == 4
 
 
 def test_tumbling_window_processing() -> None:
-    buffer_state = build_buffer_state(build_queue_state(_manual_events()).events, max_size=4, overflow_policy="drop_oldest")
-    windows = build_window_state(buffer_state.events, window_kind="tumbling", window_seconds=2)
+    buffer_state = build_buffer_state(
+        build_queue_state(_manual_events()).events,
+        max_size=4,
+        overflow_policy="drop_oldest",
+    )
+    windows = build_window_state(
+        buffer_state.events, window_kind="tumbling", window_seconds=2
+    )
     assert windows.window_kind == "tumbling"
     assert len(windows.windows) >= 2
 
 
 def test_aggregation_correctness() -> None:
-    buffer_state = build_buffer_state(build_queue_state(_manual_events()).events, max_size=4, overflow_policy="drop_oldest")
-    aggregation = aggregate_events(build_window_state(buffer_state.events, window_kind="sliding", window_seconds=10))
+    buffer_state = build_buffer_state(
+        build_queue_state(_manual_events()).events,
+        max_size=4,
+        overflow_policy="drop_oldest",
+    )
+    aggregation = aggregate_events(
+        build_window_state(
+            buffer_state.events, window_kind="sliding", window_seconds=10
+        )
+    )
     assert aggregation.total_packet_rate == 10.0
     assert aggregation.attack_pattern in {"udp_flood", "icmp_flood", "syn_flood"}
 
 
 def test_backpressure_handling() -> None:
     queue = build_queue_state(_manual_events())
-    buffer_state = build_buffer_state(queue.events, max_size=3, overflow_policy="drop_oldest")
+    buffer_state = build_buffer_state(
+        queue.events, max_size=3, overflow_policy="drop_oldest"
+    )
     state = evaluate_backpressure(queue, max_queue_depth=3, buffer_state=buffer_state)
     assert state.state == "overflow"
     assert state.throttled is True
@@ -132,7 +204,9 @@ def test_dispatcher_trigger_correctness(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(
         dispatcher_module,
         "evaluate_detection",
-        lambda config, telemetry=None, reference_at=None: type("Detection", (), {"to_dict": lambda self: {"attack_type": "udp_flood"}})(),
+        lambda config, telemetry=None, reference_at=None: type(
+            "Detection", (), {"to_dict": lambda self: {"attack_type": "udp_flood"}}
+        )(),
     )
     monkeypatch.setattr(
         dispatcher_module,
@@ -140,7 +214,12 @@ def test_dispatcher_trigger_correctness(tmp_path: Path, monkeypatch) -> None:
         lambda config, detection=None, ml=None, telemetry=None, reference_at=None: type(
             "Policy",
             (),
-            {"to_dict": lambda self: {"recommended_action": "rate_limit", "escalation_level": 1}},
+            {
+                "to_dict": lambda self: {
+                    "recommended_action": "rate_limit",
+                    "escalation_level": 1,
+                }
+            },
         )(),
     )
     monkeypatch.setattr(
@@ -149,7 +228,12 @@ def test_dispatcher_trigger_correctness(tmp_path: Path, monkeypatch) -> None:
         lambda config, detection=None, telemetry=None, reference_at=None: type(
             "ML",
             (),
-            {"to_dict": lambda self: {"attack_probability": 0.8, "predicted_attack_type": "udp_flood"}},
+            {
+                "to_dict": lambda self: {
+                    "attack_probability": 0.8,
+                    "predicted_attack_type": "udp_flood",
+                }
+            },
         )(),
     )
     monkeypatch.setattr(

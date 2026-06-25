@@ -6,7 +6,12 @@ import hashlib
 from datetime import datetime, timezone
 from typing import Any
 
-from nsddos.runtime.detection.models import AttackClassification, DetectionEvidence, FeatureVector, RiskAssessment
+from nsddos.runtime.detection.models import (
+    AttackClassification,
+    DetectionEvidence,
+    FeatureVector,
+    RiskAssessment,
+)
 from nsddos.runtime.domain.serialization import to_canonical_json
 
 
@@ -26,8 +31,14 @@ def build_detection_evidence(
         "risk": risk.to_dict(),
     }
     return DetectionEvidence(
-        evidence_hash=hashlib.sha256(to_canonical_json(evidence_payload).encode("utf-8")).hexdigest(),
-        classification_generation=hashlib.sha256(to_canonical_json(classification_payload).encode("utf-8")).hexdigest(),
+        evidence_hash=hashlib.sha256(
+            to_canonical_json(evidence_payload).encode("utf-8")
+        ).hexdigest(),
+        classification_generation=hashlib.sha256(
+            to_canonical_json(classification_payload).encode("utf-8")
+        ).hexdigest(),
         provider_source=str(telemetry.get("provider_source", "unknown")),
-        timestamp=str(telemetry.get("timestamp", datetime.now(timezone.utc).isoformat())),
+        timestamp=str(
+            telemetry.get("timestamp", datetime.now(timezone.utc).isoformat())
+        ),
     )

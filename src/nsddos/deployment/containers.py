@@ -13,7 +13,9 @@ def manifest_path(*parts: str) -> Path:
     return PROJECT_ROOT / "deployment" / Path(*parts)
 
 
-def build_container_contracts(environment: str = "prod") -> tuple[ContainerContract, ...]:
+def build_container_contracts(
+    environment: str = "prod",
+) -> tuple[ContainerContract, ...]:
     """Build deterministic container contracts from repo manifests."""
     compose_manifest = manifest_path("docker", "docker-compose.prod.yml")
     dockerfile = manifest_path("docker", "Dockerfile.prod")

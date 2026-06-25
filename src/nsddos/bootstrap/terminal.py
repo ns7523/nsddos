@@ -90,7 +90,13 @@ def build_operator_table(
         table.add_column(column, style=style)
     for row in rows:
         table.add_row(*row)
-    return Panel(table, title=title, border_style=theme.SECTION_BORDER_STYLE, padding=(1, 2), box=ROUNDED)
+    return Panel(
+        table,
+        title=title,
+        border_style=theme.SECTION_BORDER_STYLE,
+        padding=(1, 2),
+        box=ROUNDED,
+    )
 
 
 def build_quick_commands_table(commands: list[QuickCommand]) -> Table:
@@ -109,7 +115,9 @@ def build_readiness_progress(completed: int, total: int) -> Progress:
 
     progress = Progress(
         TextColumn("[bold white]Foundation[/bold white]"),
-        BarColumn(bar_width=None, complete_style=theme.ACCENT, finished_style=theme.ACCENT),
+        BarColumn(
+            bar_width=None, complete_style=theme.ACCENT, finished_style=theme.ACCENT
+        ),
         TextColumn("[bold cyan]{task.completed}/{task.total}[/bold cyan]"),
         expand=True,
     )
@@ -186,10 +194,7 @@ def build_command_deck(commands: list[QuickCommand]) -> Panel:
 def build_status_matrix(title: str, items: tuple[tuple[str, str, str], ...]) -> Panel:
     """Build status matrix panel."""
 
-    rows = [
-        (label, status_text(status), detail)
-        for label, status, detail in items
-    ]
+    rows = [(label, status_text(status), detail) for label, status, detail in items]
     return build_operator_table(title, ("System", "State", "Detail"), rows)
 
 

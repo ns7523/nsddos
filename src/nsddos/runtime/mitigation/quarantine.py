@@ -12,7 +12,9 @@ def derive_subnet(target_ip: str) -> str:
     return str(network)
 
 
-def build_quarantine_action(action_type: str, target_ip: str, reason: str) -> MitigationActionPayload:
+def build_quarantine_action(
+    action_type: str, target_ip: str, reason: str
+) -> MitigationActionPayload:
     subnet = derive_subnet(target_ip) if action_type == "isolate_subnet" else ""
     return MitigationActionPayload(
         action_type=action_type,

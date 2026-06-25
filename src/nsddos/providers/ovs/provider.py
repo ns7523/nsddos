@@ -162,7 +162,11 @@ class OVSProvider(BaseProvider):
             installed=self.is_installed(),
             service_running=self.service_running(),
             bridges=bridges,
-            detail="ovs-vswitchd running" if self.service_running() else "ovs-vswitchd not running",
+            detail=(
+                "ovs-vswitchd running"
+                if self.service_running()
+                else "ovs-vswitchd not running"
+            ),
         )
 
     def install_drop_flow(self, bridge: str, flow: str) -> bool:
@@ -186,7 +190,9 @@ class OVSProvider(BaseProvider):
 
         if not self.bridge_exists(bridge):
             return ""
-        result = run_ovs_ofctl(["-O", self.expected_protocol, "dump-flows", bridge], timeout=10)
+        result = run_ovs_ofctl(
+            ["-O", self.expected_protocol, "dump-flows", bridge], timeout=10
+        )
         return result.stdout if result.returncode == 0 else ""
 
     def has_flow(self, bridge: str, match_fields: dict[str, str]) -> bool:
@@ -195,7 +201,10 @@ class OVSProvider(BaseProvider):
         dump = self.dump_flows(bridge)
         if not dump:
             return False
-        return all(f"{key}={value}" in dump or value in dump for key, value in match_fields.items())
+        return all(
+            f"{key}={value}" in dump or value in dump
+            for key, value in match_fields.items()
+        )
 
     def start(self) -> None:
         """Validate base OVS readiness."""

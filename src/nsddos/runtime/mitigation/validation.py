@@ -4,7 +4,16 @@ from __future__ import annotations
 
 import ipaddress
 
-from nsddos.runtime.mitigation.contracts import ENFORCEMENT_STEP_STATUSES, EXECUTION_RESULTS, MITIGATION_ACTIONS, MITIGATION_STATUSES, POLICY_NAMES, REQUIRES_SUBNET, REQUIRES_TARGET_IP, STRATEGY_NAMES
+from nsddos.runtime.mitigation.contracts import (
+    ENFORCEMENT_STEP_STATUSES,
+    EXECUTION_RESULTS,
+    MITIGATION_ACTIONS,
+    MITIGATION_STATUSES,
+    POLICY_NAMES,
+    REQUIRES_SUBNET,
+    REQUIRES_TARGET_IP,
+    STRATEGY_NAMES,
+)
 from nsddos.runtime.mitigation.models import MitigationEvaluation
 
 
@@ -42,9 +51,13 @@ def validate_mitigation_evaluation(evaluation: MitigationEvaluation) -> list[str
         errors.append("invalid_strategy_selection")
     if not 0.0 <= evaluation.confidence_score <= 1.0:
         errors.append("confidence_score_out_of_range")
-    if evaluation.mitigation_action in REQUIRES_TARGET_IP and not _valid_ip(evaluation.target_ip):
+    if evaluation.mitigation_action in REQUIRES_TARGET_IP and not _valid_ip(
+        evaluation.target_ip
+    ):
         errors.append("missing_target_ip")
-    if evaluation.mitigation_action in REQUIRES_SUBNET and not _valid_subnet(evaluation.target_subnet):
+    if evaluation.mitigation_action in REQUIRES_SUBNET and not _valid_subnet(
+        evaluation.target_subnet
+    ):
         errors.append("malformed_target_subnet")
     if evaluation.mitigation_action == "alert_only" and evaluation.target_ip:
         errors.append("unexpected_target_ip")
@@ -52,7 +65,10 @@ def validate_mitigation_evaluation(evaluation: MitigationEvaluation) -> list[str
         errors.append("mitigation_required_mismatch")
     if evaluation.action_payload.action_type != evaluation.mitigation_action:
         errors.append("action_payload_mismatch")
-    if evaluation.controller_payload is None and evaluation.mitigation_action != "alert_only":
+    if (
+        evaluation.controller_payload is None
+        and evaluation.mitigation_action != "alert_only"
+    ):
         errors.append("invalid_execution_payload")
     if evaluation.controller_payload is not None:
         flow_rule = evaluation.controller_payload.flow_rule

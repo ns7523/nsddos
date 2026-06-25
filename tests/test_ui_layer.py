@@ -5,12 +5,21 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from nsddos.bootstrap.state import DiagnosticFinding, StartupPortBinding, StartupSession
-from nsddos.bootstrap.ui_launcher import launch_ui_background, replace_listener_on_port, ui_is_modern
+from nsddos.bootstrap.ui_launcher import (
+    launch_ui_background,
+    replace_listener_on_port,
+    ui_is_modern,
+)
 from nsddos.cli import ui_start
 from nsddos.ui.api_client import UiApiClient
 from nsddos.ui.app import create_ui_app, explain_ui
 from nsddos.ui.dashboard_pages import UiPageBuilder
-from nsddos.ui.models import UiPagePayload, UiPageSnapshot, UiStatusBarSnapshot, UiStatusField
+from nsddos.ui.models import (
+    UiPagePayload,
+    UiPageSnapshot,
+    UiStatusBarSnapshot,
+    UiStatusField,
+)
 
 
 def _dashboard_payload() -> dict:
@@ -31,9 +40,21 @@ def _dashboard_payload() -> dict:
             "attack_types": [["syn_flood", 2], ["udp_flood", 1]],
             "source_ips": [["10.0.0.4", 4], ["10.0.0.5", 2]],
         },
-        "threat_intel": {"suspicious_protocol_concentration": [["tcp", 0.7], ["udp", 0.3]]},
+        "threat_intel": {
+            "suspicious_protocol_concentration": [["tcp", 0.7], ["udp", 0.3]]
+        },
         "visualizations": [
-            {"chart_id": "throughput", "title": "Throughput", "points": [["t-4", 2100], ["t-3", 2400], ["t-2", 3000], ["t-1", 4100], ["now", 4382]]},
+            {
+                "chart_id": "throughput",
+                "title": "Throughput",
+                "points": [
+                    ["t-4", 2100],
+                    ["t-3", 2400],
+                    ["t-2", 3000],
+                    ["t-1", 4100],
+                    ["now", 4382],
+                ],
+            },
         ],
     }
 
@@ -80,8 +101,18 @@ def _fake_api(_self, path: str, params: dict | None = None) -> dict:
         },
         "/runtime/provider-health": {
             "items": [
-                {"id": "provider-floodlight", "provider_name": "Floodlight", "health_state": "healthy", "detail": "controller online"},
-                {"id": "provider-sflowrt", "provider_name": "sFlowRT", "health_state": "healthy", "detail": "telemetry online"},
+                {
+                    "id": "provider-floodlight",
+                    "provider_name": "Floodlight",
+                    "health_state": "healthy",
+                    "detail": "controller online",
+                },
+                {
+                    "id": "provider-sflowrt",
+                    "provider_name": "sFlowRT",
+                    "health_state": "healthy",
+                    "detail": "telemetry online",
+                },
             ],
             "total": 2,
             "replay_safe": True,
@@ -89,38 +120,116 @@ def _fake_api(_self, path: str, params: dict | None = None) -> dict:
         },
         "/runtime/service": {
             "items": [
-                {"id": "service-state", "kind": "service", "state": "active", "owner": "runtime"},
-                {"id": "session-1", "kind": "session", "state": "active", "owner": "ops"},
+                {
+                    "id": "service-state",
+                    "kind": "service",
+                    "state": "active",
+                    "owner": "runtime",
+                },
+                {
+                    "id": "session-1",
+                    "kind": "session",
+                    "state": "active",
+                    "owner": "ops",
+                },
             ],
             "total": 2,
             "replay_safe": True,
             "timestamp": "2026-06-22T10:00:20Z",
         },
-        "/dashboard/report": {"reports": [{"report_type": "mitigation_posture", "summary": "rate limiting active", "timestamp": "2026-06-22T10:00:30Z"}]},
+        "/dashboard/report": {
+            "reports": [
+                {
+                    "report_type": "mitigation_posture",
+                    "summary": "rate limiting active",
+                    "timestamp": "2026-06-22T10:00:30Z",
+                }
+            ]
+        },
         "/dashboard/diagnostics": {"diagnostics": {"dashboard_latency_ms": 8.2}},
-        "/runtime/verification": {"items": [{"id": "verify-1", "category": "runtime", "status": "pass"}], "total": 1, "replay_safe": True, "timestamp": "2026-06-22T10:00:20Z"},
-        "/runtime/convergence": {"items": [{"id": "conv-1", "state": "stable"}], "total": 1, "replay_safe": True, "timestamp": "2026-06-22T10:00:20Z"},
-        "/runtime/graph": {"items": [{"id": "node-1", "label": "switch-1"}], "total": 1, "replay_safe": True, "timestamp": "2026-06-22T10:00:20Z"},
-        "/runtime/timeline": {"items": [{"id": "time-1", "event_type": "start"}], "total": 1, "replay_safe": True, "timestamp": "2026-06-22T10:00:20Z"},
-        "/runtime/evidence": {"items": [{"id": "ev-1", "kind": "bundle"}], "total": 1, "replay_safe": True, "timestamp": "2026-06-22T10:00:20Z"},
-        "/runtime/replay": {"items": [{"id": "rep-1", "kind": "replay"}], "total": 1, "replay_safe": True, "timestamp": "2026-06-22T10:00:20Z"},
-        "/runtime/drift": {"items": [{"id": "drift-1", "state": "low"}], "total": 1, "replay_safe": True, "timestamp": "2026-06-22T10:00:20Z"},
+        "/runtime/verification": {
+            "items": [{"id": "verify-1", "category": "runtime", "status": "pass"}],
+            "total": 1,
+            "replay_safe": True,
+            "timestamp": "2026-06-22T10:00:20Z",
+        },
+        "/runtime/convergence": {
+            "items": [{"id": "conv-1", "state": "stable"}],
+            "total": 1,
+            "replay_safe": True,
+            "timestamp": "2026-06-22T10:00:20Z",
+        },
+        "/runtime/graph": {
+            "items": [{"id": "node-1", "label": "switch-1"}],
+            "total": 1,
+            "replay_safe": True,
+            "timestamp": "2026-06-22T10:00:20Z",
+        },
+        "/runtime/timeline": {
+            "items": [{"id": "time-1", "event_type": "start"}],
+            "total": 1,
+            "replay_safe": True,
+            "timestamp": "2026-06-22T10:00:20Z",
+        },
+        "/runtime/evidence": {
+            "items": [{"id": "ev-1", "kind": "bundle"}],
+            "total": 1,
+            "replay_safe": True,
+            "timestamp": "2026-06-22T10:00:20Z",
+        },
+        "/runtime/replay": {
+            "items": [{"id": "rep-1", "kind": "replay"}],
+            "total": 1,
+            "replay_safe": True,
+            "timestamp": "2026-06-22T10:00:20Z",
+        },
+        "/runtime/drift": {
+            "items": [{"id": "drift-1", "state": "low"}],
+            "total": 1,
+            "replay_safe": True,
+            "timestamp": "2026-06-22T10:00:20Z",
+        },
     }
     return {"payload": payloads[path], "duration_ms": 1.2}
 
 
-def _stub_ui_sources(monkeypatch, *, startup_session: StartupSession | None = None) -> None:
+def _stub_ui_sources(
+    monkeypatch, *, startup_session: StartupSession | None = None
+) -> None:
     monkeypatch.setattr("nsddos.ui.dashboard_pages.UiPageBuilder._api", _fake_api)
     monkeypatch.setattr(
         "nsddos.ui.dashboard_pages.generate_dashboard_state",
-        lambda config: type("Evaluation", (), {"to_dict": lambda self: _dashboard_payload()})(),
+        lambda config: type(
+            "Evaluation", (), {"to_dict": lambda self: _dashboard_payload()}
+        )(),
     )
     monkeypatch.setattr(
         "nsddos.ui.dashboard_pages.latest_history_payload",
         lambda: {
-            "attack_history": [{"event_type": "attack_detection", "severity": "alert", "detail": "syn flood detected", "timestamp": "2026-06-22T10:00:00Z"}],
-            "mitigation_history": [{"event_type": "mitigation", "severity": "warn", "detail": "rate limit applied", "timestamp": "2026-06-22T10:00:10Z"}],
-            "cluster_history": [{"event_type": "runtime", "severity": "info", "detail": "heartbeat", "timestamp": "2026-06-22T10:00:20Z"}],
+            "attack_history": [
+                {
+                    "event_type": "attack_detection",
+                    "severity": "alert",
+                    "detail": "syn flood detected",
+                    "timestamp": "2026-06-22T10:00:00Z",
+                }
+            ],
+            "mitigation_history": [
+                {
+                    "event_type": "mitigation",
+                    "severity": "warn",
+                    "detail": "rate limit applied",
+                    "timestamp": "2026-06-22T10:00:10Z",
+                }
+            ],
+            "cluster_history": [
+                {
+                    "event_type": "runtime",
+                    "severity": "info",
+                    "detail": "heartbeat",
+                    "timestamp": "2026-06-22T10:00:20Z",
+                }
+            ],
         },
     )
     monkeypatch.setattr(
@@ -133,12 +242,28 @@ def _stub_ui_sources(monkeypatch, *, startup_session: StartupSession | None = No
             "synchronization": {"state": "aligned"},
         },
     )
-    monkeypatch.setattr("nsddos.ui.dashboard_pages.load_startup_session", lambda: startup_session)
+    monkeypatch.setattr(
+        "nsddos.ui.dashboard_pages.load_startup_session", lambda: startup_session
+    )
     monkeypatch.setattr(
         "nsddos.ui.dashboard_pages.collect_diagnostic_findings",
         lambda: (
-            DiagnosticFinding("docker", "docker_daemon", "fail", "Stopped", repairable=True, critical=True),
-            DiagnosticFinding("runtime", "ovs", "fail", "Missing bridge", repairable=True, critical=True),
+            DiagnosticFinding(
+                "docker",
+                "docker_daemon",
+                "fail",
+                "Stopped",
+                repairable=True,
+                critical=True,
+            ),
+            DiagnosticFinding(
+                "runtime",
+                "ovs",
+                "fail",
+                "Missing bridge",
+                repairable=True,
+                critical=True,
+            ),
         ),
     )
 
@@ -146,7 +271,13 @@ def _stub_ui_sources(monkeypatch, *, startup_session: StartupSession | None = No
 def test_ui_routes_render_cyber_console(monkeypatch) -> None:
     _stub_ui_sources(
         monkeypatch,
-        startup_session=StartupSession("2026-06-22T10:00:00Z", ("nsddos-floodlight",), (StartupPortBinding("ui", 8010),), "healthy", "http://127.0.0.1:8010"),
+        startup_session=StartupSession(
+            "2026-06-22T10:00:00Z",
+            ("nsddos-floodlight",),
+            (StartupPortBinding("ui", 8010),),
+            "healthy",
+            "http://127.0.0.1:8010",
+        ),
     )
     with TestClient(create_ui_app()) as client:
         html_routes = {
@@ -215,15 +346,33 @@ def test_overview_view_model_has_fixed_attack_order(monkeypatch) -> None:
     _stub_ui_sources(monkeypatch)
     page = UiPageBuilder().overview()
 
-    assert [point.label for point in page.attack_chart.points] == ["SYN Flood", "UDP Flood", "ICMP Flood", "HTTP Flood", "Slowloris"]
-    assert [point.value for point in page.attack_chart.points] == [2.0, 1.0, 0.0, 0.0, 0.0]
+    assert [point.label for point in page.attack_chart.points] == [
+        "SYN Flood",
+        "UDP Flood",
+        "ICMP Flood",
+        "HTTP Flood",
+        "Slowloris",
+    ]
+    assert [point.value for point in page.attack_chart.points] == [
+        2.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+    ]
 
 
 def test_status_bar_has_exact_five_fields_and_uptime_fallback(monkeypatch) -> None:
     _stub_ui_sources(monkeypatch, startup_session=None)
     page = UiPageBuilder().overview()
 
-    assert [field.label for field in page.status_bar.fields] == ["SYSTEM", "THREAT LEVEL", "UPTIME", "PACKETS/S", "ACTIVE ATTACKS"]
+    assert [field.label for field in page.status_bar.fields] == [
+        "SYSTEM",
+        "THREAT LEVEL",
+        "UPTIME",
+        "PACKETS/S",
+        "ACTIVE ATTACKS",
+    ]
     assert page.status_bar.fields[2].value == "--:--"
 
 
@@ -231,7 +380,11 @@ def test_attack_logs_feed_is_merged_in_reverse_time_order(monkeypatch) -> None:
     _stub_ui_sources(monkeypatch)
     page = UiPageBuilder().attack_logs()
 
-    assert [entry.source for entry in page.feed.entries] == ["RUNTIME", "MITIGATION", "DETECTION"]
+    assert [entry.source for entry in page.feed.entries] == [
+        "RUNTIME",
+        "MITIGATION",
+        "DETECTION",
+    ]
     assert page.feed.entries[0].message == "heartbeat"
 
 
@@ -373,7 +526,11 @@ def test_ui_signature_detection(monkeypatch) -> None:
 
 def test_ui_api_client_returns_fallback_payload_on_timeout(monkeypatch) -> None:
     client = UiApiClient()
-    monkeypatch.setattr(client, "_request_with_timeout", lambda path, params: (_ for _ in ()).throw(TimeoutError("stalled")))
+    monkeypatch.setattr(
+        client,
+        "_request_with_timeout",
+        lambda path, params: (_ for _ in ()).throw(TimeoutError("stalled")),
+    )
 
     result = client.get("/runtime/detection")
 
@@ -385,9 +542,14 @@ def test_replace_listener_on_port_terminates_pids(monkeypatch) -> None:
     calls: list[tuple[int, int]] = []
     monkeypatch.setattr(
         "nsddos.bootstrap.ui_launcher.subprocess.run",
-        lambda *args, **kwargs: type("Completed", (), {"returncode": 0, "stdout": "111\n222\n"})(),
+        lambda *args, **kwargs: type(
+            "Completed", (), {"returncode": 0, "stdout": "111\n222\n"}
+        )(),
     )
-    monkeypatch.setattr("nsddos.bootstrap.ui_launcher.os.kill", lambda pid, sig: calls.append((pid, sig)))
+    monkeypatch.setattr(
+        "nsddos.bootstrap.ui_launcher.os.kill",
+        lambda pid, sig: calls.append((pid, sig)),
+    )
 
     terminated = replace_listener_on_port(8010, exclude_pid=222)
 
@@ -404,9 +566,14 @@ def test_launch_ui_background_restarts_stale_ui(monkeypatch) -> None:
 
     monkeypatch.setattr("nsddos.bootstrap.ui_launcher.ui_reachable", fake_reachable)
     monkeypatch.setattr("nsddos.bootstrap.ui_launcher.ui_is_modern", lambda url: False)
-    monkeypatch.setattr("nsddos.bootstrap.ui_launcher.replace_listener_on_port", lambda port: (98765,))
+    monkeypatch.setattr(
+        "nsddos.bootstrap.ui_launcher.replace_listener_on_port", lambda port: (98765,)
+    )
     monkeypatch.setattr("nsddos.bootstrap.ui_launcher.time.sleep", lambda *_args: None)
-    monkeypatch.setattr("nsddos.bootstrap.ui_launcher.subprocess.Popen", lambda *args, **kwargs: object())
+    monkeypatch.setattr(
+        "nsddos.bootstrap.ui_launcher.subprocess.Popen",
+        lambda *args, **kwargs: object(),
+    )
 
     result = launch_ui_background()
 
@@ -438,8 +605,14 @@ def test_ui_start_opens_root_url(monkeypatch) -> None:
                 fn()
 
     monkeypatch.setattr(cli_module.threading, "Timer", ImmediateTimer)
-    monkeypatch.setattr(cli_module.webbrowser, "open", lambda url: calls.setdefault("url", url))
-    monkeypatch.setattr(cli_module.uvicorn, "run", lambda *args, **kwargs: calls.setdefault("served", True))
+    monkeypatch.setattr(
+        cli_module.webbrowser, "open", lambda url: calls.setdefault("url", url)
+    )
+    monkeypatch.setattr(
+        cli_module.uvicorn,
+        "run",
+        lambda *args, **kwargs: calls.setdefault("served", True),
+    )
 
     try:
         ui_start(host="127.0.0.1", port=8010)

@@ -2,9 +2,18 @@
 
 from __future__ import annotations
 
-from nsddos.service.persistence import load_heartbeat, load_service_state, load_sessions, load_synchronization
+from nsddos.service.persistence import (
+    load_heartbeat,
+    load_service_state,
+    load_sessions,
+    load_synchronization,
+)
 from nsddos.service.replay import replay_service_events
-from nsddos.runtime.streaming import latest_checkpoint, latest_session, latest_streaming_evaluation
+from nsddos.runtime.streaming import (
+    latest_checkpoint,
+    latest_session,
+    latest_streaming_evaluation,
+)
 
 
 def collect_service_diagnostics() -> dict:
@@ -16,7 +25,11 @@ def collect_service_diagnostics() -> dict:
     return {
         "service_state": state.to_dict(),
         "session_count": len(sessions),
-        "active_sessions": [item.to_dict() for item in sessions if item.state in {"active", "synchronizing", "replaying"}],
+        "active_sessions": [
+            item.to_dict()
+            for item in sessions
+            if item.state in {"active", "synchronizing", "replaying"}
+        ],
         "heartbeat_count": len(heartbeat.get("heartbeats", [])),
         "last_heartbeat": (heartbeat.get("heartbeats", []) or [{}])[-1],
         "synchronization": synchronization.get("latest", {}),

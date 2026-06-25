@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from nsddos.dashboard.contracts import DashboardDiagnostics, DashboardSourceBundle, VisualizationSeries
+from nsddos.dashboard.contracts import (
+    DashboardDiagnostics,
+    DashboardSourceBundle,
+    VisualizationSeries,
+)
 
 
 def build_dashboard_diagnostics(
@@ -24,7 +28,9 @@ def build_dashboard_diagnostics(
     telemetry_timestamp = str(sources.detection.get("telemetry_timestamp", ""))
     if telemetry_timestamp:
         try:
-            observed = datetime.fromisoformat(telemetry_timestamp.replace("Z", "+00:00"))
+            observed = datetime.fromisoformat(
+                telemetry_timestamp.replace("Z", "+00:00")
+            )
             age = (datetime.now(timezone.utc) - observed).total_seconds()
             if age > 900:
                 stale.append(f"stale_detection_telemetry:{int(age)}s")
@@ -32,8 +38,13 @@ def build_dashboard_diagnostics(
             stale.append("invalid_detection_timestamp")
     else:
         stale.append("missing_detection_timestamp")
-    visualization_errors = tuple(chart.chart_id for chart in visualizations if not chart.points)
-    latency_ms = float((datetime.now(timezone.utc) - start).total_seconds() * 1000.0 + len(visualizations))
+    visualization_errors = tuple(
+        chart.chart_id for chart in visualizations if not chart.points
+    )
+    latency_ms = float(
+        (datetime.now(timezone.utc) - start).total_seconds() * 1000.0
+        + len(visualizations)
+    )
     return DashboardDiagnostics(
         dashboard_latency_ms=latency_ms,
         visualization_errors=visualization_errors,

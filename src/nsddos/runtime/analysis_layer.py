@@ -32,7 +32,9 @@ from nsddos.runtime.topology import correlate_topology
 from nsddos.runtime.transitions import load_transition_history
 
 
-def analyze_runtime_bundle(config: dict[str, Any], collection: RuntimeCollectionBundle) -> RuntimeAnalysisBundle:
+def analyze_runtime_bundle(
+    config: dict[str, Any], collection: RuntimeCollectionBundle
+) -> RuntimeAnalysisBundle:
     """Analyze normalized collection bundle."""
     timings: dict[str, float] = {}
     topology = timed("topology_ms", timings, lambda: correlate_topology(config))
@@ -40,7 +42,9 @@ def analyze_runtime_bundle(config: dict[str, Any], collection: RuntimeCollection
     interfaces = timed("interfaces_ms", timings, lambda: correlate_interfaces(config))
     openflow = timed("openflow_ms", timings, lambda: correlate_openflow_ports(config))
     paths = timed("paths_ms", timings, lambda: correlate_paths(config))
-    reconciliation = timed("reconciliation_ms", timings, lambda: reconcile_runtime(config))
+    reconciliation = timed(
+        "reconciliation_ms", timings, lambda: reconcile_runtime(config)
+    )
     convergence = timed("convergence_ms", timings, lambda: validate_convergence(config))
     drift = timed("drift_ms", timings, lambda: detect_runtime_drift(config))
     timeline_items = timed("timeline_ms", timings, build_runtime_history_timeline)
@@ -57,11 +61,28 @@ def analyze_runtime_bundle(config: dict[str, Any], collection: RuntimeCollection
     flows = FlowState(**collection.flow_state)
     freshness = TelemetryFreshness(**collection.freshness_state)
     seed = [
-        VerificationResult("topology_consistency_seed", "pass" if topology.consistent else "warn", topology.detail, "runtime"),
-        VerificationResult("flow_visibility_seed", "pass" if flows.telemetry_present else "warn", flows.detail, "runtime"),
-        VerificationResult("telemetry_freshness_seed", "stale" if freshness.stale else "pass", freshness.detail, "runtime"),
+        VerificationResult(
+            "topology_consistency_seed",
+            "pass" if topology.consistent else "warn",
+            topology.detail,
+            "runtime",
+        ),
+        VerificationResult(
+            "flow_visibility_seed",
+            "pass" if flows.telemetry_present else "warn",
+            flows.detail,
+            "runtime",
+        ),
+        VerificationResult(
+            "telemetry_freshness_seed",
+            "stale" if freshness.stale else "pass",
+            freshness.detail,
+            "runtime",
+        ),
     ]
-    confidence = runtime_confidence_summary(topology, flows, freshness, seed, reconciliation)
+    confidence = runtime_confidence_summary(
+        topology, flows, freshness, seed, reconciliation
+    )
     return RuntimeAnalysisBundle(
         topology=topology.to_dict(),
         identity=identity.to_dict(),
@@ -71,15 +92,24 @@ def analyze_runtime_bundle(config: dict[str, Any], collection: RuntimeCollection
         reconciliation=reconciliation.to_dict(),
         convergence=convergence.to_dict(),
         drift=[item.to_dict() for item in drift],
-        timeline={"timeline": [item.to_dict() for item in timeline_items], "summary": timeline_summary(timeline_items)},
-        temporal={"transitions": transitions, "correlation": correlation, "stability": stability},
+        timeline={
+            "timeline": [item.to_dict() for item in timeline_items],
+            "summary": timeline_summary(timeline_items),
+        },
+        temporal={
+            "transitions": transitions,
+            "correlation": correlation,
+            "stability": stability,
+        },
         execution=execution,
         confidence=confidence,
         timings=timings,
     )
 
 
-def aggregate_runtime(config: dict[str, Any], collection: RuntimeCollectionBundle) -> RuntimeAggregationResult:
+def aggregate_runtime(
+    config: dict[str, Any], collection: RuntimeCollectionBundle
+) -> RuntimeAggregationResult:
     """Return combined collection + analysis result."""
     analysis = analyze_runtime_bundle(config, collection)
     performance = {
@@ -87,5 +117,6 @@ def aggregate_runtime(config: dict[str, Any], collection: RuntimeCollectionBundl
         "analysis": analysis.timings,
         "cache": collection.cache,
     }
-    return RuntimeAggregationResult(collection=collection, analysis=analysis, performance=performance)
-
+    return RuntimeAggregationResult(
+        collection=collection, analysis=analysis, performance=performance
+    )

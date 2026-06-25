@@ -18,7 +18,9 @@ def build_baseline(dataset: MLDatasetSnapshot) -> MLBaselineState:
         )
     packet_rate = sum(item.feature_vector.packet_rate for item in rows) / len(rows)
     byte_rate = sum(item.feature_vector.byte_rate for item in rows) / len(rows)
-    connection_rate = sum(item.feature_vector.connection_rate for item in rows) / len(rows)
+    connection_rate = sum(item.feature_vector.connection_rate for item in rows) / len(
+        rows
+    )
     entropy_score = sum(item.feature_vector.entropy_score for item in rows) / len(rows)
     syn = sum(item.feature_vector.syn_rate for item in rows)
     udp = sum(item.feature_vector.udp_rate for item in rows)
@@ -34,5 +36,6 @@ def build_baseline(dataset: MLDatasetSnapshot) -> MLBaselineState:
             ("udp", udp / total),
             ("icmp", icmp / total),
         ),
-        flow_baseline=sum(item.feature_vector.flow_duration for item in rows) / len(rows),
+        flow_baseline=sum(item.feature_vector.flow_duration for item in rows)
+        / len(rows),
     )

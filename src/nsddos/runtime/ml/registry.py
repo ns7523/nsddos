@@ -15,10 +15,14 @@ def active_model_version() -> str:
     return model.model_version if model is not None else ""
 
 
-def retraining_required(model: MLTrainingState | None, dataset_size: int, threshold: float) -> bool:
+def retraining_required(
+    model: MLTrainingState | None, dataset_size: int, threshold: float
+) -> bool:
     if model is None:
         return True
     if dataset_size > model.trained_row_count:
-        growth = (dataset_size - model.trained_row_count) / max(model.trained_row_count, 1)
+        growth = (dataset_size - model.trained_row_count) / max(
+            model.trained_row_count, 1
+        )
         return growth >= threshold
     return False

@@ -1,7 +1,10 @@
 """Deterministic attack simulation subsystem."""
 
 from nsddos.runtime.simulation.diagnostics import build_simulation_diagnostics
-from nsddos.runtime.simulation.engine import generate_attack_traffic, latest_simulation_contract
+from nsddos.runtime.simulation.engine import (
+    generate_attack_traffic,
+    latest_simulation_contract,
+)
 from nsddos.runtime.simulation.validation import validate_attack_contract
 
 
@@ -19,9 +22,17 @@ def contract_to_detection_telemetry(contract) -> dict[str, object]:
                 "packets": contract.packet_rate,
                 "bytes": contract.byte_rate,
                 "connections": contract.connection_rate,
-                "syn_rate": contract.packet_rate if contract.attack_type == "syn_flood" else 0.0,
-                "udp_rate": contract.packet_rate if contract.attack_type == "udp_flood" else 0.0,
-                "icmp_rate": contract.packet_rate if contract.attack_type == "icmp_flood" else 0.0,
+                "syn_rate": (
+                    contract.packet_rate if contract.attack_type == "syn_flood" else 0.0
+                ),
+                "udp_rate": (
+                    contract.packet_rate if contract.attack_type == "udp_flood" else 0.0
+                ),
+                "icmp_rate": (
+                    contract.packet_rate
+                    if contract.attack_type == "icmp_flood"
+                    else 0.0
+                ),
                 "duration": 1.0,
                 "protocol": contract.attack_type.split("_")[0],
             }
@@ -81,6 +92,7 @@ def contract_to_collection_state(contract) -> dict[str, dict[str, object]]:
             "visible_interfaces": list(contract.source_ip_pool),
         },
     }
+
 
 __all__ = [
     "generate_attack_traffic",

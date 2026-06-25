@@ -15,8 +15,17 @@ def build_feedback_state(
     if not isinstance(entries, list):
         entries = []
     total = len(entries)
-    escalated = sum(1 for item in entries if isinstance(item, dict) and int(item.get("escalation_level", 0)) > 1)
-    alert_only = sum(1 for item in entries if isinstance(item, dict) and str(item.get("recommended_action", "")) == "alert_only")
+    escalated = sum(
+        1
+        for item in entries
+        if isinstance(item, dict) and int(item.get("escalation_level", 0)) > 1
+    )
+    alert_only = sum(
+        1
+        for item in entries
+        if isinstance(item, dict)
+        and str(item.get("recommended_action", "")) == "alert_only"
+    )
     mitigation_action = str(mitigation_payload.get("mitigation_action", "alert_only"))
     mitigation_success = 0.0 if mitigation_action == "alert_only" else 1.0
     success_rate = ((total - alert_only) / total) if total else mitigation_success

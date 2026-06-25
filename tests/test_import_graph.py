@@ -43,7 +43,9 @@ def test_critical_imports_resolve_without_cycles() -> None:
     )
     for statement in imports:
         result = _run_python(statement)
-        assert result.returncode == 0, f"{statement}\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+        assert (
+            result.returncode == 0
+        ), f"{statement}\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
 
 
 def test_bootstrap_and_api_package_inits_are_lazy() -> None:
@@ -55,7 +57,11 @@ def test_bootstrap_and_api_package_inits_are_lazy() -> None:
         tree = ast.parse(path.read_text(encoding="utf-8"))
         offenders = []
         for node in ast.walk(tree):
-            if isinstance(node, ast.ImportFrom) and node.module and node.module.startswith("nsddos."):
+            if (
+                isinstance(node, ast.ImportFrom)
+                and node.module
+                and node.module.startswith("nsddos.")
+            ):
                 offenders.append(node.module)
         assert offenders == [], f"{path} eagerly imports {offenders}"
 
@@ -63,7 +69,16 @@ def test_bootstrap_and_api_package_inits_are_lazy() -> None:
 def test_uvicorn_ui_app_boots_and_answers_healthz() -> None:
     env = _env()
     process = subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "nsddos.ui.app:app", "--host", "127.0.0.1", "--port", "8011"],
+        [
+            sys.executable,
+            "-m",
+            "uvicorn",
+            "nsddos.ui.app:app",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "8011",
+        ],
         cwd=PROJECT_ROOT,
         env=env,
         stdout=subprocess.PIPE,
@@ -75,7 +90,9 @@ def test_uvicorn_ui_app_boots_and_answers_healthz() -> None:
         while time.monotonic() < deadline:
             if process.poll() is not None:
                 stdout, stderr = process.communicate(timeout=5)
-                assert False, f"uvicorn exited early\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}"
+                assert (
+                    False
+                ), f"uvicorn exited early\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}"
             try:
                 with urlopen("http://127.0.0.1:8011/ui/healthz", timeout=2) as response:
                     body = response.read().decode("utf-8")
@@ -85,7 +102,9 @@ def test_uvicorn_ui_app_boots_and_answers_healthz() -> None:
             except OSError:
                 time.sleep(0.5)
         stdout, stderr = process.communicate(timeout=5)
-        assert False, f"uvicorn did not become ready\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}"
+        assert (
+            False
+        ), f"uvicorn did not become ready\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}"
     finally:
         if process.poll() is None:
             process.terminate()

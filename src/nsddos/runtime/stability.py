@@ -38,11 +38,17 @@ def analyze_runtime_stability() -> dict[str, Any]:
 
     return {
         "classification": classification,
-        "pipeline": "unstable_pipeline" if replay.get("failed") else ("degraded_pipeline" if replay.get("warnings") else "stable_pipeline"),
+        "pipeline": (
+            "unstable_pipeline"
+            if replay.get("failed")
+            else ("degraded_pipeline" if replay.get("warnings") else "stable_pipeline")
+        ),
         "recurring_convergence_failures": recurring_failures,
         "repeated_drift_events": repeated_drift,
         "pipeline_warnings": len(replay.get("warnings", [])),
         "pipeline_failures": len(replay.get("failed", [])),
         "unstable_entities": sorted(unstable_entities),
-        "recurring_instability_patterns": correlation.get("recurring_instability_patterns", []),
+        "recurring_instability_patterns": correlation.get(
+            "recurring_instability_patterns", []
+        ),
     }

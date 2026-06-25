@@ -28,7 +28,9 @@ def _mean(values: list[tuple[float, ...]]) -> tuple[float, ...]:
     if not values:
         return tuple(0.0 for _ in DEFAULT_WEIGHTS)
     width = len(values[0])
-    return tuple(sum(item[index] for item in values) / len(values) for index in range(width))
+    return tuple(
+        sum(item[index] for item in values) / len(values) for index in range(width)
+    )
 
 
 def train_model(
@@ -47,8 +49,12 @@ def train_model(
             attack_rows += 1
     centroids = tuple(sorted((key, _mean(value)) for key, value in grouped.items()))
     threshold = max(0.25, min(0.8, attack_rows / max(dataset.row_count, 1)))
-    model_version = deterministic_id("ml-model-version", f"{model_family}:{version_seed}:{dataset.dataset_id}")
-    model_id = deterministic_id("ml-model", f"{model_family}:{model_version}:{dataset.row_count}")
+    model_version = deterministic_id(
+        "ml-model-version", f"{model_family}:{version_seed}:{dataset.dataset_id}"
+    )
+    model_id = deterministic_id(
+        "ml-model", f"{model_family}:{model_version}:{dataset.row_count}"
+    )
     return MLTrainingState(
         model_id=model_id,
         model_family=model_family,
@@ -61,5 +67,11 @@ def train_model(
     )
 
 
-def retrain_model(dataset: MLDatasetSnapshot, current: MLTrainingState) -> MLTrainingState:
-    return train_model(dataset, current.model_family, version_seed=f"retrain:{dataset.dataset_id}:{current.model_family}")
+def retrain_model(
+    dataset: MLDatasetSnapshot, current: MLTrainingState
+) -> MLTrainingState:
+    return train_model(
+        dataset,
+        current.model_family,
+        version_seed=f"retrain:{dataset.dataset_id}:{current.model_family}",
+    )

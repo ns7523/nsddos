@@ -30,12 +30,18 @@ def wait_for_stack_health(
         progress = Progress(
             SpinnerColumn(style="bright_cyan"),
             TextColumn("[bold white]Waiting for services[/bold white]"),
-            BarColumn(bar_width=28, complete_style="bright_cyan", finished_style="bright_cyan"),
-            TextColumn("[bright_black]{task.completed:.0f}s/{task.total:.0f}s[/bright_black]"),
+            BarColumn(
+                bar_width=28, complete_style="bright_cyan", finished_style="bright_cyan"
+            ),
+            TextColumn(
+                "[bright_black]{task.completed:.0f}s/{task.total:.0f}s[/bright_black]"
+            ),
             TextColumn("[bright_cyan]{task.fields[pending]}[/bright_cyan]"),
             console=console,
         )
-        task_id = progress.add_task("healthwait", total=timeout_seconds, completed=0, pending="starting")
+        task_id = progress.add_task(
+            "healthwait", total=timeout_seconds, completed=0, pending="starting"
+        )
         console.print(progress)
 
     deadline = time.monotonic() + timeout_seconds
@@ -45,7 +51,10 @@ def wait_for_stack_health(
         pending = tuple(
             name
             for name in DEFAULT_STARTUP_PROFILE.container_names
-            if not any(service.container_name == name and service.healthy for service in latest_services)
+            if not any(
+                service.container_name == name and service.healthy
+                for service in latest_services
+            )
         )
         elapsed = max(timeout_seconds - max(deadline - time.monotonic(), 0), 0)
         pending_text = ", ".join(pending) if pending else "healthy"
@@ -68,7 +77,10 @@ def wait_for_stack_health(
     pending = tuple(
         name
         for name in DEFAULT_STARTUP_PROFILE.container_names
-        if not any(service.container_name == name and service.healthy for service in latest_services)
+        if not any(
+            service.container_name == name and service.healthy
+            for service in latest_services
+        )
     )
     return StackHealthWaitResult(
         services=latest_services,

@@ -19,7 +19,16 @@ def validate_stream_events(events: tuple[StreamEvent, ...]) -> list[str]:
     seen_ids: set[str] = set()
     last_sequence = -1
     now = datetime.now(timezone.utc)
-    ordered = tuple(sorted(events, key=lambda item: (item.timestamp.isoformat(), item.sequence_number, item.event_id)))
+    ordered = tuple(
+        sorted(
+            events,
+            key=lambda item: (
+                item.timestamp.isoformat(),
+                item.sequence_number,
+                item.event_id,
+            ),
+        )
+    )
     for item in ordered:
         if item.source_type not in STREAM_SOURCE_TYPES:
             errors.append("invalid_source_type")

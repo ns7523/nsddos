@@ -29,6 +29,8 @@ def to_canonical_dict(model: Any) -> dict[str, Any]:
 
 def to_canonical_json(model: Any) -> str:
     start = monotonic()
-    payload = json.dumps(to_canonical_dict(model), sort_keys=True, separators=(",", ":"))
+    payload = json.dumps(
+        to_canonical_dict(model), sort_keys=True, separators=(",", ":")
+    )
     record_timing("domain.serialization", (monotonic() - start) * 1000)
     return payload

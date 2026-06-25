@@ -28,7 +28,9 @@ def _snapshot_metadata(path: Path) -> dict[str, Any]:
 
 def query_snapshots(config: dict[str, Any], query: RuntimeQuery) -> dict[str, Any]:
     """Query snapshot metadata."""
-    paths = sorted(SNAPSHOT_DIR.glob("snapshot-*.json")) if SNAPSHOT_DIR.exists() else []
+    paths = (
+        sorted(SNAPSHOT_DIR.glob("snapshot-*.json")) if SNAPSHOT_DIR.exists() else []
+    )
     items = [_snapshot_metadata(path) for path in paths]
     lineage = [
         {

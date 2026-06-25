@@ -30,7 +30,9 @@ def validate_identifier_stability(expected: str, observed: str) -> bool:
     return expected == observed
 
 
-def validate_relationship_integrity(relationships: list[dict[str, Any]], entity_ids: set[str]) -> list[str]:
+def validate_relationship_integrity(
+    relationships: list[dict[str, Any]], entity_ids: set[str]
+) -> list[str]:
     start = monotonic()
     errors: list[str] = []
     for item in relationships:

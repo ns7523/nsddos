@@ -8,9 +8,13 @@ from typing import Any
 from nsddos.runtime.performance import record_timing
 
 
-def deterministic_poll(payload: dict[str, Any], poll_interval_seconds: int = 5) -> dict[str, Any]:
+def deterministic_poll(
+    payload: dict[str, Any], poll_interval_seconds: int = 5
+) -> dict[str, Any]:
     start = monotonic()
-    ordered_items = sorted(payload.get("items", []), key=lambda item: str(item.get("id", "")))
+    ordered_items = sorted(
+        payload.get("items", []), key=lambda item: str(item.get("id", ""))
+    )
     sync = {
         "poll_interval_seconds": poll_interval_seconds,
         "stable_ordering": True,

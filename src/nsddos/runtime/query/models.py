@@ -105,7 +105,9 @@ class RuntimeQueryResult:
     plan: dict[str, Any] = field(default_factory=dict)
     performance: dict[str, float] = field(default_factory=dict)
     freshness: dict[str, Any] = field(default_factory=dict)
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
     schema_version: str = SCHEMA_VERSION
 
     def to_dict(self) -> dict[str, Any]:

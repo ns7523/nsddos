@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
-from nsddos.runtime.ml import evaluate_ml_detection, latest_ml_evaluation, retrain_ml_model, train_ml_model
+from nsddos.runtime.ml import (
+    evaluate_ml_detection,
+    latest_ml_evaluation,
+    retrain_ml_model,
+    train_ml_model,
+)
 
 
 def query_ml_infer(config: dict, query) -> dict[str, object]:

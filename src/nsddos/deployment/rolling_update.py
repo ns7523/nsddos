@@ -13,5 +13,9 @@ def build_rolling_update_plan(container_count: int) -> RollingUpdatePlan:
         batch_size=batch_size,
         max_unavailable=0,
         promotion_gates=("health_checks", "manifest_validation", "rollback_ready"),
-        failure_stop_conditions=("failed_health_probe", "network_policy_conflict", "missing_required_secret"),
+        failure_stop_conditions=(
+            "failed_health_probe",
+            "network_policy_conflict",
+            "missing_required_secret",
+        ),
     )

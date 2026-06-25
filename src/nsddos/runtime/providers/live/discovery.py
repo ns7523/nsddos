@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from nsddos.runtime.providers.live.contracts import ProviderDiscoveryRecord, TopologyLink
+from nsddos.runtime.providers.live.contracts import (
+    ProviderDiscoveryRecord,
+    TopologyLink,
+)
 
 
 def discover_runtime_providers(

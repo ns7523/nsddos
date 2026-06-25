@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from nsddos.bootstrap.state import DeploymentProfile, EnvironmentScan, InstallRequirement
+from nsddos.bootstrap.state import (
+    DeploymentProfile,
+    EnvironmentScan,
+    InstallRequirement,
+)
 
 
 def build_profile_advisories(

@@ -53,5 +53,7 @@ def evaluate_provider_health(
     )
 
 
-def collect_provider_health(records: tuple[ProviderHealthRecord, ...]) -> dict[str, dict[str, object]]:
+def collect_provider_health(
+    records: tuple[ProviderHealthRecord, ...]
+) -> dict[str, dict[str, object]]:
     return {item.provider: item.to_dict() for item in records}

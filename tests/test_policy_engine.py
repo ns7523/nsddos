@@ -14,7 +14,10 @@ from nsddos.runtime.detection.models import (
 )
 from nsddos.runtime.mitigation.engine import evaluate_mitigation
 from nsddos.runtime.policy.conflicts import resolve_conflicts
-from nsddos.runtime.policy.engine import evaluate_dynamic_policy, rollback_dynamic_policy
+from nsddos.runtime.policy.engine import (
+    evaluate_dynamic_policy,
+    rollback_dynamic_policy,
+)
 
 
 def _telemetry(source: str = "10.0.0.8") -> dict:
@@ -114,33 +117,57 @@ def _patch_policy_dirs(tmp_path: Path, monkeypatch) -> None:
 
     monkeypatch.setattr(policy_engine, "POLICY_DIR", tmp_path / "policy")
     monkeypatch.setattr(policy_history, "POLICY_DIR", tmp_path / "policy")
-    monkeypatch.setattr(policy_history, "HISTORY_PATH", tmp_path / "policy" / "history.json")
+    monkeypatch.setattr(
+        policy_history, "HISTORY_PATH", tmp_path / "policy" / "history.json"
+    )
     monkeypatch.setattr(policy_learning, "POLICY_DIR", tmp_path / "policy")
-    monkeypatch.setattr(policy_learning, "LEARNING_PATH", tmp_path / "policy" / "learning.json")
+    monkeypatch.setattr(
+        policy_learning, "LEARNING_PATH", tmp_path / "policy" / "learning.json"
+    )
     monkeypatch.setattr(policy_rollback, "POLICY_DIR", tmp_path / "policy")
-    monkeypatch.setattr(policy_rollback, "ROLLBACK_PATH", tmp_path / "policy" / "rollback.json")
+    monkeypatch.setattr(
+        policy_rollback, "ROLLBACK_PATH", tmp_path / "policy" / "rollback.json"
+    )
 
 
 def test_first_attack_policy_selection(tmp_path: Path, monkeypatch) -> None:
     _patch_policy_dirs(tmp_path, monkeypatch)
-    result = evaluate_dynamic_policy({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
+    result = evaluate_dynamic_policy(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
     assert result.recommended_action == "rate_limit"
     assert result.escalation_level == 1
 
 
 def test_repeated_source_ip_escalation(tmp_path: Path, monkeypatch) -> None:
     _patch_policy_dirs(tmp_path, monkeypatch)
-    evaluate_dynamic_policy({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
-    result = evaluate_dynamic_policy({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
+    evaluate_dynamic_policy(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
+    result = evaluate_dynamic_policy(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
     assert result.recommended_action == "block_ip"
     assert result.escalation_level == 2
 
 
 def test_repeated_subnet_escalation(tmp_path: Path, monkeypatch) -> None:
     _patch_policy_dirs(tmp_path, monkeypatch)
-    evaluate_dynamic_policy({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry(source="10.0.0.8"))
-    evaluate_dynamic_policy({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry(source="10.0.0.8"))
-    result = evaluate_dynamic_policy({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry(source="10.0.0.9"))
+    evaluate_dynamic_policy(
+        {},
+        detection=_detection("syn_flood", "HIGH", 0.91),
+        telemetry=_telemetry(source="10.0.0.8"),
+    )
+    evaluate_dynamic_policy(
+        {},
+        detection=_detection("syn_flood", "HIGH", 0.91),
+        telemetry=_telemetry(source="10.0.0.8"),
+    )
+    result = evaluate_dynamic_policy(
+        {},
+        detection=_detection("syn_flood", "HIGH", 0.91),
+        telemetry=_telemetry(source="10.0.0.9"),
+    )
     assert result.recommended_action == "isolate_subnet"
     assert result.source_subnet == "10.0.0.0/24"
 
@@ -148,8 +175,12 @@ def test_repeated_subnet_escalation(tmp_path: Path, monkeypatch) -> None:
 def test_permanent_ban_escalation(tmp_path: Path, monkeypatch) -> None:
     _patch_policy_dirs(tmp_path, monkeypatch)
     for _ in range(3):
-        evaluate_dynamic_policy({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
-    result = evaluate_dynamic_policy({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
+        evaluate_dynamic_policy(
+            {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+        )
+    result = evaluate_dynamic_policy(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
     assert result.recommended_action == "permanent_ban"
     assert result.escalation_level == 4
 
@@ -162,8 +193,12 @@ def test_conflict_resolution_determinism() -> None:
 
 def test_rollback_restoration(tmp_path: Path, monkeypatch) -> None:
     _patch_policy_dirs(tmp_path, monkeypatch)
-    first = evaluate_dynamic_policy({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
-    evaluate_dynamic_policy({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
+    first = evaluate_dynamic_policy(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
+    evaluate_dynamic_policy(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
     rollback = rollback_dynamic_policy({})
     assert rollback.restored is True
     assert rollback.restored_policy_id == first.policy_id
@@ -172,8 +207,12 @@ def test_rollback_restoration(tmp_path: Path, monkeypatch) -> None:
 
 def test_threshold_adaptation(tmp_path: Path, monkeypatch) -> None:
     _patch_policy_dirs(tmp_path, monkeypatch)
-    first = evaluate_dynamic_policy({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
-    second = evaluate_dynamic_policy({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
+    first = evaluate_dynamic_policy(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
+    second = evaluate_dynamic_policy(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
     assert second.threshold_score >= first.threshold_score
 
 
@@ -199,18 +238,29 @@ def test_malformed_history_rejection(tmp_path: Path, monkeypatch) -> None:
         },
     )
     try:
-        evaluate_dynamic_policy({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
+        evaluate_dynamic_policy(
+            {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+        )
     except ValueError as exc:
         assert "malformed_policy_history" in str(exc)
     else:
         raise AssertionError("malformed history must fail")
 
 
-def test_dynamic_policy_feeds_mitigation_recommendation(tmp_path: Path, monkeypatch) -> None:
+def test_dynamic_policy_feeds_mitigation_recommendation(
+    tmp_path: Path, monkeypatch
+) -> None:
     from nsddos.runtime.mitigation import engine as mitigation_engine
 
     _patch_policy_dirs(tmp_path, monkeypatch)
     monkeypatch.setattr(mitigation_engine, "MITIGATION_DIR", tmp_path / "mitigation")
-    policy = evaluate_dynamic_policy({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
-    result = evaluate_mitigation({}, detection=_detection("syn_flood", "HIGH", 0.91), policy=policy, telemetry=_telemetry())
+    policy = evaluate_dynamic_policy(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
+    result = evaluate_mitigation(
+        {},
+        detection=_detection("syn_flood", "HIGH", 0.91),
+        policy=policy,
+        telemetry=_telemetry(),
+    )
     assert result.mitigation_action == "rate_limit"

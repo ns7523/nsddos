@@ -7,7 +7,12 @@ from nsddos.dashboard.registry import (
     latest_history_payload,
     latest_reports_payload,
 )
-from nsddos.dashboard.server import dashboard_alerts, dashboard_diagnostics, dashboard_report, generate_dashboard_state
+from nsddos.dashboard.server import (
+    dashboard_alerts,
+    dashboard_diagnostics,
+    dashboard_report,
+    generate_dashboard_state,
+)
 from nsddos.dashboard.validation import validate_dashboard_evaluation
 
 __all__ = [

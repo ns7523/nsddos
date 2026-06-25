@@ -36,7 +36,9 @@ def _scan(**overrides) -> EnvironmentScan:
         "virtualenv_active": True,
         "docker": ToolStatus(name="docker", installed=True, detail="/usr/bin/docker"),
         "docker_daemon_running": True,
-        "docker_compose": ToolStatus(name="docker-compose", installed=True, detail="docker compose"),
+        "docker_compose": ToolStatus(
+            name="docker-compose", installed=True, detail="docker compose"
+        ),
         "docker_permissions_ready": True,
         "git": ToolStatus(name="git", installed=True, detail="/usr/bin/git"),
         "available_memory_bytes": 16 * 1024**3,
@@ -52,16 +54,29 @@ def _scan(**overrides) -> EnvironmentScan:
 
 def _healthy_services() -> tuple[StartupServiceStatus, ...]:
     return (
-        StartupServiceStatus("floodlight", "nsddos-floodlight", "running", "healthy", True, "1"),
-        StartupServiceStatus("sflowrt", "nsddos-sflowrt", "running", "healthy", True, "2"),
-        StartupServiceStatus("labhost", "nsddos-labhost", "running", "healthy", True, "3"),
-        StartupServiceStatus("detector", "nsddos-detector", "running", "healthy", True, "4"),
+        StartupServiceStatus(
+            "floodlight", "nsddos-floodlight", "running", "healthy", True, "1"
+        ),
+        StartupServiceStatus(
+            "sflowrt", "nsddos-sflowrt", "running", "healthy", True, "2"
+        ),
+        StartupServiceStatus(
+            "labhost", "nsddos-labhost", "running", "healthy", True, "3"
+        ),
+        StartupServiceStatus(
+            "detector", "nsddos-detector", "running", "healthy", True, "4"
+        ),
     )
 
 
 def test_collect_diagnostic_findings_detects_failures(monkeypatch, tmp_path) -> None:
     profile = StartupProfile(
-        container_names=("nsddos-floodlight", "nsddos-sflowrt", "nsddos-labhost", "nsddos-detector"),
+        container_names=(
+            "nsddos-floodlight",
+            "nsddos-sflowrt",
+            "nsddos-labhost",
+            "nsddos-detector",
+        ),
         required_health_checks=("docker_daemon", "containers"),
         ui_host="127.0.0.1",
         ui_port=8010,
@@ -75,14 +90,22 @@ def test_collect_diagnostic_findings_detects_failures(monkeypatch, tmp_path) -> 
             virtualenv_active=False,
             docker=ToolStatus(name="docker", installed=False, detail=None),
             docker_daemon_running=False,
-            docker_compose=ToolStatus(name="docker-compose", installed=False, detail=None),
+            docker_compose=ToolStatus(
+                name="docker-compose", installed=False, detail=None
+            ),
             docker_permissions_ready=False,
             git=ToolStatus(name="git", installed=False, detail=None),
         ),
     )
-    monkeypatch.setattr("nsddos.bootstrap.diagnostics_engine.DEFAULT_STARTUP_PROFILE", profile)
-    monkeypatch.setattr("nsddos.bootstrap.diagnostics_engine.detect_compose_backend", lambda: None)
-    monkeypatch.setattr("nsddos.bootstrap.diagnostics_engine.ui_reachable", lambda _url: False)
+    monkeypatch.setattr(
+        "nsddos.bootstrap.diagnostics_engine.DEFAULT_STARTUP_PROFILE", profile
+    )
+    monkeypatch.setattr(
+        "nsddos.bootstrap.diagnostics_engine.detect_compose_backend", lambda: None
+    )
+    monkeypatch.setattr(
+        "nsddos.bootstrap.diagnostics_engine.ui_reachable", lambda _url: False
+    )
     monkeypatch.setattr(
         "nsddos.bootstrap.diagnostics_engine.collect_runtime_health",
         lambda: [HealthResult("floodlight", False, "missing", "runtime")],
@@ -99,9 +122,16 @@ def test_collect_diagnostic_findings_detects_failures(monkeypatch, tmp_path) -> 
     assert by_name[("session", "session_file")].detail == "Missing"
 
 
-def test_collect_diagnostic_findings_detects_corrupt_session(monkeypatch, tmp_path) -> None:
+def test_collect_diagnostic_findings_detects_corrupt_session(
+    monkeypatch, tmp_path
+) -> None:
     profile = StartupProfile(
-        container_names=("nsddos-floodlight", "nsddos-sflowrt", "nsddos-labhost", "nsddos-detector"),
+        container_names=(
+            "nsddos-floodlight",
+            "nsddos-sflowrt",
+            "nsddos-labhost",
+            "nsddos-detector",
+        ),
         required_health_checks=("docker_daemon", "containers"),
         ui_host="127.0.0.1",
         ui_port=8010,
@@ -110,19 +140,32 @@ def test_collect_diagnostic_findings_detects_corrupt_session(monkeypatch, tmp_pa
         session_path=tmp_path / "session.json",
     )
     profile.session_path.write_text("{not-json", encoding="utf-8")
-    monkeypatch.setattr("nsddos.bootstrap.diagnostics_engine.collect_environment_scan", lambda: _scan())
-    monkeypatch.setattr("nsddos.bootstrap.diagnostics_engine.DEFAULT_STARTUP_PROFILE", profile)
+    monkeypatch.setattr(
+        "nsddos.bootstrap.diagnostics_engine.collect_environment_scan", lambda: _scan()
+    )
+    monkeypatch.setattr(
+        "nsddos.bootstrap.diagnostics_engine.DEFAULT_STARTUP_PROFILE", profile
+    )
     monkeypatch.setattr(
         "nsddos.bootstrap.diagnostics_engine.detect_compose_backend",
         lambda: ComposeBackend("docker-compose-v2", ("docker", "compose")),
     )
-    monkeypatch.setattr("nsddos.bootstrap.diagnostics_engine.list_stack_services", lambda _backend: _healthy_services())
+    monkeypatch.setattr(
+        "nsddos.bootstrap.diagnostics_engine.list_stack_services",
+        lambda _backend: _healthy_services(),
+    )
     monkeypatch.setattr(
         "nsddos.bootstrap.diagnostics_engine.run_compose_command",
-        lambda _backend, _args: subprocess.CompletedProcess(_args, 0, stdout="[]", stderr=""),
+        lambda _backend, _args: subprocess.CompletedProcess(
+            _args, 0, stdout="[]", stderr=""
+        ),
     )
-    monkeypatch.setattr("nsddos.bootstrap.diagnostics_engine.collect_runtime_health", lambda: [])
-    monkeypatch.setattr("nsddos.bootstrap.diagnostics_engine.ui_reachable", lambda _url: True)
+    monkeypatch.setattr(
+        "nsddos.bootstrap.diagnostics_engine.collect_runtime_health", lambda: []
+    )
+    monkeypatch.setattr(
+        "nsddos.bootstrap.diagnostics_engine.ui_reachable", lambda _url: True
+    )
 
     findings = collect_diagnostic_findings()
     session_finding = next(item for item in findings if item.area == "session")
@@ -141,13 +184,37 @@ def test_build_repair_plan_maps_findings(monkeypatch) -> None:
         lambda: ComposeBackend("docker-compose-v2", ("docker", "compose")),
     )
     findings = (
-        DiagnosticFinding("docker", "docker_daemon", "fail", "Stopped", repairable=True, critical=True),
-        DiagnosticFinding("containers", "nsddos-floodlight:healthy", "fail", "unhealthy", repairable=True, critical=True),
-        DiagnosticFinding("runtime", "ovs", "fail", "missing", repairable=True, critical=True),
-        DiagnosticFinding("ui", "ui_reachable", "fail", "down", repairable=True, critical=True),
-        DiagnosticFinding("session", "session_file", "fail", "Corrupt", repairable=True, critical=False),
-        DiagnosticFinding("environment", "venv", "fail", "Inactive", repairable=True, critical=True),
-        DiagnosticFinding("environment", "git", "fail", "Missing", repairable=True, critical=True),
+        DiagnosticFinding(
+            "docker", "docker_daemon", "fail", "Stopped", repairable=True, critical=True
+        ),
+        DiagnosticFinding(
+            "containers",
+            "nsddos-floodlight:healthy",
+            "fail",
+            "unhealthy",
+            repairable=True,
+            critical=True,
+        ),
+        DiagnosticFinding(
+            "runtime", "ovs", "fail", "missing", repairable=True, critical=True
+        ),
+        DiagnosticFinding(
+            "ui", "ui_reachable", "fail", "down", repairable=True, critical=True
+        ),
+        DiagnosticFinding(
+            "session",
+            "session_file",
+            "fail",
+            "Corrupt",
+            repairable=True,
+            critical=False,
+        ),
+        DiagnosticFinding(
+            "environment", "venv", "fail", "Inactive", repairable=True, critical=True
+        ),
+        DiagnosticFinding(
+            "environment", "git", "fail", "Missing", repairable=True, critical=True
+        ),
     )
 
     actions = build_repair_plan(findings)
@@ -174,11 +241,17 @@ def test_execute_repairs_routes_actions(monkeypatch) -> None:
         "nsddos.bootstrap.recovery_actions.detect_compose_backend",
         lambda: ComposeBackend("docker-compose-v2", ("docker", "compose")),
     )
-    monkeypatch.setattr("nsddos.bootstrap.repair_engine.confirm_install", lambda console, prompt: True)
-    monkeypatch.setattr("nsddos.bootstrap.repair_engine.collect_environment_scan", lambda: _scan())
+    monkeypatch.setattr(
+        "nsddos.bootstrap.repair_engine.confirm_install", lambda console, prompt: True
+    )
+    monkeypatch.setattr(
+        "nsddos.bootstrap.repair_engine.collect_environment_scan", lambda: _scan()
+    )
     monkeypatch.setattr(
         "nsddos.bootstrap.repair_engine.build_dependency_plan",
-        lambda scan, profile: type("Plan", (), {"requirements": (), "profile": profile, "summary": "repairs"})(),
+        lambda scan, profile: type(
+            "Plan", (), {"requirements": (), "profile": profile, "summary": "repairs"}
+        )(),
     )
 
     def fake_install(console, plan, scan, **kwargs):
@@ -194,12 +267,21 @@ def test_execute_repairs_routes_actions(monkeypatch) -> None:
             },
         )()
 
-    monkeypatch.setattr("nsddos.bootstrap.repair_engine.execute_install_plan", fake_install)
-    monkeypatch.setattr("nsddos.bootstrap.repair_engine.repair_containers", lambda console: True)
-    monkeypatch.setattr("nsddos.bootstrap.repair_engine.repair_runtime_state", lambda: ("runtime_dirs", "state"))
+    monkeypatch.setattr(
+        "nsddos.bootstrap.repair_engine.execute_install_plan", fake_install
+    )
+    monkeypatch.setattr(
+        "nsddos.bootstrap.repair_engine.repair_containers", lambda console: True
+    )
+    monkeypatch.setattr(
+        "nsddos.bootstrap.repair_engine.repair_runtime_state",
+        lambda: ("runtime_dirs", "state"),
+    )
     monkeypatch.setattr(
         "nsddos.bootstrap.repair_engine.launch_ui_background",
-        lambda: UILaunchResult(launched=True, reachable=True, ui_url="http://127.0.0.1:8010"),
+        lambda: UILaunchResult(
+            launched=True, reachable=True, ui_url="http://127.0.0.1:8010"
+        ),
     )
     monkeypatch.setattr(
         "nsddos.bootstrap.repair_engine.recreate_startup_session",
@@ -208,7 +290,9 @@ def test_execute_repairs_routes_actions(monkeypatch) -> None:
 
     actions = (
         DiagnosticFinding("docker", "docker_daemon", "fail", "Stopped", True, True),
-        DiagnosticFinding("containers", "nsddos-floodlight:healthy", "fail", "unhealthy", True, True),
+        DiagnosticFinding(
+            "containers", "nsddos-floodlight:healthy", "fail", "unhealthy", True, True
+        ),
         DiagnosticFinding("runtime", "ovs", "fail", "missing", True, True),
         DiagnosticFinding("ui", "ui_reachable", "fail", "down", True, True),
         DiagnosticFinding("session", "session_file", "fail", "Corrupt", True, False),
@@ -246,7 +330,12 @@ def test_execute_reset_preserves_config_and_cleans_state(monkeypatch, tmp_path) 
     session_path.write_text("{}", encoding="utf-8")
     config_path.write_text("name: nsddos\n", encoding="utf-8")
     profile = StartupProfile(
-        container_names=("nsddos-floodlight", "nsddos-sflowrt", "nsddos-labhost", "nsddos-detector"),
+        container_names=(
+            "nsddos-floodlight",
+            "nsddos-sflowrt",
+            "nsddos-labhost",
+            "nsddos-detector",
+        ),
         required_health_checks=("docker_daemon", "containers"),
         ui_host="127.0.0.1",
         ui_port=8010,
@@ -255,20 +344,29 @@ def test_execute_reset_preserves_config_and_cleans_state(monkeypatch, tmp_path) 
         session_path=session_path,
     )
 
-    monkeypatch.setattr("nsddos.bootstrap.reset_engine.confirm_install", lambda console, prompt: True)
+    monkeypatch.setattr(
+        "nsddos.bootstrap.reset_engine.confirm_install", lambda console, prompt: True
+    )
     monkeypatch.setattr(
         "nsddos.bootstrap.reset_engine.detect_compose_backend",
         lambda: ComposeBackend("docker-compose-v2", ("docker", "compose")),
     )
     monkeypatch.setattr(
         "nsddos.bootstrap.reset_engine.run_compose_command",
-        lambda backend, args: subprocess.CompletedProcess(args, 0, stdout="[]", stderr=""),
+        lambda backend, args: subprocess.CompletedProcess(
+            args, 0, stdout="[]", stderr=""
+        ),
     )
     monkeypatch.setattr("nsddos.bootstrap.reset_engine.RUNTIME_DIR", runtime_dir)
     monkeypatch.setattr("nsddos.bootstrap.reset_engine.LOG_DIR", logs_dir)
     monkeypatch.setattr("nsddos.bootstrap.reset_engine.CONFIG_PATH", config_path)
-    monkeypatch.setattr("nsddos.bootstrap.reset_engine.DEFAULT_STARTUP_PROFILE", profile)
-    monkeypatch.setattr("nsddos.bootstrap.reset_engine.repair_runtime_state", lambda: ("runtime_dirs", "state"))
+    monkeypatch.setattr(
+        "nsddos.bootstrap.reset_engine.DEFAULT_STARTUP_PROFILE", profile
+    )
+    monkeypatch.setattr(
+        "nsddos.bootstrap.reset_engine.repair_runtime_state",
+        lambda: ("runtime_dirs", "state"),
+    )
 
     result = execute_reset(create_console(record=True))
 
@@ -280,10 +378,14 @@ def test_execute_reset_preserves_config_and_cleans_state(monkeypatch, tmp_path) 
     assert result.preserved_config_path == str(config_path)
 
 
-def test_execute_reset_cancelled_returns_unsuccessful_result(monkeypatch, tmp_path) -> None:
+def test_execute_reset_cancelled_returns_unsuccessful_result(
+    monkeypatch, tmp_path
+) -> None:
     config_path = tmp_path / "config.yaml"
     config_path.write_text("name: nsddos\n", encoding="utf-8")
-    monkeypatch.setattr("nsddos.bootstrap.reset_engine.confirm_install", lambda console, prompt: False)
+    monkeypatch.setattr(
+        "nsddos.bootstrap.reset_engine.confirm_install", lambda console, prompt: False
+    )
     monkeypatch.setattr("nsddos.bootstrap.reset_engine.CONFIG_PATH", config_path)
 
     result = execute_reset(create_console(record=True))
@@ -293,10 +395,19 @@ def test_execute_reset_cancelled_returns_unsuccessful_result(monkeypatch, tmp_pa
 
 def test_run_doctor_command_reruns_after_repairs(monkeypatch) -> None:
     first = (
-        DiagnosticFinding("docker", "docker_daemon", "fail", "Stopped", repairable=True, critical=True),
+        DiagnosticFinding(
+            "docker", "docker_daemon", "fail", "Stopped", repairable=True, critical=True
+        ),
     )
     second = (
-        DiagnosticFinding("docker", "docker_daemon", "pass", "Running", repairable=False, critical=False),
+        DiagnosticFinding(
+            "docker",
+            "docker_daemon",
+            "pass",
+            "Running",
+            repairable=False,
+            critical=False,
+        ),
     )
     state = {"calls": 0}
 
@@ -304,14 +415,20 @@ def test_run_doctor_command_reruns_after_repairs(monkeypatch) -> None:
         state["calls"] += 1
         return first if state["calls"] == 1 else second
 
-    monkeypatch.setattr("nsddos.bootstrap.doctor.collect_diagnostic_findings", fake_collect)
+    monkeypatch.setattr(
+        "nsddos.bootstrap.doctor.collect_diagnostic_findings", fake_collect
+    )
     monkeypatch.setattr(
         "nsddos.bootstrap.doctor.build_repair_plan",
         lambda findings: (
             type(
                 "RepairAction",
                 (),
-                {"area": "docker", "title": "Repair Docker Prerequisites", "detail": "repair"},
+                {
+                    "area": "docker",
+                    "title": "Repair Docker Prerequisites",
+                    "detail": "repair",
+                },
             )(),
         ),
     )

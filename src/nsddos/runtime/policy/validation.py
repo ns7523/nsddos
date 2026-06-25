@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 from nsddos.runtime.policy.actions import allowed_actions
-from nsddos.runtime.policy.contracts_models import PolicyEvaluation, PolicyHistoryEntry, PolicyRollbackState
+from nsddos.runtime.policy.contracts_models import (
+    PolicyEvaluation,
+    PolicyHistoryEntry,
+    PolicyRollbackState,
+)
 
 
 def validate_policy_evaluation(evaluation: PolicyEvaluation) -> list[str]:

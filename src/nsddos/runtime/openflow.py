@@ -21,18 +21,34 @@ def correlate_openflow_ports(config: dict) -> OpenFlowCorrelation:
     duplicates: list[str] = []
     seen_keys: set[str] = set()
 
-    interface_by_ovs = {item.ovs_name: item for item in interfaces.interfaces if item.ovs_name}
-    switch_by_dpid = {item.controller_dpid: item for item in identity.switches if item.controller_dpid}
+    interface_by_ovs = {
+        item.ovs_name: item for item in interfaces.interfaces if item.ovs_name
+    }
+    switch_by_dpid = {
+        item.controller_dpid: item for item in identity.switches if item.controller_dpid
+    }
     fallback_switch = identity.switches[0] if identity.switches else None
 
     for switch in controller.switches:
         runtime_switch = switch_by_dpid.get(switch.datapath_id, fallback_switch)
-        switch_id = runtime_switch.canonical_id if runtime_switch else f"switch:{switch.datapath_id or 'unknown'}"
+        switch_id = (
+            runtime_switch.canonical_id
+            if runtime_switch
+            else f"switch:{switch.datapath_id or 'unknown'}"
+        )
 
         if not switch.ports:
             if runtime_switch:
-                for iface in [item for item in interfaces.interfaces if item.switch_id == runtime_switch.canonical_id]:
-                    port_suffix = iface.ovs_name.split("eth")[-1] if iface.ovs_name and "eth" in iface.ovs_name else "unknown"
+                for iface in [
+                    item
+                    for item in interfaces.interfaces
+                    if item.switch_id == runtime_switch.canonical_id
+                ]:
+                    port_suffix = (
+                        iface.ovs_name.split("eth")[-1]
+                        if iface.ovs_name and "eth" in iface.ovs_name
+                        else "unknown"
+                    )
                     port_id = f"{switch_id}:{port_suffix}"
                     ports.append(
                         OpenFlowPortRecord(
@@ -86,8 +102,12 @@ def correlate_openflow_ports(config: dict) -> OpenFlowCorrelation:
     # Expected runtime interfaces without controller match -> missing controller ports.
     live_ovs = {item.ovs_name for item in interfaces.interfaces if item.ovs_name}
     mapped_ovs = {item.ovs_name for item in ports if item.ovs_name}
-    for ovs_name in sorted(name for name in live_ovs if name and name not in mapped_ovs):
-        switch_id = fallback_switch.canonical_id if fallback_switch else "switch:unknown"
+    for ovs_name in sorted(
+        name for name in live_ovs if name and name not in mapped_ovs
+    ):
+        switch_id = (
+            fallback_switch.canonical_id if fallback_switch else "switch:unknown"
+        )
         port_id = f"{switch_id}:unknown:{ovs_name}"
         missing.append(port_id)
 

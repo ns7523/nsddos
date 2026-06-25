@@ -7,7 +7,10 @@ from typing import Any
 from nsddos.runtime.capabilities import detect_runtime_capabilities
 from nsddos.runtime.models import EnvironmentCompatibility
 from nsddos.runtime.profiles import detect_runtime_profile
-from nsddos.runtime.providers_registry import build_provider_registry, collect_provider_status_from_registry
+from nsddos.runtime.providers_registry import (
+    build_provider_registry,
+    collect_provider_status_from_registry,
+)
 
 
 def validate_runtime_environment(config: dict[str, Any]) -> EnvironmentCompatibility:
@@ -50,7 +53,11 @@ def validate_runtime_environment(config: dict[str, Any]) -> EnvironmentCompatibi
         limits.append("mininet-runtime-not-running")
 
     for name, status in providers.items():
-        if status.get("ready") or status.get("reachable") or status.get("artifact_exists"):
+        if (
+            status.get("ready")
+            or status.get("reachable")
+            or status.get("artifact_exists")
+        ):
             provider_support[name] = "supported"
         elif status.get("installed") or status.get("artifact_exists"):
             provider_support[name] = "partial"
@@ -85,11 +92,18 @@ def validate_bootstrap(config: dict[str, Any]) -> dict[str, Any]:
     bootstrap_ready = env.status == "compatible"
     if env.profile == "macos-degraded":
         bootstrap_ready = False
-    if env.profile == "wsl2" and "sudo-needed-for-mininet" in env.reproducibility_limitations:
+    if (
+        env.profile == "wsl2"
+        and "sudo-needed-for-mininet" in env.reproducibility_limitations
+    ):
         bootstrap_ready = False
     return {
         "profile": env.profile,
-        "status": "supported" if bootstrap_ready else ("degraded" if env.status != "unsupported" else "unsupported"),
+        "status": (
+            "supported"
+            if bootstrap_ready
+            else ("degraded" if env.status != "unsupported" else "unsupported")
+        ),
         "bootstrap_ready": bootstrap_ready,
         "missing_dependencies": env.missing_dependencies,
         "limitations": env.reproducibility_limitations,

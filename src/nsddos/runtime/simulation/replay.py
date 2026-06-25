@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from nsddos.runtime.simulation.contracts import PacketMetadata, PacketScheduleEntry, ReplayTrafficRecord
+from nsddos.runtime.simulation.contracts import (
+    PacketMetadata,
+    PacketScheduleEntry,
+    ReplayTrafficRecord,
+)
 
 
 def build_replay_records(

@@ -9,7 +9,11 @@ SIGNATURE_THRESHOLDS = {
     "http_flood": {"min_http_rate": 300.0, "min_connection_rate": 60.0},
     "slowloris": {"min_partial_connection_rate": 40.0, "min_flow_duration": 10.0},
     "connection_exhaustion": {"min_connection_rate": 400.0, "min_burst_factor": 25.0},
-    "port_scanning": {"min_source_cardinality": 1, "min_port_span": 16, "max_entropy": 2.5},
+    "port_scanning": {
+        "min_source_cardinality": 1,
+        "min_port_span": 16,
+        "max_entropy": 2.5,
+    },
     "volumetric_anomaly": {"min_packet_rate": 1500.0, "min_byte_rate": 1_000_000.0},
 }
 

@@ -35,4 +35,7 @@ SCOPE_NAMES = (
 
 def default_scopes() -> dict[str, RuntimeQueryScope]:
     """Return supported query scopes."""
-    return {name: RuntimeQueryScope(name=name, detail=f"{name} query scope") for name in SCOPE_NAMES}
+    return {
+        name: RuntimeQueryScope(name=name, detail=f"{name} query scope")
+        for name in SCOPE_NAMES
+    }

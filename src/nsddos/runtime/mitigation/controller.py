@@ -6,16 +6,26 @@ import hashlib
 from typing import Any
 
 from nsddos.runtime.domain.serialization import to_canonical_json
-from nsddos.runtime.mitigation.models import MitigationActionPayload, MitigationControllerPayload, MitigationFlowRule
+from nsddos.runtime.mitigation.models import (
+    MitigationActionPayload,
+    MitigationControllerPayload,
+    MitigationFlowRule,
+)
 
 
-def build_controller_payload(action: MitigationActionPayload) -> MitigationControllerPayload | None:
+def build_controller_payload(
+    action: MitigationActionPayload,
+) -> MitigationControllerPayload | None:
     if action.action_type == "alert_only":
         return None
     match_field = "nw_src"
     match_value = action.target_subnet or action.target_ip
     flow_rule = MitigationFlowRule(
-        rule_id=hashlib.sha256(f"{action.action_type}:{match_value}:{action.duration_seconds}".encode("utf-8")).hexdigest()[:16],
+        rule_id=hashlib.sha256(
+            f"{action.action_type}:{match_value}:{action.duration_seconds}".encode(
+                "utf-8"
+            )
+        ).hexdigest()[:16],
         priority=50000,
         match_field=match_field,
         match_value=match_value,
@@ -31,7 +41,9 @@ def build_controller_payload(action: MitigationActionPayload) -> MitigationContr
         "src-ip": action.target_ip,
         "actions": "drop",
     }
-    ovs_flow = f"priority={flow_rule.priority},ip,{match_field}={match_value},actions=drop"
+    ovs_flow = (
+        f"priority={flow_rule.priority},ip,{match_field}={match_value},actions=drop"
+    )
     verification_matches = {match_field: match_value, "actions": "drop"}
     payload_seed = {
         "action": action.to_dict(),
@@ -39,7 +51,9 @@ def build_controller_payload(action: MitigationActionPayload) -> MitigationContr
         "floodlight_payload": floodlight_payload,
         "ovs_flow": ovs_flow,
     }
-    payload_hash = hashlib.sha256(to_canonical_json(payload_seed).encode("utf-8")).hexdigest()
+    payload_hash = hashlib.sha256(
+        to_canonical_json(payload_seed).encode("utf-8")
+    ).hexdigest()
     return MitigationControllerPayload(
         controller_type="floodlight-ovs-lab",
         provider_target="floodlight-staticflow-plus-ovs",

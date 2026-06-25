@@ -9,7 +9,10 @@ def _count(packet_rate: float, duration_seconds: int) -> int:
 
 def burst_pattern(packet_rate: float, duration_seconds: int) -> tuple[int, ...]:
     total = _count(packet_rate, duration_seconds)
-    return tuple(0 if index < max(1, total // 4) else int((index - total // 4) * 2) for index in range(total))
+    return tuple(
+        0 if index < max(1, total // 4) else int((index - total // 4) * 2)
+        for index in range(total)
+    )
 
 
 def sustained_pattern(packet_rate: float, duration_seconds: int) -> tuple[int, ...]:
@@ -18,9 +21,14 @@ def sustained_pattern(packet_rate: float, duration_seconds: int) -> tuple[int, .
     return tuple(index * interval_ms for index in range(total))
 
 
-def exponential_ramp_up_pattern(packet_rate: float, duration_seconds: int) -> tuple[int, ...]:
+def exponential_ramp_up_pattern(
+    packet_rate: float, duration_seconds: int
+) -> tuple[int, ...]:
     total = _count(packet_rate, duration_seconds)
-    return tuple(int((index * index) / max(total, 1) * (duration_seconds * 10)) for index in range(total))
+    return tuple(
+        int((index * index) / max(total, 1) * (duration_seconds * 10))
+        for index in range(total)
+    )
 
 
 def random_burst_pattern(packet_rate: float, duration_seconds: int) -> tuple[int, ...]:

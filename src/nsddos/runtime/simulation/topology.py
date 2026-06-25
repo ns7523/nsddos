@@ -11,5 +11,9 @@ def resolve_topology_path(target: TargetSelection) -> TopologyPathRecord:
     if target.target_kind == "switch":
         return TopologyPathRecord("switch_route", ("attacker", "s1"))
     if target.target_kind == "subnet":
-        return TopologyPathRecord("subnet_route", ("attacker", "s1", target.identifier or target.target_ip))
-    return TopologyPathRecord("host_route", ("attacker", "s1", target.identifier or target.target_ip))
+        return TopologyPathRecord(
+            "subnet_route", ("attacker", "s1", target.identifier or target.target_ip)
+        )
+    return TopologyPathRecord(
+        "host_route", ("attacker", "s1", target.identifier or target.target_ip)
+    )

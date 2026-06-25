@@ -36,7 +36,9 @@ def _set(payload: Any, key: str) -> set[str]:
     return set()
 
 
-def analyze_snapshot_transitions(snapshot_a: dict[str, Any], snapshot_b: dict[str, Any]) -> dict[str, Any]:
+def analyze_snapshot_transitions(
+    snapshot_a: dict[str, Any], snapshot_b: dict[str, Any]
+) -> dict[str, Any]:
     """Analyze deterministic transition between 2 snapshots."""
     ts = str(snapshot_b.get("timestamp", ""))
     conv_a = snapshot_a.get("convergence_state", {}).get("status", "unknown")
@@ -45,11 +47,20 @@ def analyze_snapshot_transitions(snapshot_a: dict[str, Any], snapshot_b: dict[st
         timestamp=ts,
         from_state=str(conv_a),
         to_state=str(conv_b),
-        reasons=[str(item) for item in snapshot_b.get("convergence_state", {}).get("divergence_reasons", [])],
+        reasons=[
+            str(item)
+            for item in snapshot_b.get("convergence_state", {}).get(
+                "divergence_reasons", []
+            )
+        ],
     )
 
-    drift_a = _set(snapshot_a.get("reconciliation_state", {}), "stale_entities") | _set(snapshot_a.get("reconciliation_state", {}), "missing_entities")
-    drift_b = _set(snapshot_b.get("reconciliation_state", {}), "stale_entities") | _set(snapshot_b.get("reconciliation_state", {}), "missing_entities")
+    drift_a = _set(snapshot_a.get("reconciliation_state", {}), "stale_entities") | _set(
+        snapshot_a.get("reconciliation_state", {}), "missing_entities"
+    )
+    drift_b = _set(snapshot_b.get("reconciliation_state", {}), "stale_entities") | _set(
+        snapshot_b.get("reconciliation_state", {}), "missing_entities"
+    )
     drift = DriftTransition(
         timestamp=ts,
         introduced=sorted(drift_b - drift_a),
@@ -67,10 +78,26 @@ def analyze_snapshot_transitions(snapshot_a: dict[str, Any], snapshot_b: dict[st
         detail=f"links_a={len(topo_a)} links_b={len(topo_b)}",
     )
 
-    ports_a = _set(snapshot_a.get("openflow_state", {}), "missing_ports") | {str(item.get("canonical_id")) for item in snapshot_a.get("openflow_state", {}).get("ports", []) if isinstance(item, dict)}
-    ports_b = _set(snapshot_b.get("openflow_state", {}), "missing_ports") | {str(item.get("canonical_id")) for item in snapshot_b.get("openflow_state", {}).get("ports", []) if isinstance(item, dict)}
-    dpid_a = {str(item.get("datapath_id")) for item in snapshot_a.get("controller_state", {}).get("switches", []) if isinstance(item, dict) and item.get("datapath_id")}
-    dpid_b = {str(item.get("datapath_id")) for item in snapshot_b.get("controller_state", {}).get("switches", []) if isinstance(item, dict) and item.get("datapath_id")}
+    ports_a = _set(snapshot_a.get("openflow_state", {}), "missing_ports") | {
+        str(item.get("canonical_id"))
+        for item in snapshot_a.get("openflow_state", {}).get("ports", [])
+        if isinstance(item, dict)
+    }
+    ports_b = _set(snapshot_b.get("openflow_state", {}), "missing_ports") | {
+        str(item.get("canonical_id"))
+        for item in snapshot_b.get("openflow_state", {}).get("ports", [])
+        if isinstance(item, dict)
+    }
+    dpid_a = {
+        str(item.get("datapath_id"))
+        for item in snapshot_a.get("controller_state", {}).get("switches", [])
+        if isinstance(item, dict) and item.get("datapath_id")
+    }
+    dpid_b = {
+        str(item.get("datapath_id"))
+        for item in snapshot_b.get("controller_state", {}).get("switches", [])
+        if isinstance(item, dict) and item.get("datapath_id")
+    }
     datapath = DatapathTransition(
         timestamp=ts,
         added_ports=sorted(ports_b - ports_a),
@@ -83,7 +110,14 @@ def analyze_snapshot_transitions(snapshot_a: dict[str, Any], snapshot_b: dict[st
         transition_type="runtime",
         from_state=str(conv_a),
         to_state=str(conv_b),
-        affected_entities=sorted(set(drift.introduced + drift.recovered + topology.added_links + topology.removed_links)),
+        affected_entities=sorted(
+            set(
+                drift.introduced
+                + drift.recovered
+                + topology.added_links
+                + topology.removed_links
+            )
+        ),
         detail="snapshot_transition",
     )
 
@@ -101,5 +135,7 @@ def load_transition_history(snapshot_dir: Path = SNAPSHOT_DIR) -> list[dict[str,
     snapshots = list_snapshots(snapshot_dir)
     history: list[dict[str, Any]] = []
     for left, right in zip(snapshots, snapshots[1:]):
-        history.append(analyze_snapshot_transitions(_load_snapshot(left), _load_snapshot(right)))
+        history.append(
+            analyze_snapshot_transitions(_load_snapshot(left), _load_snapshot(right))
+        )
     return history

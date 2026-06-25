@@ -192,11 +192,17 @@ class DeploymentEvaluation:
     schema_version: str = SCHEMA_VERSION
     deployment_state: str = "dry_run_ready"
     container_contracts: tuple[ContainerContract, ...] = ()
-    secret_contract: SecretContract = field(default_factory=lambda: SecretContract(required_keys=()))
-    networking_contract: NetworkingContract = field(
-        default_factory=lambda: NetworkingContract(external_ports=(), internal_ports=(), network_policies=(), service_names=())
+    secret_contract: SecretContract = field(
+        default_factory=lambda: SecretContract(required_keys=())
     )
-    service_mesh: ServiceMeshContract = field(default_factory=lambda: ServiceMeshContract(services=(), dependencies=()))
+    networking_contract: NetworkingContract = field(
+        default_factory=lambda: NetworkingContract(
+            external_ports=(), internal_ports=(), network_policies=(), service_names=()
+        )
+    )
+    service_mesh: ServiceMeshContract = field(
+        default_factory=lambda: ServiceMeshContract(services=(), dependencies=())
+    )
     health: DeploymentHealthState = field(
         default_factory=lambda: DeploymentHealthState(
             state="degraded",
@@ -236,7 +242,12 @@ class DeploymentEvaluation:
         )
     )
     recovery_state: RecoveryState = field(
-        default_factory=lambda: RecoveryState(state="recovering", recommended_actions=(), can_recover=False, reason="uninitialized")
+        default_factory=lambda: RecoveryState(
+            state="recovering",
+            recommended_actions=(),
+            can_recover=False,
+            reason="uninitialized",
+        )
     )
     rollback_state: RollbackState = field(
         default_factory=lambda: RollbackState(
@@ -263,7 +274,9 @@ class DeploymentEvaluation:
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
-        payload["container_contracts"] = [item.to_dict() for item in self.container_contracts]
+        payload["container_contracts"] = [
+            item.to_dict() for item in self.container_contracts
+        ]
         payload["secret_contract"] = self.secret_contract.to_dict()
         payload["networking_contract"] = self.networking_contract.to_dict()
         payload["service_mesh"] = self.service_mesh.to_dict()

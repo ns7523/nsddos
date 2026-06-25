@@ -26,9 +26,15 @@ def runtime_confidence_summary(
     warnings = sum(1 for item in verification if item.status == "warn")
 
     topology_status = "healthy" if topology.consistent else "partial"
-    telemetry_status = "stale" if freshness.stale else ("visible" if flows.telemetry_present else "missing")
+    telemetry_status = (
+        "stale"
+        if freshness.stale
+        else ("visible" if flows.telemetry_present else "missing")
+    )
     flow_status = "visible" if flows.flow_count > 0 else "empty"
-    agreement = "aligned" if failed == 0 and not topology.provider_agreement else "mismatch"
+    agreement = (
+        "aligned" if failed == 0 and not topology.provider_agreement else "mismatch"
+    )
     reductions = reconciliation.confidence_reductions if reconciliation else []
     datapath_status = "aligned"
     if any("datapath" in item or "port" in item for item in reductions):
@@ -38,13 +44,28 @@ def runtime_confidence_summary(
     controller_status = "aligned"
     if any("controller" in item for item in reductions):
         controller_status = "partial"
-    convergence_status = "converged" if not reductions else ("partially_converged" if failed == 0 else "diverged")
+    convergence_status = (
+        "converged"
+        if not reductions
+        else ("partially_converged" if failed == 0 else "diverged")
+    )
     stability_status = "stable"
-    if any("recurring" in item or "topology_disagreement" in item for item in reductions):
+    if any(
+        "recurring" in item or "topology_disagreement" in item for item in reductions
+    ):
         stability_status = "degraded"
-    if any("controller_topology_divergence" in item or "telemetry_path_divergence" in item for item in reductions):
+    if any(
+        "controller_topology_divergence" in item or "telemetry_path_divergence" in item
+        for item in reductions
+    ):
         stability_status = "unstable"
-    reproducibility_status = "reproducible" if failed == 0 and controller_status == "aligned" and datapath_status == "aligned" else "partially_reproducible"
+    reproducibility_status = (
+        "reproducible"
+        if failed == 0
+        and controller_status == "aligned"
+        and datapath_status == "aligned"
+        else "partially_reproducible"
+    )
     if failed > 0 and topology_status == "partial":
         reproducibility_status = "non_reproducible"
 

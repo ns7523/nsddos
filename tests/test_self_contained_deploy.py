@@ -12,10 +12,16 @@ def test_default_compose_file_points_to_repo_root() -> None:
 
 
 def test_internal_runtime_assets_exist() -> None:
-    assert FLOODLIGHT_JAR == REPOSITORY_ROOT / "external" / "floodlight" / "floodlight.jar"
-    assert SFLOWRT_JAR == REPOSITORY_ROOT / "external" / "sflowrt" / "lib" / "sflowrt.jar"
+    assert (
+        FLOODLIGHT_JAR == REPOSITORY_ROOT / "external" / "floodlight" / "floodlight.jar"
+    )
+    assert (
+        SFLOWRT_JAR == REPOSITORY_ROOT / "external" / "sflowrt" / "lib" / "sflowrt.jar"
+    )
     assert FLOODLIGHT_JAR.exists()
-    assert (REPOSITORY_ROOT / "external" / "floodlight" / "floodlightdefault.properties").exists()
+    assert (
+        REPOSITORY_ROOT / "external" / "floodlight" / "floodlightdefault.properties"
+    ).exists()
     assert SFLOWRT_JAR.exists()
     assert (REPOSITORY_ROOT / "external" / "sflowrt" / "app").is_dir()
     assert (REPOSITORY_ROOT / "external" / "sflowrt" / "resources").is_dir()
@@ -27,7 +33,11 @@ def test_compose_files_stay_within_repo_boundary() -> None:
         REPOSITORY_ROOT / "docker-compose.yml",
         REPOSITORY_ROOT / "docker" / "runtime" / "base" / "docker-compose.base.yml",
         REPOSITORY_ROOT / "docker" / "runtime" / "dev" / "docker-compose.dev.yml",
-        REPOSITORY_ROOT / "docker" / "runtime" / "research" / "docker-compose.research.yml",
+        REPOSITORY_ROOT
+        / "docker"
+        / "runtime"
+        / "research"
+        / "docker-compose.research.yml",
     )
     for path in compose_paths:
         payload = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -79,11 +89,13 @@ def test_setup_py_does_not_package_runtime_payloads_for_wheel() -> None:
     assert "data_files" not in setup_py
     assert "_collect_tree(" not in setup_py
     assert "docker-compose.yml" not in setup_py
-    assert "\"external\"" not in setup_py
+    assert '"external"' not in setup_py
 
 
 def test_pyproject_limits_packaged_assets_to_in_package_ui_files() -> None:
-    pyproject = tomllib.loads((REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    pyproject = tomllib.loads(
+        (REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    )
     setuptools_cfg = pyproject["tool"]["setuptools"]
     package_data = setuptools_cfg["package-data"]["nsddos"]
 

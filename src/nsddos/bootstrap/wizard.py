@@ -66,12 +66,20 @@ def _scan_table(scan: EnvironmentScan) -> Table:
         status_text("OK" if scan.git.installed else "MISSING"),
         "Installed" if scan.git.installed else "Missing",
     )
-    table.add_row("Available Memory", status_text("OK"), _format_gib(scan.available_memory_bytes))
-    table.add_row("Available Disk", status_text("OK"), _format_gib(scan.available_disk_bytes))
+    table.add_row(
+        "Available Memory", status_text("OK"), _format_gib(scan.available_memory_bytes)
+    )
+    table.add_row(
+        "Available Disk", status_text("OK"), _format_gib(scan.available_disk_bytes)
+    )
     table.add_row(
         "Runtime Directories",
         status_text("OK" if not scan.missing_runtime_directories else "WARN"),
-        "Ready" if not scan.missing_runtime_directories else f"Missing {len(scan.missing_runtime_directories)}",
+        (
+            "Ready"
+            if not scan.missing_runtime_directories
+            else f"Missing {len(scan.missing_runtime_directories)}"
+        ),
     )
     table.add_row(
         "Runtime Assets",
@@ -102,7 +110,9 @@ def _render_scan_progress(console: Console) -> None:
         SpinnerColumn(style="bright_cyan"),
         TextColumn("[bold white]Step 1[/bold white]"),
         TextColumn("[bright_black]Environment scan[/bright_black]"),
-        BarColumn(bar_width=24, complete_style="bright_cyan", finished_style="bright_cyan"),
+        BarColumn(
+            bar_width=24, complete_style="bright_cyan", finished_style="bright_cyan"
+        ),
         TextColumn("[bold bright_cyan]done[/bold bright_cyan]"),
         console=console,
     )
@@ -135,11 +145,16 @@ def render_setup_wizard(console: Console | None = None) -> SetupState:
                     (
                         ("OS", scan.os_family),
                         ("PYTHON", scan.python_version),
-                        ("DOCKER", "ONLINE" if scan.docker_daemon_running else "OFFLINE"),
+                        (
+                            "DOCKER",
+                            "ONLINE" if scan.docker_daemon_running else "OFFLINE",
+                        ),
                     )
                 ),
             ),
-            footer=build_footer_line("Environment scan captured. Select deployment mode to continue."),
+            footer=build_footer_line(
+                "Environment scan captured. Select deployment mode to continue."
+            ),
         )
     )
 
@@ -164,17 +179,23 @@ def render_setup_wizard(console: Console | None = None) -> SetupState:
         f"[bright_black]Skipped requirements: {len(installer_result.skipped_requirements)}[/bright_black]",
     ]
     if installer_result.failed_requirement:
-        summary_lines.append(f"[bold red]Failed requirement: {installer_result.failed_requirement}[/bold red]")
+        summary_lines.append(
+            f"[bold red]Failed requirement: {installer_result.failed_requirement}[/bold red]"
+        )
         summary_lines.append(
             f"[bright_black]Rollback actions: {len(installer_result.rollback_results)}[/bright_black]"
         )
     else:
-        summary_lines.append("[bright_black]Provisioning cycle finished without execution failure.[/bright_black]")
+        summary_lines.append(
+            "[bright_black]Provisioning cycle finished without execution failure.[/bright_black]"
+        )
     active_console.print(
         Panel(
             "\n".join(summary_lines),
             title="Provisioning Summary",
-            border_style="bright_cyan" if not installer_result.failed_requirement else "red",
+            border_style=(
+                "bright_cyan" if not installer_result.failed_requirement else "red"
+            ),
         )
     )
     return SetupState(scan=final_scan, profile=profile, plan=final_plan)

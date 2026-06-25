@@ -23,10 +23,14 @@ def build_threat_intel_state(sources: DashboardSourceBundle) -> ThreatIntelState
         if attack_type:
             protocols[attack_type] += 1
     total = sum(protocols.values()) or 1
-    concentration = tuple(sorted((name, count / total) for name, count in protocols.items()))
+    concentration = tuple(
+        sorted((name, count / total) for name, count in protocols.items())
+    )
     recurrence_frequency = sum(count for _, count in repeated.items() if count > 1)
     return ThreatIntelState(
-        repeated_attacker_ips=tuple(sorted((ip, count) for ip, count in repeated.items() if count > 0)),
+        repeated_attacker_ips=tuple(
+            sorted((ip, count) for ip, count in repeated.items() if count > 0)
+        ),
         recurrence_frequency=recurrence_frequency,
         high_risk_subnets=tuple(sorted(subnets)),
         suspicious_protocol_concentration=concentration,

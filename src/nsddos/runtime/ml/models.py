@@ -123,7 +123,9 @@ class MLTrainingState:
     model_family: str
     model_version: str
     attack_threshold: float
-    type_centroids: tuple[tuple[str, tuple[float, ...]], ...] = field(default_factory=tuple)
+    type_centroids: tuple[tuple[str, tuple[float, ...]], ...] = field(
+        default_factory=tuple
+    )
     feature_weights: tuple[float, ...] = field(default_factory=tuple)
     trained_row_count: int = 0
     trained_at: str = ""
@@ -137,7 +139,9 @@ class MLTrainingState:
             "model_family": self.model_family,
             "model_version": self.model_version,
             "attack_threshold": self.attack_threshold,
-            "type_centroids": [[key, list(value)] for key, value in self.type_centroids],
+            "type_centroids": [
+                [key, list(value)] for key, value in self.type_centroids
+            ],
             "feature_weights": list(self.feature_weights),
             "trained_row_count": self.trained_row_count,
             "trained_at": self.trained_at,
@@ -257,7 +261,9 @@ class MLDetectionEvaluation:
     diagnostics: MLDiagnostics
     schema_version: str = SCHEMA_VERSION
     contract_version: str = CONTRACT_VERSION
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
 
     def to_dict(self) -> dict[str, Any]:
         return {

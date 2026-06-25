@@ -2,8 +2,15 @@ from __future__ import annotations
 
 from nsddos.runtime.models import VerificationResult
 from nsddos.runtime.verification.registry import VerificationRegistry
-from nsddos.runtime.verification.replay import persist_verification_execution, replay_verification_runs
-from nsddos.runtime.verification.results import VerificationCategoryResult, VerificationExecutionResult, VerificationEvidenceReference
+from nsddos.runtime.verification.replay import (
+    persist_verification_execution,
+    replay_verification_runs,
+)
+from nsddos.runtime.verification.results import (
+    VerificationCategoryResult,
+    VerificationExecutionResult,
+    VerificationEvidenceReference,
+)
 from nsddos.runtime.verification.rules import RuntimeVerificationRule
 from nsddos.runtime.verification.severity import severity_for_status, worst_severity
 from nsddos.runtime.verification.validators import default_registry
@@ -18,11 +25,19 @@ def _validator(name: str, status: str = "pass"):
 
 def test_registry_orders_validators_by_dependencies():
     registry = VerificationRegistry()
-    registry.register(RuntimeVerificationRule("last", "test", _validator("last"), ("middle",)))
+    registry.register(
+        RuntimeVerificationRule("last", "test", _validator("last"), ("middle",))
+    )
     registry.register(RuntimeVerificationRule("first", "test", _validator("first")))
-    registry.register(RuntimeVerificationRule("middle", "test", _validator("middle"), ("first",)))
+    registry.register(
+        RuntimeVerificationRule("middle", "test", _validator("middle"), ("first",))
+    )
 
-    assert [rule.name for rule in registry.ordered_rules()] == ["first", "middle", "last"]
+    assert [rule.name for rule in registry.ordered_rules()] == [
+        "first",
+        "middle",
+        "last",
+    ]
 
 
 def test_default_registry_has_required_categories():
@@ -54,7 +69,20 @@ def test_mitigation_validator_order_is_after_detection():
     registry = default_registry()
     ordered = [rule.name for rule in registry.ordered_rules()]
 
-    assert ordered.index("live_provider") < ordered.index("simulation") < ordered.index("streaming") < ordered.index("detection") < ordered.index("ml") < ordered.index("policy") < ordered.index("mitigation") < ordered.index("deployment") < ordered.index("distributed") < ordered.index("dashboard") < ordered.index("release") < ordered.index("integrity")
+    assert (
+        ordered.index("live_provider")
+        < ordered.index("simulation")
+        < ordered.index("streaming")
+        < ordered.index("detection")
+        < ordered.index("ml")
+        < ordered.index("policy")
+        < ordered.index("mitigation")
+        < ordered.index("deployment")
+        < ordered.index("distributed")
+        < ordered.index("dashboard")
+        < ordered.index("release")
+        < ordered.index("integrity")
+    )
 
 
 def test_severity_model_is_deterministic():
@@ -120,7 +148,9 @@ def test_verification_replay_persists_and_compares_runs(tmp_path, monkeypatch):
 
 def test_registry_rejects_missing_dependency():
     registry = VerificationRegistry()
-    registry.register(RuntimeVerificationRule("needs-missing", "test", _validator("x"), ("missing",)))
+    registry.register(
+        RuntimeVerificationRule("needs-missing", "test", _validator("x"), ("missing",))
+    )
 
     try:
         registry.ordered_rules()

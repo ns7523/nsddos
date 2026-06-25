@@ -68,7 +68,9 @@ class SFlowProvider(BaseProvider):
         """Return provider status."""
         artifact_exists = self.artifact_exists()
         reachable = self.is_reachable()
-        flows_payload = self._json_get("/flows/json?maxFlows=1&timeout=1") if reachable else None
+        flows_payload = (
+            self._json_get("/flows/json?maxFlows=1&timeout=1") if reachable else None
+        )
         flows = flows_payload if isinstance(flows_payload, list) else []
         metrics = self.metrics() if reachable else None
         topology = self.topology() if reachable else None

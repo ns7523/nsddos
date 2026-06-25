@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
-from nsddos.runtime.detection.models import AnomalyResult, AttackClassification, RiskAssessment, SignatureMatch
+from nsddos.runtime.detection.models import (
+    AnomalyResult,
+    AttackClassification,
+    RiskAssessment,
+    SignatureMatch,
+)
 
 
 PRIORITY = (

@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
-from nsddos.runtime.providers.live.contracts import LiveTelemetrySnapshot, ProviderDiagnosticRecord
+from nsddos.runtime.providers.live.contracts import (
+    LiveTelemetrySnapshot,
+    ProviderDiagnosticRecord,
+)
 
 
-def build_provider_diagnostics(snapshot: LiveTelemetrySnapshot) -> tuple[ProviderDiagnosticRecord, ...]:
+def build_provider_diagnostics(
+    snapshot: LiveTelemetrySnapshot,
+) -> tuple[ProviderDiagnosticRecord, ...]:
     diagnostics: list[ProviderDiagnosticRecord] = []
     for item in snapshot.provider_health:
         anomalies: list[str] = []

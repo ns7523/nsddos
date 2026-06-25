@@ -131,7 +131,9 @@ class LiveTelemetrySnapshot:
     active_flows: int
     dropped_packets: int
     source_ip_distribution: tuple[DistributionPoint, ...] = field(default_factory=tuple)
-    destination_port_distribution: tuple[DistributionPoint, ...] = field(default_factory=tuple)
+    destination_port_distribution: tuple[DistributionPoint, ...] = field(
+        default_factory=tuple
+    )
     topology_state: TopologySnapshot = field(default_factory=TopologySnapshot)
     controller_status: str = "unknown"
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
@@ -140,7 +142,9 @@ class LiveTelemetrySnapshot:
     controller_events: tuple[ControllerEventRecord, ...] = field(default_factory=tuple)
     schema_version: str = SCHEMA_VERSION
     contract_version: str = CONTRACT_VERSION
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -156,8 +160,12 @@ class LiveTelemetrySnapshot:
             "icmp_rate": self.icmp_rate,
             "active_flows": self.active_flows,
             "dropped_packets": self.dropped_packets,
-            "source_ip_distribution": [item.to_dict() for item in self.source_ip_distribution],
-            "destination_port_distribution": [item.to_dict() for item in self.destination_port_distribution],
+            "source_ip_distribution": [
+                item.to_dict() for item in self.source_ip_distribution
+            ],
+            "destination_port_distribution": [
+                item.to_dict() for item in self.destination_port_distribution
+            ],
             "topology_state": self.topology_state.to_dict(),
             "controller_status": self.controller_status,
             "timestamp": self.timestamp.isoformat(),

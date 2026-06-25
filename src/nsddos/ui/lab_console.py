@@ -50,7 +50,9 @@ class LabTerminalSession:
         )
         self._lock = threading.Lock()
         self._buffer = ""
-        self._subscribers: list[tuple[asyncio.AbstractEventLoop, asyncio.Queue[str]]] = []
+        self._subscribers: list[
+            tuple[asyncio.AbstractEventLoop, asyncio.Queue[str]]
+        ] = []
         self._reader = threading.Thread(target=self._pump_output, daemon=True)
         self._reader.start()
 
@@ -74,14 +76,18 @@ class LabTerminalSession:
         finally:
             self.close()
 
-    def add_subscriber(self, loop: asyncio.AbstractEventLoop, queue: asyncio.Queue[str]) -> str:
+    def add_subscriber(
+        self, loop: asyncio.AbstractEventLoop, queue: asyncio.Queue[str]
+    ) -> str:
         with self._lock:
             self._subscribers.append((loop, queue))
             return self._buffer
 
     def remove_subscriber(self, queue: asyncio.Queue[str]) -> None:
         with self._lock:
-            self._subscribers = [item for item in self._subscribers if item[1] is not queue]
+            self._subscribers = [
+                item for item in self._subscribers if item[1] is not queue
+            ]
 
     def write(self, data: str) -> None:
         if self.process.poll() is not None:
@@ -172,7 +178,11 @@ class LabControlManager:
                 probe = provider.probe_connectivity(source, ip)
                 results.append(probe)
         reachable = sum(1 for item in results if item.get("reachable"))
-        status = self._set_status("ping-all-hosts", "completed", f"{reachable}/{len(results)} host probes reachable.")
+        status = self._set_status(
+            "ping-all-hosts",
+            "completed",
+            f"{reachable}/{len(results)} host probes reachable.",
+        )
         return {**status, "results": results}
 
     def _run_attack(self, action: str, attack_type: str) -> None:
@@ -201,9 +211,13 @@ class LabControlManager:
             if self._active_thread is not None and self._active_thread.is_alive():
                 return dict(self._status)
             self._stop_event = threading.Event()
-            self._active_thread = threading.Thread(target=self._run_attack, args=(action, attack_type), daemon=True)
+            self._active_thread = threading.Thread(
+                target=self._run_attack, args=(action, attack_type), daemon=True
+            )
             self._active_thread.start()
-        return self._set_status(action, "started", f"{attack_type} launched in LAB runtime.")
+        return self._set_status(
+            action, "started", f"{attack_type} launched in LAB runtime."
+        )
 
     def _stop_attack(self) -> dict[str, Any]:
         with self._lock:
@@ -212,12 +226,16 @@ class LabControlManager:
         if active and stop_event is not None:
             stop_event.set()
             attack_engine.stop_active_attack("h1", "h2", 8081)
-            status = self._set_status("stop-attack", "stopping", "Active LAB attack stop requested.")
+            status = self._set_status(
+                "stop-attack", "stopping", "Active LAB attack stop requested."
+            )
             return {**status, "report": latest_attack_report()}
         status = self._set_status("stop-attack", "idle", "No active LAB attack.")
         return {**status, "report": latest_attack_report()}
 
-    def run_action(self, action: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    def run_action(
+        self, action: str, payload: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         del payload
         if action == "ping-all-hosts":
             return self._ping_all_hosts()
@@ -225,10 +243,14 @@ class LabControlManager:
             return self._start_attack(action, ATTACK_ACTIONS[action])
         if action == "stop-attack":
             return self._stop_attack()
-        return self._set_status(action, "unsupported", f"Unsupported LAB action: {action}")
+        return self._set_status(
+            action, "unsupported", f"Unsupported LAB action: {action}"
+        )
 
 
-async def stream_terminal(websocket: WebSocket, host: str, manager: LabTerminalManager) -> None:
+async def stream_terminal(
+    websocket: WebSocket, host: str, manager: LabTerminalManager
+) -> None:
     if host not in LAB_HOSTS:
         raise WebSocketException(code=1008, reason="invalid host")
     session = manager.open_session(host)
@@ -252,7 +274,9 @@ async def stream_terminal(websocket: WebSocket, host: str, manager: LabTerminalM
     sender_task = asyncio.create_task(sender())
     receiver_task = asyncio.create_task(receiver())
     try:
-        done, pending = await asyncio.wait({sender_task, receiver_task}, return_when=asyncio.FIRST_COMPLETED)
+        done, pending = await asyncio.wait(
+            {sender_task, receiver_task}, return_when=asyncio.FIRST_COMPLETED
+        )
         for task in pending:
             task.cancel()
         for task in done:

@@ -58,7 +58,9 @@ def _byte_count(flow: dict[str, Any]) -> float:
 
 
 def _connection_count(flow: dict[str, Any]) -> float:
-    return _pick_number(flow, "connections", "flows", "connection_count", "new_connections")
+    return _pick_number(
+        flow, "connections", "flows", "connection_count", "new_connections"
+    )
 
 
 def _flag_rate(flow: dict[str, Any], preferred: str, fallback_flag: str) -> float:
@@ -86,13 +88,18 @@ def _http_rate(flow: dict[str, Any]) -> float:
     protocol = str(flow.get("protocol", flow.get("ipProtocol", ""))).lower()
     if protocol in {"http", "https", "slowloris"}:
         return _packet_count(flow)
-    if any(flow.get(key) for key in ("http_method", "method", "url", "uri", "host", "user_agent")):
+    if any(
+        flow.get(key)
+        for key in ("http_method", "method", "url", "uri", "host", "user_agent")
+    ):
         return _packet_count(flow)
     return 0.0
 
 
 def _partial_connection_rate(flow: dict[str, Any]) -> float:
-    direct = _pick_number(flow, "partial_connection_rate", "partial_requests", "incomplete_requests")
+    direct = _pick_number(
+        flow, "partial_connection_rate", "partial_requests", "incomplete_requests"
+    )
     if direct > 0:
         return direct
     protocol = str(flow.get("protocol", flow.get("ipProtocol", ""))).lower()
@@ -119,17 +126,27 @@ def extract_feature_vector(telemetry: dict[str, Any]) -> FeatureVector:
     sample_seconds = max(1.0, _number(telemetry.get("sample_window_seconds", 1.0), 1.0))
     packet_total = sum(_packet_count(flow) for flow in flows)
     byte_total = sum(_byte_count(flow) for flow in flows)
-    connection_total = sum(_connection_count(flow) for flow in flows) or float(flow_state.get("flow_count", len(flows)))
+    connection_total = sum(_connection_count(flow) for flow in flows) or float(
+        flow_state.get("flow_count", len(flows))
+    )
     syn_total = sum(_flag_rate(flow, "syn_rate", "S") for flow in flows)
     ack_total = sum(_flag_rate(flow, "ack_rate", "A") for flow in flows)
-    udp_total = sum(_protocol_rate(flow, "udp", "udp_rate", "udp_packets") for flow in flows)
-    icmp_total = sum(_protocol_rate(flow, "icmp", "icmp_rate", "icmp_packets") for flow in flows)
+    udp_total = sum(
+        _protocol_rate(flow, "udp", "udp_rate", "udp_packets") for flow in flows
+    )
+    icmp_total = sum(
+        _protocol_rate(flow, "icmp", "icmp_rate", "icmp_packets") for flow in flows
+    )
     http_total = sum(_http_rate(flow) for flow in flows)
     partial_connection_total = sum(_partial_connection_rate(flow) for flow in flows)
     durations = [_duration_value(flow) for flow in flows if _duration_value(flow) > 0]
     sources = Counter(_source_value(flow) for flow in flows)
     ports = Counter(_port_value(flow) for flow in flows if _port_value(flow) > 0)
-    packet_sizes = [(_byte_count(flow) / max(_packet_count(flow), 1.0)) for flow in flows if _byte_count(flow) > 0]
+    packet_sizes = [
+        (_byte_count(flow) / max(_packet_count(flow), 1.0))
+        for flow in flows
+        if _byte_count(flow) > 0
+    ]
     flow_duration = sum(durations) / len(durations) if durations else 0.0
     packet_rate = packet_total / sample_seconds
     byte_rate = byte_total / sample_seconds
@@ -152,7 +169,9 @@ def extract_feature_vector(telemetry: dict[str, Any]) -> FeatureVector:
         icmp_rate=icmp_rate,
         entropy_score=_entropy(sources),
         source_ip_cardinality=len(sources),
-        destination_port_distribution=tuple(sorted((int(port), count) for port, count in ports.items())),
+        destination_port_distribution=tuple(
+            sorted((int(port), count) for port, count in ports.items())
+        ),
         connection_burst_factor=connection_burst_factor,
         packet_size_variance=packet_size_variance,
         flow_duration=flow_duration,

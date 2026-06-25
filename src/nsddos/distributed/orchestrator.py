@@ -29,7 +29,9 @@ DISTRIBUTED_DIR = RUNTIME_DIR / "distributed"
 
 
 def _cluster_id(environment: str, node_ids: tuple[str, ...]) -> str:
-    digest = hashlib.sha256(f"{environment}:{'|'.join(node_ids)}".encode("utf-8")).hexdigest()[:16]
+    digest = hashlib.sha256(
+        f"{environment}:{'|'.join(node_ids)}".encode("utf-8")
+    ).hexdigest()[:16]
     return f"cluster:{digest}"
 
 
@@ -41,13 +43,21 @@ def _cluster_health(nodes_count: int, failed_count: int, degraded_count: int) ->
     return "healthy"
 
 
-def _persist(evaluation: DistributedRuntimeEvaluation, coordination: tuple[tuple[str, str], ...]) -> None:
+def _persist(
+    evaluation: DistributedRuntimeEvaluation, coordination: tuple[tuple[str, str], ...]
+) -> None:
     DISTRIBUTED_DIR.mkdir(parents=True, exist_ok=True)
     payload = evaluation.to_dict()
     stamp = evaluation.timestamp.isoformat().replace(":", "").replace("-", "")
     with locked_persistence_scope(DISTRIBUTED_DIR) as lock_scope:
-        atomic_write_json(DISTRIBUTED_DIR / f"distributed-{stamp}.json", payload, lock_scope=lock_scope)
-        atomic_write_json(DISTRIBUTED_DIR / "latest.json", payload, lock_scope=lock_scope)
+        atomic_write_json(
+            DISTRIBUTED_DIR / f"distributed-{stamp}.json",
+            payload,
+            lock_scope=lock_scope,
+        )
+        atomic_write_json(
+            DISTRIBUTED_DIR / "latest.json", payload, lock_scope=lock_scope
+        )
         atomic_write_json(
             DISTRIBUTED_DIR / "registry.json",
             {
@@ -55,25 +65,43 @@ def _persist(evaluation: DistributedRuntimeEvaluation, coordination: tuple[tuple
                 "leaders": evaluation.leader_state.to_dict(),
                 "nodes": [node.to_dict() for node in evaluation.nodes],
                 "workers": [item.to_dict() for item in evaluation.worker_assignments],
-                "partitions": [item.to_dict() for item in evaluation.partition_assignments],
+                "partitions": [
+                    item.to_dict() for item in evaluation.partition_assignments
+                ],
                 "coordination": [list(item) for item in coordination],
             },
             lock_scope=lock_scope,
         )
-        atomic_write_json(DISTRIBUTED_DIR / "diagnostics.json", evaluation.diagnostics.to_dict(), lock_scope=lock_scope)
+        atomic_write_json(
+            DISTRIBUTED_DIR / "diagnostics.json",
+            evaluation.diagnostics.to_dict(),
+            lock_scope=lock_scope,
+        )
         persist_checkpoint(evaluation.checkpoint.to_dict(), lock_scope=lock_scope)
 
 
-def orchestrate_cluster_runtime(config: dict[str, Any], environment: str = "cluster") -> DistributedRuntimeEvaluation:
+def orchestrate_cluster_runtime(
+    config: dict[str, Any], environment: str = "cluster"
+) -> DistributedRuntimeEvaluation:
     """Compute deterministic distributed runtime state."""
     timestamp = datetime.now(timezone.utc)
     records = discover_candidate_nodes(config)
     nodes = register_nodes(records)
     active = active_nodes(nodes)
-    leader_state = elect_leaders(active or nodes, election_timeout_seconds=int(config.get("distributed", {}).get("election_timeout_seconds", 5)))
+    leader_state = elect_leaders(
+        active or nodes,
+        election_timeout_seconds=int(
+            config.get("distributed", {}).get("election_timeout_seconds", 5)
+        ),
+    )
     assignments = assign_workers(active or nodes, timestamp)
-    replication_factor = min(int(config.get("distributed", {}).get("replication_factor", 2)), max(1, len(active or nodes)))
-    partition_count = resolve_partition_count(len(active or nodes), config.get("distributed", {}).get("partition_count"))
+    replication_factor = min(
+        int(config.get("distributed", {}).get("replication_factor", 2)),
+        max(1, len(active or nodes)),
+    )
+    partition_count = resolve_partition_count(
+        len(active or nodes), config.get("distributed", {}).get("partition_count")
+    )
     partitions = assign_partitions(active or nodes, replication_factor, partition_count)
     replication = build_replication_state(replication_factor, partitions)
     checkpoint = build_checkpoint_state(nodes, assignments, partitions, replication)
@@ -82,7 +110,9 @@ def orchestrate_cluster_runtime(config: dict[str, Any], environment: str = "clus
     rebalance = build_rebalance_plan(failover, assignments, partitions)
     diagnostics = build_diagnostics(nodes, assignments, replication, failover)
     coordination = coordinate_runtime(nodes, assignments)
-    cluster_health = _cluster_health(len(nodes), len(heartbeat.failed_nodes), len(heartbeat.degraded_nodes))
+    cluster_health = _cluster_health(
+        len(nodes), len(heartbeat.failed_nodes), len(heartbeat.degraded_nodes)
+    )
     evaluation = DistributedRuntimeEvaluation(
         cluster_id=_cluster_id(environment, tuple(node.node_id for node in nodes)),
         active_nodes=len(active or nodes),
@@ -113,7 +143,9 @@ def orchestrate_cluster_runtime(config: dict[str, Any], environment: str = "clus
     return evaluation
 
 
-def distributed_health(config: dict[str, Any], environment: str = "cluster") -> DistributedRuntimeEvaluation:
+def distributed_health(
+    config: dict[str, Any], environment: str = "cluster"
+) -> DistributedRuntimeEvaluation:
     """Return latest cluster state or recompute."""
     latest = latest_distributed_evaluation()
     if latest and latest.get("environment") == environment:
@@ -121,6 +153,8 @@ def distributed_health(config: dict[str, Any], environment: str = "cluster") -> 
     return orchestrate_cluster_runtime(config, environment=environment)
 
 
-def distributed_failover_plan(config: dict[str, Any], environment: str = "cluster") -> FailoverState:
+def distributed_failover_plan(
+    config: dict[str, Any], environment: str = "cluster"
+) -> FailoverState:
     """Return deterministic failover plan."""
     return orchestrate_cluster_runtime(config, environment=environment).failover_state

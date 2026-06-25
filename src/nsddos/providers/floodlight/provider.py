@@ -63,9 +63,13 @@ class FloodlightProvider(BaseProvider):
         except (OSError, URLError, json.JSONDecodeError):
             return None
 
-    def _json_request(self, path: str, *, method: str, payload: dict[str, Any] | None = None) -> Any:
+    def _json_request(
+        self, path: str, *, method: str, payload: dict[str, Any] | None = None
+    ) -> Any:
         """Send JSON request."""
-        body = json.dumps(payload or {}).encode("utf-8") if payload is not None else None
+        body = (
+            json.dumps(payload or {}).encode("utf-8") if payload is not None else None
+        )
         request = Request(
             f"{self.api_url}{path}",
             data=body,
@@ -113,7 +117,9 @@ class FloodlightProvider(BaseProvider):
 
     def push_static_flow(self, payload: dict[str, Any]) -> dict[str, Any]:
         """Push static flow entry."""
-        response = self._json_request("/wm/staticflowentrypusher/json", method="POST", payload=payload)
+        response = self._json_request(
+            "/wm/staticflowentrypusher/json", method="POST", payload=payload
+        )
         return response if isinstance(response, dict) else {}
 
     def list_static_flows(self) -> dict[str, Any]:
@@ -142,7 +148,9 @@ class FloodlightProvider(BaseProvider):
         artifact_exists = self.artifact_exists()
         reachable = self.is_reachable()
         switches = self.switches() if reachable else []
-        flow_stats_accessible = self.flow_stats_accessible() if reachable and switches else False
+        flow_stats_accessible = (
+            self.flow_stats_accessible() if reachable and switches else False
+        )
         return {
             "provider": "floodlight",
             "artifact": str(self.artifact_path),
@@ -154,6 +162,8 @@ class FloodlightProvider(BaseProvider):
             "switch_count": len(switches),
             "switches": [switch.get("switchDPID", "unknown") for switch in switches],
             "flow_stats_accessible": flow_stats_accessible,
-            "forwarding_programmed": self.forwarding_programmed() if flow_stats_accessible else False,
+            "forwarding_programmed": (
+                self.forwarding_programmed() if flow_stats_accessible else False
+            ),
             "ready": artifact_exists and reachable,
         }

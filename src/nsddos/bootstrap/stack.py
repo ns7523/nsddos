@@ -53,9 +53,9 @@ def list_stack_services(
     compose_file: Path | None = None,
 ) -> tuple[StartupServiceStatus, ...]:
     """List compose services."""
-    services = DockerManager(compose_file=compose_file or get_compose_file()).get_stack_service_states(
-        DEFAULT_STARTUP_PROFILE.container_names
-    )
+    services = DockerManager(
+        compose_file=compose_file or get_compose_file()
+    ).get_stack_service_states(DEFAULT_STARTUP_PROFILE.container_names)
     return tuple(
         StartupServiceStatus(
             service_name=service.name,
@@ -76,7 +76,9 @@ def stack_is_healthy(
     """Return whether required services are healthy."""
 
     by_name = {service.container_name: service for service in services}
-    return all(name in by_name and by_name[name].healthy for name in required_container_names)
+    return all(
+        name in by_name and by_name[name].healthy for name in required_container_names
+    )
 
 
 def stack_has_required_services(
@@ -97,5 +99,12 @@ def start_stack(
 ) -> subprocess.CompletedProcess[str]:
     """Start compose stack."""
 
-    args = ("up", "-d", "--build") if rebuild else ("up", "-d",)
+    args = (
+        ("up", "-d", "--build")
+        if rebuild
+        else (
+            "up",
+            "-d",
+        )
+    )
     return run_compose_command(backend, args, compose_file)

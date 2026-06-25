@@ -54,7 +54,9 @@ class DockerManager:
         """Run subprocess for Docker operations."""
         backend = self._compose_backend()
         if backend is None:
-            return subprocess.CompletedProcess(args=[], returncode=1, stdout="", stderr="Compose backend unavailable")
+            return subprocess.CompletedProcess(
+                args=[], returncode=1, stdout="", stderr="Compose backend unavailable"
+            )
         command = [*backend, "-f", str(self.compose_file), *args]
         result = subprocess.run(
             command,
@@ -185,7 +187,8 @@ class DockerManager:
                 ServiceState(
                     name=name,
                     status="running" if status.lower().startswith("up") else status,
-                    healthy="(healthy)" in status.lower() or ("up" in status.lower() and "(unhealthy)" not in status.lower()),
+                    healthy="(healthy)" in status.lower()
+                    or ("up" in status.lower() and "(unhealthy)" not in status.lower()),
                     container_id=None,
                     provider="docker",
                     endpoint=None,
@@ -233,7 +236,9 @@ class DockerManager:
             return self._docker_ps_fallback()
         return [self._normalize_service(entry) for entry in parsed]
 
-    def get_stack_service_states(self, required_names: tuple[str, ...]) -> list[ServiceState]:
+    def get_stack_service_states(
+        self, required_names: tuple[str, ...]
+    ) -> list[ServiceState]:
         """Return service states matched to required stack containers."""
 
         services = self.get_service_states()
@@ -270,11 +275,15 @@ class DockerManager:
             )
         return matched
 
-    def stack_health(self, required_names: tuple[str, ...]) -> tuple[bool, str, list[ServiceState]]:
+    def stack_health(
+        self, required_names: tuple[str, ...]
+    ) -> tuple[bool, str, list[ServiceState]]:
         """Return normalized stack health tuple."""
 
         services = self.get_stack_service_states(required_names)
-        detail = ", ".join(f"{service.name}:{service.detail or service.status}" for service in services)
+        detail = ", ".join(
+            f"{service.name}:{service.detail or service.status}" for service in services
+        )
         healthy = all(service.healthy for service in services)
         return healthy and bool(services), detail or "no containers", services
 

@@ -106,7 +106,9 @@ def _detect_available_disk_bytes(path: Path | None = None) -> int:
 
 
 def _virtualenv_active() -> bool:
-    return bool(os.getenv("VIRTUAL_ENV")) or sys.prefix != getattr(sys, "base_prefix", sys.prefix)
+    return bool(os.getenv("VIRTUAL_ENV")) or sys.prefix != getattr(
+        sys, "base_prefix", sys.prefix
+    )
 
 
 def detect_environment() -> EnvironmentSnapshot:

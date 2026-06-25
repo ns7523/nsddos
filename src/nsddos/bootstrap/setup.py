@@ -14,7 +14,10 @@ from nsddos.bootstrap.environment import (
     _os_family,
     _virtualenv_active,
 )
-from nsddos.bootstrap.permissions import detect_docker_permissions_ready, detect_missing_runtime_directories
+from nsddos.bootstrap.permissions import (
+    detect_docker_permissions_ready,
+    detect_missing_runtime_directories,
+)
 from nsddos.bootstrap.state import EnvironmentScan
 
 
@@ -32,7 +35,9 @@ def collect_environment_scan() -> EnvironmentScan:
         docker=docker,
         docker_daemon_running=_detect_docker_daemon(docker),
         docker_compose=_detect_docker_compose(docker),
-        docker_permissions_ready=detect_docker_permissions_ready(docker.installed, _os_family(os_name)),
+        docker_permissions_ready=detect_docker_permissions_ready(
+            docker.installed, _os_family(os_name)
+        ),
         git=_detect_tool("git"),
         available_memory_bytes=_detect_available_memory_bytes(),
         available_disk_bytes=_detect_available_disk_bytes(),

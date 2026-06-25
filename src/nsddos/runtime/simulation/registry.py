@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+
 @dataclass(frozen=True)
 class SimulationRegistryEntry:
     attack_type: str
@@ -28,7 +29,9 @@ class SimulationRegistry:
 
 
 def build_registry() -> SimulationRegistry:
-    from nsddos.runtime.simulation.connection_exhaustion import build_connection_exhaustion_profile
+    from nsddos.runtime.simulation.connection_exhaustion import (
+        build_connection_exhaustion_profile,
+    )
     from nsddos.runtime.simulation.http_flood import build_http_flood_profile
     from nsddos.runtime.simulation.icmp_flood import build_icmp_flood_profile
     from nsddos.runtime.simulation.slowloris import build_slowloris_profile
@@ -36,11 +39,23 @@ def build_registry() -> SimulationRegistry:
     from nsddos.runtime.simulation.udp_flood import build_udp_flood_profile
 
     entries = {
-        "syn_flood": SimulationRegistryEntry("syn_flood", True, build_syn_flood_profile),
-        "udp_flood": SimulationRegistryEntry("udp_flood", True, build_udp_flood_profile),
-        "icmp_flood": SimulationRegistryEntry("icmp_flood", True, build_icmp_flood_profile),
-        "http_flood": SimulationRegistryEntry("http_flood", True, build_http_flood_profile),
-        "slowloris": SimulationRegistryEntry("slowloris", True, build_slowloris_profile),
-        "connection_exhaustion": SimulationRegistryEntry("connection_exhaustion", True, build_connection_exhaustion_profile),
+        "syn_flood": SimulationRegistryEntry(
+            "syn_flood", True, build_syn_flood_profile
+        ),
+        "udp_flood": SimulationRegistryEntry(
+            "udp_flood", True, build_udp_flood_profile
+        ),
+        "icmp_flood": SimulationRegistryEntry(
+            "icmp_flood", True, build_icmp_flood_profile
+        ),
+        "http_flood": SimulationRegistryEntry(
+            "http_flood", True, build_http_flood_profile
+        ),
+        "slowloris": SimulationRegistryEntry(
+            "slowloris", True, build_slowloris_profile
+        ),
+        "connection_exhaustion": SimulationRegistryEntry(
+            "connection_exhaustion", True, build_connection_exhaustion_profile
+        ),
     }
     return SimulationRegistry(entries)

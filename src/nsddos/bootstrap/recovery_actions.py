@@ -8,14 +8,21 @@ from nsddos.bootstrap.startup_profiles import DEFAULT_STARTUP_PROFILE
 from nsddos.bootstrap.state import DiagnosticFinding, RepairAction
 
 
-def build_repair_plan(findings: tuple[DiagnosticFinding, ...]) -> tuple[RepairAction, ...]:
+def build_repair_plan(
+    findings: tuple[DiagnosticFinding, ...]
+) -> tuple[RepairAction, ...]:
     """Build repair actions from findings."""
 
     actions: list[RepairAction] = []
-    by_check = {finding.check_name: finding for finding in findings if finding.status == "fail"}
+    by_check = {
+        finding.check_name: finding for finding in findings if finding.status == "fail"
+    }
     scan = collect_environment_scan()
 
-    if any(name in by_check for name in ("docker", "docker_daemon", "docker_permissions", "compose")):
+    if any(
+        name in by_check
+        for name in ("docker", "docker_daemon", "docker_permissions", "compose")
+    ):
         actions.append(
             RepairAction(
                 area="docker",
@@ -24,9 +31,16 @@ def build_repair_plan(findings: tuple[DiagnosticFinding, ...]) -> tuple[RepairAc
                 action_type="installer",
             )
         )
-    if any(finding.area == "containers" and finding.status == "fail" for finding in findings):
+    if any(
+        finding.area == "containers" and finding.status == "fail"
+        for finding in findings
+    ):
         backend = detect_compose_backend()
-        command = compose_command(backend, ("up", "-d", "--build")) if backend is not None else ()
+        command = (
+            compose_command(backend, ("up", "-d", "--build"))
+            if backend is not None
+            else ()
+        )
         actions.append(
             RepairAction(
                 area="containers",
@@ -36,7 +50,9 @@ def build_repair_plan(findings: tuple[DiagnosticFinding, ...]) -> tuple[RepairAc
                 command=command,
             )
         )
-    if any(finding.area == "runtime" and finding.status == "fail" for finding in findings):
+    if any(
+        finding.area == "runtime" and finding.status == "fail" for finding in findings
+    ):
         actions.append(
             RepairAction(
                 area="runtime",

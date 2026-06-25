@@ -7,7 +7,12 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query
 
 from nsddos.api.dependencies import execute_api_query, get_config
-from nsddos.api.schemas import ApiFilter, ApiPagination, ApiQueryRequest, ApiQueryResponse
+from nsddos.api.schemas import (
+    ApiFilter,
+    ApiPagination,
+    ApiQueryRequest,
+    ApiQueryResponse,
+)
 
 router = APIRouter(prefix="/runtime/evidence", tags=["runtime-evidence"])
 
@@ -24,7 +29,9 @@ def runtime_evidence(
     """Query evidence bundles."""
     filters: list[ApiFilter] = []
     if verification:
-        filters.append(ApiFilter(field="verification_count", value=0, operator="exists"))
+        filters.append(
+            ApiFilter(field="verification_count", value=0, operator="exists")
+        )
     if replay:
         filters.append(ApiFilter(field="id", value=replay, operator="contains"))
     if convergence:

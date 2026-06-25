@@ -11,8 +11,17 @@ from rich.console import Console
 from rich.panel import Panel
 
 from nsddos.bootstrap.healthwait import wait_for_stack_health
-from nsddos.bootstrap.runtime_boot import ensure_startup_prerequisites, validate_runtime_health
-from nsddos.bootstrap.stack import detect_compose_backend, list_stack_services, stack_has_required_services, stack_is_healthy, start_stack
+from nsddos.bootstrap.runtime_boot import (
+    ensure_startup_prerequisites,
+    validate_runtime_health,
+)
+from nsddos.bootstrap.stack import (
+    detect_compose_backend,
+    list_stack_services,
+    stack_has_required_services,
+    stack_is_healthy,
+    start_stack,
+)
 from nsddos.bootstrap.startup_profiles import DEFAULT_STARTUP_PROFILE
 from nsddos.bootstrap.state import StartupPortBinding, StartupResult, StartupSession
 from nsddos.bootstrap.ui_launcher import launch_ui_background, ui_reachable
@@ -82,10 +91,14 @@ def orchestrate_startup(
 ) -> StartupResult:
     """Run startup orchestration."""
 
-    _notify(status_callback, "environment", "pending", "Validating runtime prerequisites")
+    _notify(
+        status_callback, "environment", "pending", "Validating runtime prerequisites"
+    )
     scan, installer_result = ensure_startup_prerequisites(console)
     if installer_result.failed_requirement:
-        _notify(status_callback, "environment", "fail", installer_result.failed_requirement)
+        _notify(
+            status_callback, "environment", "fail", installer_result.failed_requirement
+        )
         return StartupResult(
             already_running=False,
             stack_started=False,
@@ -94,7 +107,12 @@ def orchestrate_startup(
             ui_url=DEFAULT_STARTUP_PROFILE.ui_url,
             failed_checks=(installer_result.failed_requirement,),
         )
-    _notify(status_callback, "environment", "ok", f"{scan.os_family} / Python {scan.python_version}")
+    _notify(
+        status_callback,
+        "environment",
+        "ok",
+        f"{scan.os_family} / Python {scan.python_version}",
+    )
 
     _notify(status_callback, "compose", "pending", "Connecting Docker Compose backend")
     backend = detect_compose_backend()
@@ -112,13 +130,24 @@ def orchestrate_startup(
 
     current_services = list_stack_services(backend)
     existing_session = load_startup_session()
-    session_url = existing_session.ui_url if existing_session is not None else DEFAULT_STARTUP_PROFILE.ui_url
-    if stack_is_healthy(current_services, DEFAULT_STARTUP_PROFILE.container_names) and ui_reachable(session_url):
+    session_url = (
+        existing_session.ui_url
+        if existing_session is not None
+        else DEFAULT_STARTUP_PROFILE.ui_url
+    )
+    if stack_is_healthy(
+        current_services, DEFAULT_STARTUP_PROFILE.container_names
+    ) and ui_reachable(session_url):
         _notify(status_callback, "stack", "ok", "Runtime containers already healthy")
         _notify(status_callback, "services", "ok", "Service fabric already healthy")
         _, failures = validate_runtime_health()
         if not failures:
-            _notify(status_callback, "runtime", "ok", "Controller, telemetry, helper runtime validated")
+            _notify(
+                status_callback,
+                "runtime",
+                "ok",
+                "Controller, telemetry, helper runtime validated",
+            )
             session = build_startup_session(
                 tuple(service.container_name for service in current_services),
                 "healthy",
@@ -137,14 +166,20 @@ def orchestrate_startup(
             )
 
     stack_started = False
-    if not stack_has_required_services(current_services, DEFAULT_STARTUP_PROFILE.container_names):
-        _notify(status_callback, "stack", "pending", "Building and starting runtime fabric")
+    if not stack_has_required_services(
+        current_services, DEFAULT_STARTUP_PROFILE.container_names
+    ):
+        _notify(
+            status_callback, "stack", "pending", "Building and starting runtime fabric"
+        )
         start_result = start_stack(backend, rebuild=True)
         if start_result.returncode != 0:
             _notify(status_callback, "stack", "fail", "Compose startup failed")
             console.print(
                 Panel(
-                    start_result.stderr or start_result.stdout or "Compose startup failed.",
+                    start_result.stderr
+                    or start_result.stdout
+                    or "Compose startup failed.",
                     title="Stack Start Failure",
                     border_style="red",
                 )
@@ -172,7 +207,9 @@ def orchestrate_startup(
     except TypeError:
         wait_result = wait_for_stack_health(console, backend)
     if not wait_result.success:
-        _notify(status_callback, "services", "fail", ", ".join(wait_result.pending_services))
+        _notify(
+            status_callback, "services", "fail", ", ".join(wait_result.pending_services)
+        )
         return StartupResult(
             already_running=False,
             stack_started=stack_started,
@@ -182,7 +219,12 @@ def orchestrate_startup(
             failed_checks=wait_result.pending_services,
         )
 
-    _notify(status_callback, "services", "ok", "Floodlight, sFlowRT, labhost, detector healthy")
+    _notify(
+        status_callback,
+        "services",
+        "ok",
+        "Floodlight, sFlowRT, labhost, detector healthy",
+    )
     _, failures = validate_runtime_health()
     if failures:
         _notify(status_callback, "runtime", "fail", ", ".join(failures))
@@ -194,7 +236,12 @@ def orchestrate_startup(
             ui_url=DEFAULT_STARTUP_PROFILE.ui_url,
             failed_checks=failures,
         )
-    _notify(status_callback, "runtime", "ok", "Controller, telemetry, Mininet, OVS validated")
+    _notify(
+        status_callback,
+        "runtime",
+        "ok",
+        "Controller, telemetry, Mininet, OVS validated",
+    )
 
     _notify(status_callback, "ui", "pending", "Launching operator command center")
     ui_result = launch_ui_background()
@@ -210,7 +257,11 @@ def orchestrate_startup(
         )
     _notify(status_callback, "ui", "ok", ui_result.ui_url)
 
-    running_containers = tuple(service.container_name for service in wait_result.services if service.container_name)
+    running_containers = tuple(
+        service.container_name
+        for service in wait_result.services
+        if service.container_name
+    )
     session = build_startup_session(running_containers, "healthy", ui_result.ui_url)
     persist_startup_session(session)
     return StartupResult(

@@ -2,14 +2,20 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from nsddos.deployment import deploy_runtime_stack, rollback_runtime_stack, validate_deployment_evaluation
+from nsddos.deployment import (
+    deploy_runtime_stack,
+    rollback_runtime_stack,
+    validate_deployment_evaluation,
+)
 
 
 def test_deployment_generation_is_deterministic_shape(monkeypatch, tmp_path):
     from nsddos.deployment import orchestration as orchestration_module
 
     monkeypatch.setattr(orchestration_module, "DEPLOYMENT_DIR", tmp_path / "deployment")
-    evaluation = deploy_runtime_stack({"api_port": 8008, "dashboard_port": 3000, "lab": {"floodlight_port": 8080}})
+    evaluation = deploy_runtime_stack(
+        {"api_port": 8008, "dashboard_port": 3000, "lab": {"floodlight_port": 8080}}
+    )
 
     assert evaluation.environment == "prod"
     assert len(evaluation.container_contracts) == 3
@@ -23,7 +29,9 @@ def test_deployment_persists_latest_and_history(monkeypatch, tmp_path):
 
     deployment_dir = tmp_path / "deployment"
     monkeypatch.setattr(orchestration_module, "DEPLOYMENT_DIR", deployment_dir)
-    evaluation = deploy_runtime_stack({"api_port": 8008, "dashboard_port": 3000, "lab": {"floodlight_port": 8080}})
+    evaluation = deploy_runtime_stack(
+        {"api_port": 8008, "dashboard_port": 3000, "lab": {"floodlight_port": 8080}}
+    )
 
     assert (deployment_dir / "latest.json").exists()
     assert (deployment_dir / "backup.json").exists()
@@ -37,7 +45,9 @@ def test_deployment_rollback_sets_rollback_state(monkeypatch, tmp_path):
     from nsddos.deployment import orchestration as orchestration_module
 
     monkeypatch.setattr(orchestration_module, "DEPLOYMENT_DIR", tmp_path / "deployment")
-    evaluation = rollback_runtime_stack({"api_port": 8008, "dashboard_port": 3000, "lab": {"floodlight_port": 8080}})
+    evaluation = rollback_runtime_stack(
+        {"api_port": 8008, "dashboard_port": 3000, "lab": {"floodlight_port": 8080}}
+    )
 
     assert evaluation.deployment_state == "rollback_planned"
     assert evaluation.rollback_state.rollback_id.startswith("rollback-")
@@ -64,7 +74,9 @@ def test_invalid_deployment_rejected_when_manifest_list_missing():
         environment="prod",
         container_contracts=(ContainerContract(name="x", image="y", command="z"),),
         secret_contract=SecretContract(required_keys=()),
-        networking_contract=NetworkingContract(external_ports=(), internal_ports=(), network_policies=(), service_names=()),
+        networking_contract=NetworkingContract(
+            external_ports=(), internal_ports=(), network_policies=(), service_names=()
+        ),
         service_mesh=ServiceMeshContract(services=("x",), dependencies=()),
         health=DeploymentHealthState(
             state="healthy",
@@ -76,7 +88,9 @@ def test_invalid_deployment_rejected_when_manifest_list_missing():
             detail="ok",
         ),
         autoscaling_policy=AutoscalingPolicy(1, 3, 70, 75, 500),
-        rolling_update=RollingUpdatePlan("rolling", 1, 0, ("health_checks",), ("failed_health",)),
+        rolling_update=RollingUpdatePlan(
+            "rolling", 1, 0, ("health_checks",), ("failed_health",)
+        ),
         backup_snapshot=BackupSnapshot("b", (), str(Path("/tmp")), True, "t"),
         recovery_state=RecoveryState("healthy", (), True, "ok"),
         rollback_state=RollbackState("r", True, "v1", ("restore",), "ok", "t"),

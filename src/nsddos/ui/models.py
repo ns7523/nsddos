@@ -225,7 +225,9 @@ class UiTableSection:
         return {
             "title": self.title,
             "columns": [column.to_dict() for column in self.columns],
-            "rows": [row.to_dict() if hasattr(row, "to_dict") else row for row in self.rows],
+            "rows": [
+                row.to_dict() if hasattr(row, "to_dict") else row for row in self.rows
+            ],
             "empty_message": self.empty_message,
         }
 
@@ -412,12 +414,31 @@ class UiPagePayload:
             "eyebrow": self.eyebrow,
             "description": self.description,
             "active_path": self.active_path,
-            "status_bar": self.status_bar.to_dict() if hasattr(self.status_bar, "to_dict") else self.status_bar,
-            "traffic_chart": self.traffic_chart.to_dict() if hasattr(self.traffic_chart, "to_dict") else self.traffic_chart,
-            "attack_chart": self.attack_chart.to_dict() if hasattr(self.attack_chart, "to_dict") else self.attack_chart,
-            "topology": self.topology.to_dict() if hasattr(self.topology, "to_dict") else self.topology,
+            "status_bar": (
+                self.status_bar.to_dict()
+                if hasattr(self.status_bar, "to_dict")
+                else self.status_bar
+            ),
+            "traffic_chart": (
+                self.traffic_chart.to_dict()
+                if hasattr(self.traffic_chart, "to_dict")
+                else self.traffic_chart
+            ),
+            "attack_chart": (
+                self.attack_chart.to_dict()
+                if hasattr(self.attack_chart, "to_dict")
+                else self.attack_chart
+            ),
+            "topology": (
+                self.topology.to_dict()
+                if hasattr(self.topology, "to_dict")
+                else self.topology
+            ),
             "feed": self.feed.to_dict() if hasattr(self.feed, "to_dict") else self.feed,
-            "services": [service.to_dict() if hasattr(service, "to_dict") else service for service in self.services],
+            "services": [
+                service.to_dict() if hasattr(service, "to_dict") else service
+                for service in self.services
+            ],
             "stats": [card.to_dict() for card in self.stats],
             "statuses": [tile.to_dict() for tile in self.statuses],
             "actions": [action.to_dict() for action in self.actions],
@@ -430,7 +451,9 @@ class UiPagePayload:
             "stale": self.stale,
             "replay_safe": self.replay_safe,
             "updated_at": self.updated_at,
-            "lab_console": self.lab_console.to_dict() if self.lab_console is not None else None,
+            "lab_console": (
+                self.lab_console.to_dict() if self.lab_console is not None else None
+            ),
         }
 
 

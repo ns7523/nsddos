@@ -18,13 +18,25 @@ def _build_manager(tmp_path: Path, monkeypatch):
     importlib.reload(manager_module)
     service_dir = tmp_path / "service"
     monkeypatch.setattr(persistence_module, "SERVICE_DIR", service_dir)
-    monkeypatch.setattr(persistence_module, "SERVICE_STATE_PATH", service_dir / "state.json")
-    monkeypatch.setattr(persistence_module, "SESSIONS_PATH", service_dir / "sessions.json")
-    monkeypatch.setattr(persistence_module, "HEARTBEAT_PATH", service_dir / "heartbeat.json")
+    monkeypatch.setattr(
+        persistence_module, "SERVICE_STATE_PATH", service_dir / "state.json"
+    )
+    monkeypatch.setattr(
+        persistence_module, "SESSIONS_PATH", service_dir / "sessions.json"
+    )
+    monkeypatch.setattr(
+        persistence_module, "HEARTBEAT_PATH", service_dir / "heartbeat.json"
+    )
     monkeypatch.setattr(persistence_module, "EVENTS_PATH", service_dir / "events.jsonl")
-    monkeypatch.setattr(persistence_module, "SYNC_PATH", service_dir / "synchronization.json")
+    monkeypatch.setattr(
+        persistence_module, "SYNC_PATH", service_dir / "synchronization.json"
+    )
     monkeypatch.setattr(locks_module, "LOCK_PATH", service_dir / "runtime.lock")
-    return manager_module.RuntimeServiceManager({"lab": {"controller_port": 6653}}), persistence_module, replay_module
+    return (
+        manager_module.RuntimeServiceManager({"lab": {"controller_port": 6653}}),
+        persistence_module,
+        replay_module,
+    )
 
 
 def test_service_session_lifecycle(tmp_path: Path, monkeypatch) -> None:
@@ -62,4 +74,7 @@ def test_service_recovery_and_lock_consistency(tmp_path: Path, monkeypatch) -> N
     assert status["lock_owner"] in {"test", "cli-service", "daemon"}
     diagnostics = manager.diagnostics()
     assert diagnostics["heartbeat_count"] >= 1
-    assert persistence_module.SERVICE_STATE_PATH.exists() or persistence_module.SERVICE_DIR.exists()
+    assert (
+        persistence_module.SERVICE_STATE_PATH.exists()
+        or persistence_module.SERVICE_DIR.exists()
+    )

@@ -6,7 +6,10 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from nsddos.runtime.models import VerificationResult
-from nsddos.runtime.verification.rules import RuntimeVerificationDependency, RuntimeVerificationRule
+from nsddos.runtime.verification.rules import (
+    RuntimeVerificationDependency,
+    RuntimeVerificationRule,
+)
 
 
 @dataclass
@@ -59,6 +62,8 @@ class VerificationRegistry:
             visit(name)
         return ordered
 
-    def execute_rule(self, rule: RuntimeVerificationRule, context: dict[str, Any]) -> list[VerificationResult]:
+    def execute_rule(
+        self, rule: RuntimeVerificationRule, context: dict[str, Any]
+    ) -> list[VerificationResult]:
         """Execute one validator."""
         return rule.validator(context)

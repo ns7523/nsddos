@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from nsddos.runtime.detection.thresholds import ANOMALY_THRESHOLDS, DEFAULT_BASELINES, SCORING_WEIGHTS, SIGNATURE_THRESHOLDS
+from nsddos.runtime.detection.thresholds import (
+    ANOMALY_THRESHOLDS,
+    DEFAULT_BASELINES,
+    SCORING_WEIGHTS,
+    SIGNATURE_THRESHOLDS,
+)
 
 
 @dataclass(frozen=True)
@@ -26,7 +31,9 @@ class DetectionRegistry:
         "packet_size_variance",
         "flow_duration",
     )
-    score_weights: dict[str, float] = field(default_factory=lambda: dict(SCORING_WEIGHTS))
+    score_weights: dict[str, float] = field(
+        default_factory=lambda: dict(SCORING_WEIGHTS)
+    )
     baselines: dict[str, float] = field(default_factory=lambda: dict(DEFAULT_BASELINES))
 
     def to_dict(self) -> dict[str, object]:

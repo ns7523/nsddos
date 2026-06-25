@@ -32,7 +32,9 @@ def detect_missing_runtime_directories() -> tuple[str, ...]:
     return tuple(str(path) for path in RUNTIME_DIRECTORIES if not Path(path).exists())
 
 
-def build_runtime_directory_commands(paths: tuple[str, ...]) -> tuple[SystemCommand, ...]:
+def build_runtime_directory_commands(
+    paths: tuple[str, ...]
+) -> tuple[SystemCommand, ...]:
     """Build runtime directory creation commands."""
 
     return tuple(mkdir_command("Create runtime directory", path) for path in paths)

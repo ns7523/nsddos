@@ -15,7 +15,9 @@ def correlate_paths(config: dict) -> PathCorrelation:
     interfaces = correlate_interfaces(config)
     openflow = correlate_openflow_ports(config)
 
-    iface_by_name = {item.ovs_name: item for item in interfaces.interfaces if item.ovs_name}
+    iface_by_name = {
+        item.ovs_name: item for item in interfaces.interfaces if item.ovs_name
+    }
     port_by_ovs = {item.ovs_name: item for item in openflow.ports if item.ovs_name}
 
     observed: list[PathRecord] = []
@@ -34,9 +36,12 @@ def correlate_paths(config: dict) -> PathCorrelation:
             target_id=f"host:{host}",
             interface_id=iface.canonical_id if iface else None,
             port_id=port.canonical_id if port else None,
-            visible_in_topology=canonical_id.replace("path:", "").replace("->", "-") in topology.graph_links,
+            visible_in_topology=canonical_id.replace("path:", "").replace("->", "-")
+            in topology.graph_links,
             visible_in_controller=bool(port and port.visible_in_controller),
-            visible_in_telemetry=bool((iface and iface.visible_in_sflow) or (port and port.visible_in_sflow)),
+            visible_in_telemetry=bool(
+                (iface and iface.visible_in_sflow) or (port and port.visible_in_sflow)
+            ),
         )
         if not record.visible_in_topology or not record.visible_in_controller:
             missing.append(canonical_id)
@@ -57,7 +62,13 @@ def correlate_paths(config: dict) -> PathCorrelation:
         f"orphan={len(orphan)} inconsistent={len(inconsistent)}"
     )
     history = controller_history_summary(config)
-    stability = "unstable" if history.get("topology_changed") else ("stable" if not missing and not inconsistent and not orphan else "partial")
+    stability = (
+        "unstable"
+        if history.get("topology_changed")
+        else (
+            "stable" if not missing and not inconsistent and not orphan else "partial"
+        )
+    )
     return PathCorrelation(
         observed_paths=observed,
         missing_paths=sorted(set(missing)),

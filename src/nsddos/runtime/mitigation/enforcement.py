@@ -70,20 +70,29 @@ def enforce_mitigation(
         _persist(result)
         return result
 
-    if not registry.ovs.install_drop_flow(bridge, evaluation.controller_payload.ovs_flow):
+    if not registry.ovs.install_drop_flow(
+        bridge, evaluation.controller_payload.ovs_flow
+    ):
         result = replace(
             evaluation,
             mitigation_status="enforcement_failed",
             execution_result="ovs_flow_insert_failed",
             controller_mutation_status="applied",
             ovs_insertion_status="failed",
-            enforcement_evidence={"controller_response": controller_response, "bridge": bridge},
+            enforcement_evidence={
+                "controller_response": controller_response,
+                "bridge": bridge,
+            },
         )
         _persist(result)
         return result
 
-    controller_verified = registry.floodlight.static_flow_exists(evaluation.controller_payload.flow_rule.rule_id)
-    ovs_verified = registry.ovs.has_flow(bridge, evaluation.controller_payload.verification_matches)
+    controller_verified = registry.floodlight.static_flow_exists(
+        evaluation.controller_payload.flow_rule.rule_id
+    )
+    ovs_verified = registry.ovs.has_flow(
+        bridge, evaluation.controller_payload.verification_matches
+    )
     if not controller_verified or not ovs_verified:
         result = replace(
             evaluation,
@@ -126,7 +135,9 @@ def enforce_mitigation(
     result = replace(
         evaluation,
         mitigation_status="verified" if blocked else "enforcement_failed",
-        execution_result="traffic_blocked_verified" if blocked else "traffic_verification_failed",
+        execution_result=(
+            "traffic_blocked_verified" if blocked else "traffic_verification_failed"
+        ),
         controller_mutation_status="applied",
         ovs_insertion_status="applied",
         flow_verification_status="verified",

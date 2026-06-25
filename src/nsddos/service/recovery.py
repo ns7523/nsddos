@@ -16,7 +16,9 @@ def recover_service_state() -> dict:
         "events": len(events),
         "replay_safe": state.replay_safe,
     }
-    if state.state == "running" and not any(item.state == "active" for item in sessions):
+    if state.state == "running" and not any(
+        item.state == "active" for item in sessions
+    ):
         recovered["degraded"] = True
         recovered["reason"] = "running service without active session"
     return recovered

@@ -8,7 +8,10 @@ from nsddos.config import ensure_runtime_directories
 from nsddos.constants import RUNTIME_DIR
 from nsddos.runtime.correlation import correlate_runtime_events
 from nsddos.runtime.controller import normalize_controller_topology
-from nsddos.runtime.controller_state import controller_history_summary, record_controller_snapshot
+from nsddos.runtime.controller_state import (
+    controller_history_summary,
+    record_controller_snapshot,
+)
 from nsddos.runtime.capabilities import detect_runtime_capabilities
 from nsddos.runtime.confidence import runtime_confidence_summary
 from nsddos.runtime.convergence import validate_convergence
@@ -72,7 +75,9 @@ def export_evidence_bundle(config: dict) -> EvidenceBundle:
     flows = sample_flow_visibility(config)
     freshness = telemetry_freshness(config)
     verification = execute_runtime_verification(config)
-    confidence = runtime_confidence_summary(topology, flows, freshness, verification, reconciliation)
+    confidence = runtime_confidence_summary(
+        topology, flows, freshness, verification, reconciliation
+    )
 
     payload = {
         "schema_version": SCHEMA_VERSION,

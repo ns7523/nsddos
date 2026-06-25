@@ -5,7 +5,10 @@ from __future__ import annotations
 from typing import Any
 
 from nsddos.runtime.domain.identifiers import replay_id
-from nsddos.runtime.domain.replay import reconstruct_replay, validate_replay_compatibility
+from nsddos.runtime.domain.replay import (
+    reconstruct_replay,
+    validate_replay_compatibility,
+)
 from nsddos.runtime.domain.serialization import to_canonical_dict
 from nsddos.runtime.events import load_runtime_events
 
@@ -19,7 +22,9 @@ def replay_execution_history() -> dict[str, Any]:
     ]
     phases = [
         {
-            "replay_id": replay_id(str(event.get("event_type", "")), str(event.get("timestamp", "")), index),
+            "replay_id": replay_id(
+                str(event.get("event_type", "")), str(event.get("timestamp", "")), index
+            ),
             "timestamp": event.get("timestamp", ""),
             "event_type": event.get("event_type", ""),
             "status": event.get("status", ""),

@@ -49,4 +49,6 @@ def wait_for_check(
         if check():
             return HealthResult(name=name, ok=True, detail=detail, category="runtime")
         time.sleep(interval)
-    return HealthResult(name=name, ok=False, detail=f"timeout: {detail}", category="runtime")
+    return HealthResult(
+        name=name, ok=False, detail=f"timeout: {detail}", category="runtime"
+    )

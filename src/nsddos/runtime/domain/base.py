@@ -13,7 +13,9 @@ from nsddos.runtime.domain.versions import CONTRACT_VERSION, SCHEMA_VERSION
 class DomainModel:
     schema_version: str = SCHEMA_VERSION
     contract_version: str = CONTRACT_VERSION
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

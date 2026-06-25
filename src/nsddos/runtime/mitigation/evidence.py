@@ -5,7 +5,13 @@ from __future__ import annotations
 import hashlib
 
 from nsddos.runtime.domain.serialization import to_canonical_json
-from nsddos.runtime.mitigation.models import MitigationActionPayload, MitigationControllerPayload, MitigationEvidence, MitigationPolicyDecision, MitigationStrategySelection
+from nsddos.runtime.mitigation.models import (
+    MitigationActionPayload,
+    MitigationControllerPayload,
+    MitigationEvidence,
+    MitigationPolicyDecision,
+    MitigationStrategySelection,
+)
 
 
 def build_mitigation_evidence(
@@ -32,14 +38,18 @@ def build_mitigation_evidence(
     }
     if controller_payload is not None:
         action_seed["controller_payload"] = controller_payload.to_dict()
-    mitigation_hash = hashlib.sha256(to_canonical_json(action_seed).encode("utf-8")).hexdigest()
+    mitigation_hash = hashlib.sha256(
+        to_canonical_json(action_seed).encode("utf-8")
+    ).hexdigest()
     generation_seed = {
         "mitigation_hash": mitigation_hash,
         "action_type": action.action_type,
         "target_ip": action.target_ip,
         "target_subnet": action.target_subnet,
     }
-    mitigation_generation = hashlib.sha256(to_canonical_json(generation_seed).encode("utf-8")).hexdigest()
+    mitigation_generation = hashlib.sha256(
+        to_canonical_json(generation_seed).encode("utf-8")
+    ).hexdigest()
     return MitigationEvidence(
         mitigation_hash=mitigation_hash,
         mitigation_generation=mitigation_generation,

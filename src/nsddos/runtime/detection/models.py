@@ -20,7 +20,9 @@ class FeatureVector:
     icmp_rate: float
     entropy_score: float
     source_ip_cardinality: int
-    destination_port_distribution: tuple[tuple[int, int], ...] = field(default_factory=tuple)
+    destination_port_distribution: tuple[tuple[int, int], ...] = field(
+        default_factory=tuple
+    )
     connection_burst_factor: float = 0.0
     packet_size_variance: float = 0.0
     flow_duration: float = 0.0
@@ -114,7 +116,9 @@ class DetectionEvaluation:
     baseline_source: str = "fallback"
     schema_version: str = SCHEMA_VERSION
     contract_version: str = CONTRACT_VERSION
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
 
     def to_dict(self) -> dict[str, Any]:
         return {

@@ -137,7 +137,9 @@ class StartupSession:
         )
         return cls(
             started_at=str(payload.get("started_at", "")),
-            running_containers=tuple(str(item) for item in payload.get("running_containers", [])),
+            running_containers=tuple(
+                str(item) for item in payload.get("running_containers", [])
+            ),
             ports=ports,
             health_state=str(payload.get("health_state", "unknown")),
             ui_url=str(payload.get("ui_url", "")),

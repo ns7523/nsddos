@@ -19,13 +19,17 @@ def _checksum(payload: Any) -> str:
     return hashlib.sha256(encoded).hexdigest()[:16]
 
 
-def synchronize_service(runtime_state: dict[str, Any], evidence_state: dict[str, Any]) -> dict[str, Any]:
+def synchronize_service(
+    runtime_state: dict[str, Any], evidence_state: dict[str, Any]
+) -> dict[str, Any]:
     start = monotonic()
     query = explain_query_system()
     verification_replay = replay_verification_runs()
     runtime_checksum = _checksum(runtime_state)
     query_checksum = _checksum(query)
-    evidence_checksum = _checksum({"verification_replay": verification_replay, "evidence": evidence_state})
+    evidence_checksum = _checksum(
+        {"verification_replay": verification_replay, "evidence": evidence_state}
+    )
     synchronized_at = datetime.now(timezone.utc).isoformat()
     state = {
         "state": "synchronized",
@@ -37,6 +41,8 @@ def synchronize_service(runtime_state: dict[str, Any], evidence_state: dict[str,
     existing = load_synchronization()
     history = existing.get("history", [])
     history.append(state)
-    save_synchronization({"state": state["state"], "history": history[-200:], "latest": state})
+    save_synchronization(
+        {"state": state["state"], "history": history[-200:], "latest": state}
+    )
     record_timing("service.synchronization", (monotonic() - start) * 1000)
     return state

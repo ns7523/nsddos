@@ -7,7 +7,9 @@ from datetime import datetime, timezone
 from nsddos.service.models import ServiceState
 
 
-def mark_started(state: ServiceState, owner: str, session_id: str, lock_owner: str) -> ServiceState:
+def mark_started(
+    state: ServiceState, owner: str, session_id: str, lock_owner: str
+) -> ServiceState:
     timestamp = datetime.now(timezone.utc).isoformat()
     state.state = "running"
     state.owner = owner

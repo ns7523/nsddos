@@ -36,7 +36,9 @@ DEPLOYMENT_PROFILES: tuple[DeploymentProfile, ...] = (
 def profile_choices() -> tuple[tuple[int, DeploymentProfile], ...]:
     """Return numeric profile choices."""
 
-    return tuple((index, profile) for index, profile in enumerate(DEPLOYMENT_PROFILES, start=1))
+    return tuple(
+        (index, profile) for index, profile in enumerate(DEPLOYMENT_PROFILES, start=1)
+    )
 
 
 def get_profile_by_choice(choice: int) -> DeploymentProfile:

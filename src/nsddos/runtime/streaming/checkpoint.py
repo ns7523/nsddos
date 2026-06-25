@@ -8,7 +8,11 @@ from io import TextIOWrapper
 from nsddos.constants import RUNTIME_DIR
 from nsddos.runtime.domain.identifiers import deterministic_id
 from nsddos.runtime.persistence import atomic_write_json, read_json_checked
-from nsddos.runtime.streaming.contracts import StreamBufferState, StreamCheckpoint, StreamQueueState
+from nsddos.runtime.streaming.contracts import (
+    StreamBufferState,
+    StreamCheckpoint,
+    StreamQueueState,
+)
 
 STREAMING_DIR = RUNTIME_DIR / "streaming"
 CHECKPOINT_DIR = STREAMING_DIR / "checkpoints"
@@ -24,7 +28,10 @@ def build_checkpoint(
     timestamp: datetime | None = None,
 ) -> StreamCheckpoint:
     created = timestamp or datetime.now(timezone.utc)
-    checkpoint_id = deterministic_id("stream-checkpoint", f"{session_id}:{event_offset}:{sequence_number}:{created.isoformat()}")
+    checkpoint_id = deterministic_id(
+        "stream-checkpoint",
+        f"{session_id}:{event_offset}:{sequence_number}:{created.isoformat()}",
+    )
     return StreamCheckpoint(
         checkpoint_id=checkpoint_id,
         session_id=session_id,
@@ -36,11 +43,15 @@ def build_checkpoint(
     )
 
 
-def persist_checkpoint(checkpoint: StreamCheckpoint, *, lock_scope: TextIOWrapper | None = None) -> None:
+def persist_checkpoint(
+    checkpoint: StreamCheckpoint, *, lock_scope: TextIOWrapper | None = None
+) -> None:
     CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
     payload = checkpoint.to_dict()
     stamp = checkpoint.timestamp.strftime("%Y%m%dT%H%M%S%fZ")
-    atomic_write_json(CHECKPOINT_DIR / f"checkpoint-{stamp}.json", payload, lock_scope=lock_scope)
+    atomic_write_json(
+        CHECKPOINT_DIR / f"checkpoint-{stamp}.json", payload, lock_scope=lock_scope
+    )
     atomic_write_json(CHECKPOINT_DIR / "latest.json", payload, lock_scope=lock_scope)
 
 

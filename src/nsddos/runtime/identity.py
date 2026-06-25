@@ -15,7 +15,11 @@ from nsddos.runtime.models import IdentityMap, IdentityRecord
 def _extract_sflow_agents(payload: Any) -> list[str]:
     """Extract agent-like names from sFlow topology payload."""
     values: set[str] = set()
-    items = payload if isinstance(payload, list) else payload.values() if isinstance(payload, dict) else []
+    items = (
+        payload
+        if isinstance(payload, list)
+        else payload.values() if isinstance(payload, dict) else []
+    )
     for item in items:
         if not isinstance(item, dict):
             continue
@@ -33,7 +37,9 @@ def build_identity_map(config: dict[str, Any]) -> IdentityMap:
         topology=config.get("lab", {}).get("mininet_topology", "single,3"),
     )
     ovs = OVSProvider(
-        collector_target=config.get("lab", {}).get("ovs_sflow_target", "127.0.0.1:6343"),
+        collector_target=config.get("lab", {}).get(
+            "ovs_sflow_target", "127.0.0.1:6343"
+        ),
         agent_interface=config.get("lab", {}).get("ovs_agent_interface", "lo"),
         sampling=config.get("lab", {}).get("ovs_sampling", 10),
         polling=config.get("lab", {}).get("ovs_polling", 20),
@@ -59,8 +65,14 @@ def build_identity_map(config: dict[str, Any]) -> IdentityMap:
         controller_dpid = None
         if index < len(controller_switches):
             controller_dpid = str(controller_switches[index].get("switchDPID", ""))
-        sflow_agent = next((agent for agent in sflow_agents if switch_name in agent), None)
-        record_aliases = [value for value in (switch_name, ovs_bridge, controller_dpid, sflow_agent) if value]
+        sflow_agent = next(
+            (agent for agent in sflow_agents if switch_name in agent), None
+        )
+        record_aliases = [
+            value
+            for value in (switch_name, ovs_bridge, controller_dpid, sflow_agent)
+            if value
+        ]
         records.append(
             IdentityRecord(
                 canonical_id=canonical_id,
@@ -72,19 +84,27 @@ def build_identity_map(config: dict[str, Any]) -> IdentityMap:
             )
         )
         aliases[canonical_id] = sorted(set(record_aliases))
-        if controller_dpid and any(item.controller_dpid == controller_dpid for item in records[:-1]):
+        if controller_dpid and any(
+            item.controller_dpid == controller_dpid for item in records[:-1]
+        ):
             conflicts.append(f"duplicate_controller_dpid:{controller_dpid}")
 
     if len(controller_switches) > len(metadata.switches):
-        for extra in controller_switches[len(metadata.switches):]:
-            conflicts.append(f"orphan_controller_switch:{extra.get('switchDPID', 'unknown')}")
+        for extra in controller_switches[len(metadata.switches) :]:
+            conflicts.append(
+                f"orphan_controller_switch:{extra.get('switchDPID', 'unknown')}"
+            )
 
     detail = (
         f"mininet={len(metadata.switches)} ovs={len(ovs_bridges)} "
         f"controller={len(controller_switches)} sflow_agents={len(sflow_agents)}"
     )
     history = controller_history_summary(config)
-    stability = "unstable" if history.get("topology_changed") else ("stable" if not conflicts else "partial")
+    stability = (
+        "unstable"
+        if history.get("topology_changed")
+        else ("stable" if not conflicts else "partial")
+    )
     return IdentityMap(
         switches=records,
         controller_endpoint=f"127.0.0.1:{config.get('lab', {}).get('controller_port', 6653)}",

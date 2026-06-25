@@ -31,9 +31,19 @@ def validate_convergence(config: dict) -> ConvergenceState:
     if not telemetry_agreement:
         reasons.append("telemetry_disagreement")
 
-    if topology_agreement and datapath_agreement and controller_agreement and telemetry_agreement:
+    if (
+        topology_agreement
+        and datapath_agreement
+        and controller_agreement
+        and telemetry_agreement
+    ):
         status = "converged"
-    elif topology_agreement or datapath_agreement or controller_agreement or telemetry_agreement:
+    elif (
+        topology_agreement
+        or datapath_agreement
+        or controller_agreement
+        or telemetry_agreement
+    ):
         status = "partially_converged"
     else:
         status = "diverged"

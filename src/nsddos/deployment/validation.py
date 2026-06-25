@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
-from nsddos.deployment.contracts import DEPLOYMENT_STATES, HEALTH_STATES, DeploymentEvaluation, RollbackState
+from nsddos.deployment.contracts import (
+    DEPLOYMENT_STATES,
+    HEALTH_STATES,
+    DeploymentEvaluation,
+    RollbackState,
+)
 
 
 def validate_deployment_evaluation(evaluation: DeploymentEvaluation) -> list[str]:
@@ -22,11 +27,17 @@ def validate_deployment_evaluation(evaluation: DeploymentEvaluation) -> list[str
         and evaluation.deployment_state == "dry_run_ready"
     ):
         errors.append("healthy_with_missing_secrets")
-    if evaluation.autoscaling_policy.max_replicas < evaluation.autoscaling_policy.min_replicas:
+    if (
+        evaluation.autoscaling_policy.max_replicas
+        < evaluation.autoscaling_policy.min_replicas
+    ):
         errors.append("invalid_autoscaling_range")
     if not evaluation.rollback_state.rollback_steps:
         errors.append("missing_rollback_steps")
-    if evaluation.networking_contract.external_ports and not evaluation.networking_contract.service_names:
+    if (
+        evaluation.networking_contract.external_ports
+        and not evaluation.networking_contract.service_names
+    ):
         errors.append("networking_service_mismatch")
     return errors
 

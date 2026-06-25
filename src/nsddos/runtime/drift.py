@@ -53,11 +53,17 @@ def detect_runtime_drift(config: dict) -> list[DriftRecord]:
             recurring[str(entry)] = recurring.get(str(entry), 0) + 1
     for key, count in recurring.items():
         if count > 1:
-            drift.append(DriftRecord("recurring_drift", "high", f"{key}:{count}", timestamp))
+            drift.append(
+                DriftRecord("recurring_drift", "high", f"{key}:{count}", timestamp)
+            )
     verification_replay = replay_verification_runs()
     for name, count in verification_replay.get("repeated_failures", {}).items():
         if count > 1:
-            drift.append(DriftRecord("verification_instability", "high", f"{name}:{count}", timestamp))
+            drift.append(
+                DriftRecord(
+                    "verification_instability", "high", f"{name}:{count}", timestamp
+                )
+            )
     for transition in verification_replay.get("transitions", []):
         if transition.get("from") != transition.get("to"):
             drift.append(
@@ -86,5 +92,7 @@ def detect_runtime_drift(config: dict) -> list[DriftRecord]:
                 drift.append(DriftRecord(category, severity, field, timestamp))
 
     if not drift:
-        drift.append(DriftRecord("runtime_drift", "low", "no drift detected", timestamp))
+        drift.append(
+            DriftRecord("runtime_drift", "low", "no drift detected", timestamp)
+        )
     return drift

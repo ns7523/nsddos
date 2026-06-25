@@ -8,7 +8,9 @@ from nsddos.runtime.mitigation.quarantine import build_quarantine_action
 from nsddos.runtime.mitigation.ratelimit import build_rate_limit_action
 
 
-def build_action(action_type: str, target_ip: str, reason: str) -> MitigationActionPayload:
+def build_action(
+    action_type: str, target_ip: str, reason: str
+) -> MitigationActionPayload:
     if action_type in {"block_ip", "temporary_ban", "drop_traffic", "permanent_ban"}:
         return build_block_action(action_type, target_ip, reason)
     if action_type == "rate_limit":

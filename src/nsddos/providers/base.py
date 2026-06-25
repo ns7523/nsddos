@@ -20,4 +20,3 @@ class BaseProvider(ABC):
     @abstractmethod
     def status(self) -> dict[str, Any]:
         """Return provider status."""
-

@@ -16,7 +16,9 @@ def rollback_command(command: SystemCommand) -> CommandExecutionResult | None:
         path = Path(command.target_path)
         if path.exists():
             shutil.rmtree(path)
-        return CommandExecutionResult(command=command, success=True, returncode=0, stdout="", stderr="")
+        return CommandExecutionResult(
+            command=command, success=True, returncode=0, stdout="", stderr=""
+        )
     if command.kind == "subprocess" and command.rollback_argv:
         rollback = SystemCommand(
             kind="subprocess",
@@ -27,7 +29,9 @@ def rollback_command(command: SystemCommand) -> CommandExecutionResult | None:
     return None
 
 
-def rollback_commands(commands: tuple[SystemCommand, ...]) -> tuple[CommandExecutionResult, ...]:
+def rollback_commands(
+    commands: tuple[SystemCommand, ...]
+) -> tuple[CommandExecutionResult, ...]:
     """Rollback reversible commands in reverse order."""
 
     results: list[CommandExecutionResult] = []

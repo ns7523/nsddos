@@ -61,7 +61,9 @@ def locked_persistence_scope(path_or_dir: Path) -> Iterator[TextIOWrapper]:
             fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
-def atomic_write_json(path: Path, payload: dict[str, Any], *, lock_scope: TextIOWrapper | None = None) -> Path:
+def atomic_write_json(
+    path: Path, payload: dict[str, Any], *, lock_scope: TextIOWrapper | None = None
+) -> Path:
     """Atomically write JSON via temp file + replace."""
     if lock_scope is None:
         with locked_file_path(path) as handle:
@@ -102,7 +104,9 @@ def read_json_checked(path: Path) -> dict[str, Any]:
     return payload
 
 
-def recover_json(path: Path, default: dict[str, Any], *, lock_scope: TextIOWrapper | None = None) -> dict[str, Any]:
+def recover_json(
+    path: Path, default: dict[str, Any], *, lock_scope: TextIOWrapper | None = None
+) -> dict[str, Any]:
     """Recover corrupt/missing JSON with default payload."""
     if lock_scope is None:
         with locked_file_path(path) as handle:

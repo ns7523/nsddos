@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
-from nsddos.release.contracts import ComplianceResult, HardeningResult, ReleaseSourceBundle
+from nsddos.release.contracts import (
+    ComplianceResult,
+    HardeningResult,
+    ReleaseSourceBundle,
+)
 
 
-def build_compliance_result(sources: ReleaseSourceBundle, hardening: HardeningResult) -> ComplianceResult:
+def build_compliance_result(
+    sources: ReleaseSourceBundle, hardening: HardeningResult
+) -> ComplianceResult:
     """Build deterministic compliance result."""
     deployment_policy_ok = sources.deployment_state != "failed_validation"
     runtime_policy_ok = sources.failure_count == 0

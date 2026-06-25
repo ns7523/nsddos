@@ -25,7 +25,9 @@ def build_session(
     session_start: datetime | None = None,
 ) -> StreamSession:
     created = session_start or datetime.now(timezone.utc)
-    resolved_session_id = session_id or deterministic_id("stream-session", f"{source_mode}:{created.isoformat()}")
+    resolved_session_id = session_id or deterministic_id(
+        "stream-session", f"{source_mode}:{created.isoformat()}"
+    )
     return StreamSession(
         session_id=resolved_session_id,
         source_mode=source_mode,
@@ -37,11 +39,15 @@ def build_session(
     )
 
 
-def persist_session(session: StreamSession, *, lock_scope: TextIOWrapper | None = None) -> None:
+def persist_session(
+    session: StreamSession, *, lock_scope: TextIOWrapper | None = None
+) -> None:
     SESSION_DIR.mkdir(parents=True, exist_ok=True)
     payload = session.to_dict()
     stamp = session.session_start.strftime("%Y%m%dT%H%M%S%fZ")
-    atomic_write_json(SESSION_DIR / f"session-{stamp}.json", payload, lock_scope=lock_scope)
+    atomic_write_json(
+        SESSION_DIR / f"session-{stamp}.json", payload, lock_scope=lock_scope
+    )
     atomic_write_json(SESSION_DIR / "latest.json", payload, lock_scope=lock_scope)
 
 

@@ -34,7 +34,9 @@ class MininetProvider(BaseProvider):
     ) -> None:
         self.mininet_bin = mininet_bin
         self.executor = RuntimeExecutor()
-        self.controller_host = "floodlight" if controller_host == "127.0.0.1" else controller_host
+        self.controller_host = (
+            "floodlight" if controller_host == "127.0.0.1" else controller_host
+        )
         self.controller_port = controller_port
         self.topology = topology
         self.ovs_protocol = ovs_protocol
@@ -70,8 +72,8 @@ class MininetProvider(BaseProvider):
             "pid=$(ps -eo pid,args | awk '/mininet:"
             f"{host}"
             "$/ {print $1; exit}'); "
-            "[ -n \"$pid\" ] || { echo missing_mininet_host >&2; exit 1; }; "
-            "mnexec -a \"$pid\" sh -lc "
+            '[ -n "$pid" ] || { echo missing_mininet_host >&2; exit 1; }; '
+            'mnexec -a "$pid" sh -lc '
             f"'{command}'"
         )
         return ["sh", "-lc", attach]
@@ -102,7 +104,9 @@ class MininetProvider(BaseProvider):
         state = load_runtime_state()
         if state.topology_state == "running":
             return
-        cleanup_kill = self.executor.execute_lab(["sh", "-lc", "pkill -f '[l]abhost-mininet.py' || true"], timeout=10)
+        cleanup_kill = self.executor.execute_lab(
+            ["sh", "-lc", "pkill -f '[l]abhost-mininet.py' || true"], timeout=10
+        )
         cleanup = self.executor.execute_lab(["sh", "-lc", "mn -c"], timeout=30)
         logger.info(
             "Mininet helper cleanup kill_rc={} cleanup_rc={}",
@@ -127,7 +131,11 @@ class MininetProvider(BaseProvider):
             timeout=10,
         )
         if process.returncode != 0:
-            raise RuntimeError(process.stderr.strip() or process.stdout.strip() or "Mininet helper start failed.")
+            raise RuntimeError(
+                process.stderr.strip()
+                or process.stdout.strip()
+                or "Mininet helper start failed."
+            )
         state.topology_state = "running"
         state.topology_pid = None
         state.updated_at = datetime.now(timezone.utc).isoformat()
@@ -140,7 +148,9 @@ class MininetProvider(BaseProvider):
 
         state = load_runtime_state()
         if self.executor.lab_container_running():
-            self.executor.execute_lab(["sh", "-lc", "pkill -f '[l]abhost-mininet.py' || true"], timeout=10)
+            self.executor.execute_lab(
+                ["sh", "-lc", "pkill -f '[l]abhost-mininet.py' || true"], timeout=10
+            )
             self.executor.execute_lab(["sh", "-lc", "mn -c"], timeout=30)
         state.topology_state = "stopped"
         state.topology_pid = None
@@ -185,7 +195,9 @@ class MininetProvider(BaseProvider):
             switch_count=len(switches),
         )
 
-    def probe_traffic_drop(self, source_host: str, destination_ip: str) -> dict[str, Any]:
+    def probe_traffic_drop(
+        self, source_host: str, destination_ip: str
+    ) -> dict[str, Any]:
         """Probe host connectivity and report whether traffic is blocked."""
 
         self._ensure_lab_runtime()
@@ -194,7 +206,11 @@ class MininetProvider(BaseProvider):
             timeout=10,
         )
         output = f"{result.stdout}\n{result.stderr}".strip()
-        blocked = result.returncode != 0 or "100% packet loss" in output or "Destination Host Unreachable" in output
+        blocked = (
+            result.returncode != 0
+            or "100% packet loss" in output
+            or "Destination Host Unreachable" in output
+        )
         return {
             "attempted": True,
             "blocked": blocked,
@@ -203,7 +219,9 @@ class MininetProvider(BaseProvider):
             "destination_ip": destination_ip,
         }
 
-    def probe_connectivity(self, source_host: str, destination_ip: str) -> dict[str, Any]:
+    def probe_connectivity(
+        self, source_host: str, destination_ip: str
+    ) -> dict[str, Any]:
         """Probe host connectivity and report whether traffic reaches destination."""
 
         probe = self.probe_traffic_drop(source_host, destination_ip)
@@ -222,9 +240,13 @@ class MininetProvider(BaseProvider):
         running = False
         detail = "labhost unavailable"
         if self.executor.lab_container_running():
-            result = self.executor.execute_lab(["pgrep", "-af", "labhost-mininet.py"], timeout=5)
+            result = self.executor.execute_lab(
+                ["pgrep", "-af", "labhost-mininet.py"], timeout=5
+            )
             running = result.returncode == 0
-            detail = (result.stdout or result.stderr or "").strip() or ("running" if running else "stopped")
+            detail = (result.stdout or result.stderr or "").strip() or (
+                "running" if running else "stopped"
+            )
         controller_reachable = self.controller_reachable()
         return {
             "provider": "mininet",

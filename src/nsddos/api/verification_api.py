@@ -48,5 +48,9 @@ def explain_runtime_verification(
     return ApiExplainResponse(
         subject="runtime-verification",
         detail=explain_verification(config),
-        evidence=[ApiEvidenceRef(kind="verification", reference="engine", detail="validator registry")],
+        evidence=[
+            ApiEvidenceRef(
+                kind="verification", reference="engine", detail="validator registry"
+            )
+        ],
     )

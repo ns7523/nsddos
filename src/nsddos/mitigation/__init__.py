@@ -1,2 +1,1 @@
 """Mitigation domain package."""
-

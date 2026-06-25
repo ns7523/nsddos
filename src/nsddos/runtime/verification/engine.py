@@ -20,8 +20,14 @@ from nsddos.runtime.models import VerificationResult
 from nsddos.runtime.pipeline import build_execution_plan
 from nsddos.runtime.replay import replay_execution_history
 from nsddos.runtime.verification.evidence import build_verification_evidence
-from nsddos.runtime.verification.replay import persist_verification_execution, replay_verification_runs
-from nsddos.runtime.verification.results import VerificationCategoryResult, VerificationExecutionResult
+from nsddos.runtime.verification.replay import (
+    persist_verification_execution,
+    replay_verification_runs,
+)
+from nsddos.runtime.verification.results import (
+    VerificationCategoryResult,
+    VerificationExecutionResult,
+)
 from nsddos.runtime.verification.validators import default_registry
 from nsddos.service.manager import RuntimeServiceManager
 
@@ -44,7 +50,11 @@ def build_verification_context(config: dict[str, Any]) -> dict[str, Any]:
     collection = collect_runtime_bundle(config)
     aggregation = aggregate_runtime(config, collection)
     docker = DockerManager()
-    active_preset = runtime_state.preset_state.get("active", "minimal-lab") if runtime_state.preset_state else "minimal-lab"
+    active_preset = (
+        runtime_state.preset_state.get("active", "minimal-lab")
+        if runtime_state.preset_state
+        else "minimal-lab"
+    )
     plan = build_execution_plan(config, preset=active_preset)
     return {
         "config": config,
@@ -62,11 +72,15 @@ def build_verification_context(config: dict[str, Any]) -> dict[str, Any]:
         "execution_plan": plan,
         "execution_replay": replay_execution_history(),
         "bootstrap": validate_bootstrap(config),
-        "controller_open": _socket_reachable("127.0.0.1", config.get("lab", {}).get("controller_port", 6653)),
+        "controller_open": _socket_reachable(
+            "127.0.0.1", config.get("lab", {}).get("controller_port", 6653)
+        ),
     }
 
 
-def execute_verification(config: dict[str, Any], persist: bool = True) -> VerificationExecutionResult:
+def execute_verification(
+    config: dict[str, Any], persist: bool = True
+) -> VerificationExecutionResult:
     """Execute authoritative verification run."""
     run_id = str(uuid4())
     registry = default_registry()
@@ -91,13 +105,18 @@ def execute_verification(config: dict[str, Any], persist: bool = True) -> Verifi
         if any(result.status in {"warn", "stale"} for result in rule_results):
             degraded_validators.append(rule.name)
         results.extend(rule_results)
-        bucket = categories.setdefault(rule.category, VerificationCategoryResult(rule.category))
+        bucket = categories.setdefault(
+            rule.category, VerificationCategoryResult(rule.category)
+        )
         bucket.results.extend(rule_results)
         bucket.duration_ms += duration
         set_cache(
             "verification-validator",
             {"run_id": run_id, "validator": rule.name},
-            {"results": [item.to_dict() for item in rule_results], "duration_ms": duration},
+            {
+                "results": [item.to_dict() for item in rule_results],
+                "duration_ms": duration,
+            },
         )
 
     performance["verification.total.ms"] = (monotonic() - start) * 1000

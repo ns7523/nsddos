@@ -15,8 +15,18 @@ PROFILE_DEFINITIONS: dict[str, RuntimeProfile] = {
         required_services=["docker", "ovs", "mininet", "java"],
         supported_capabilities=["docker", "ovs", "mininet", "openflow", "sflow"],
         runtime_limitations=[],
-        verification_expectations=["full-runtime", "controller", "telemetry", "datapath"],
-        provider_availability={"floodlight": "full", "sflowrt": "full", "ovs": "full", "mininet": "full"},
+        verification_expectations=[
+            "full-runtime",
+            "controller",
+            "telemetry",
+            "datapath",
+        ],
+        provider_availability={
+            "floodlight": "full",
+            "sflowrt": "full",
+            "ovs": "full",
+            "mininet": "full",
+        },
         privilege_requirements=["root-or-passwordless-sudo"],
     ),
     "docker-linux": RuntimeProfile(
@@ -25,9 +35,17 @@ PROFILE_DEFINITIONS: dict[str, RuntimeProfile] = {
         description="Linux host with canonical Docker runtime, partial host SDN support.",
         required_services=["docker", "java"],
         supported_capabilities=["docker", "container-networking", "sflow"],
-        runtime_limitations=["host-ovs-required-for-full-datapath", "host-mininet-required-for-full-topology"],
+        runtime_limitations=[
+            "host-ovs-required-for-full-datapath",
+            "host-mininet-required-for-full-topology",
+        ],
         verification_expectations=["container-runtime", "controller", "telemetry"],
-        provider_availability={"floodlight": "full", "sflowrt": "full", "ovs": "partial", "mininet": "partial"},
+        provider_availability={
+            "floodlight": "full",
+            "sflowrt": "full",
+            "ovs": "partial",
+            "mininet": "partial",
+        },
         privilege_requirements=["docker-access"],
     ),
     "wsl2": RuntimeProfile(
@@ -36,9 +54,18 @@ PROFILE_DEFINITIONS: dict[str, RuntimeProfile] = {
         description="WSL2 runtime. Good for CLI, partial for SDN lab unless nested networking tuned.",
         required_services=["docker"],
         supported_capabilities=["docker", "container-networking"],
-        runtime_limitations=["ovs-often-partial", "mininet-often-degraded", "kernel-networking-varies"],
+        runtime_limitations=[
+            "ovs-often-partial",
+            "mininet-often-degraded",
+            "kernel-networking-varies",
+        ],
         verification_expectations=["degraded-runtime", "reproducibility", "telemetry"],
-        provider_availability={"floodlight": "full", "sflowrt": "full", "ovs": "partial", "mininet": "partial"},
+        provider_availability={
+            "floodlight": "full",
+            "sflowrt": "full",
+            "ovs": "partial",
+            "mininet": "partial",
+        },
         privilege_requirements=["docker-access", "sudo-for-host-networking"],
     ),
     "macos-degraded": RuntimeProfile(
@@ -47,9 +74,18 @@ PROFILE_DEFINITIONS: dict[str, RuntimeProfile] = {
         description="macOS diagnostic/runtime-export mode. Not canonical for full SDN lab.",
         required_services=["docker"],
         supported_capabilities=["docker"],
-        runtime_limitations=["no-native-mininet", "no-native-ovs-datapath", "telemetry-truth-degraded"],
+        runtime_limitations=[
+            "no-native-mininet",
+            "no-native-ovs-datapath",
+            "telemetry-truth-degraded",
+        ],
         verification_expectations=["diagnostics", "exports", "degraded-verify"],
-        provider_availability={"floodlight": "partial", "sflowrt": "partial", "ovs": "unsupported", "mininet": "unsupported"},
+        provider_availability={
+            "floodlight": "partial",
+            "sflowrt": "partial",
+            "ovs": "unsupported",
+            "mininet": "unsupported",
+        },
         privilege_requirements=["docker-access"],
     ),
 }
@@ -65,7 +101,12 @@ def detect_runtime_profile() -> RuntimeProfile:
         profile = PROFILE_DEFINITIONS["macos-degraded"]
     elif caps.wsl2:
         profile = PROFILE_DEFINITIONS["wsl2"]
-    elif caps.linux_kernel and caps.docker_daemon and caps.ovs_installed and caps.mininet_supported:
+    elif (
+        caps.linux_kernel
+        and caps.docker_daemon
+        and caps.ovs_installed
+        and caps.mininet_supported
+    ):
         profile = PROFILE_DEFINITIONS["linux-native"]
     elif caps.linux_kernel and caps.docker_daemon:
         profile = PROFILE_DEFINITIONS["docker-linux"]
@@ -84,6 +125,11 @@ def detect_runtime_profile() -> RuntimeProfile:
             "ovs": "full",
             "mininet": "full",
         }
-        detected.verification_expectations = ["full-runtime", "controller", "telemetry", "datapath"]
+        detected.verification_expectations = [
+            "full-runtime",
+            "controller",
+            "telemetry",
+            "datapath",
+        ]
     detected.detail = f"platform={caps.platform} wsl2={caps.wsl2} docker={caps.docker_daemon} helper={helper}"
     return detected

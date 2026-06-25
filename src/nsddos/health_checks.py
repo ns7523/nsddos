@@ -77,7 +77,9 @@ def collect_static_health() -> list[HealthResult]:
     floodlight_jar = get_floodlight_jar()
     sflowrt_jar = get_sflowrt_jar()
     return [
-        HealthResult("docker", check_docker_installed(), "docker CLI available", "static"),
+        HealthResult(
+            "docker", check_docker_installed(), "docker CLI available", "static"
+        ),
         HealthResult("compose", check_compose_file(), str(compose_file), "static"),
         HealthResult("config", check_config_valid(), "config schema loaded", "static"),
         HealthResult(
@@ -98,7 +100,9 @@ def collect_static_health() -> list[HealthResult]:
             str(sflowrt_jar),
             "static",
         ),
-        HealthResult("runtime_assets", asset_status.ready, asset_status.detail, "static"),
+        HealthResult(
+            "runtime_assets", asset_status.ready, asset_status.detail, "static"
+        ),
     ]
 
 
@@ -110,15 +114,21 @@ def collect_runtime_health() -> list[HealthResult]:
     sflow = SFlowProvider()
     mininet = MininetProvider()
     ovs = OVSProvider()
-    containers_ok, containers_detail, _services = docker.stack_health(DEFAULT_STARTUP_PROFILE.container_names)
+    containers_ok, containers_detail, _services = docker.stack_health(
+        DEFAULT_STARTUP_PROFILE.container_names
+    )
     mininet_status = mininet.status()
     ovs_status = ovs.status()
     mininet_ok = containers_ok and bool(mininet_status.get("ready"))
-    mininet_detail = str(mininet_status.get("detail") or mininet_status.get("controller", ""))
+    mininet_detail = str(
+        mininet_status.get("detail") or mininet_status.get("controller", "")
+    )
     ovs_ok = containers_ok and bool(ovs_status.get("ready"))
     ovs_detail = str(ovs_status.get("detail", ""))
     return [
-        HealthResult("docker_daemon", check_docker_daemon(), "docker daemon reachable", "runtime"),
+        HealthResult(
+            "docker_daemon", check_docker_daemon(), "docker daemon reachable", "runtime"
+        ),
         HealthResult(
             "containers",
             containers_ok,

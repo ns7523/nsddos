@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from nsddos.release.contracts import BenchmarkResult, ReleaseSourceBundle, ScenarioResult
+from nsddos.release.contracts import (
+    BenchmarkResult,
+    ReleaseSourceBundle,
+    ScenarioResult,
+)
 
 
 def _bounded_score(value: float, baseline: float) -> float:

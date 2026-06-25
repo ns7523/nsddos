@@ -19,7 +19,9 @@ from nsddos.bootstrap.state import RepairAction
 from nsddos.bootstrap.ui_launcher import launch_ui_background
 
 
-def execute_repairs(console: Console, actions: tuple[RepairAction, ...]) -> tuple[str, ...]:
+def execute_repairs(
+    console: Console, actions: tuple[RepairAction, ...]
+) -> tuple[str, ...]:
     """Execute approved repairs."""
 
     if not actions:
@@ -29,7 +31,9 @@ def execute_repairs(console: Console, actions: tuple[RepairAction, ...]) -> tupl
     progress = Progress(
         SpinnerColumn(style="bright_cyan"),
         TextColumn("[bold white]Repairing[/bold white]"),
-        BarColumn(bar_width=24, complete_style="bright_cyan", finished_style="bright_cyan"),
+        BarColumn(
+            bar_width=24, complete_style="bright_cyan", finished_style="bright_cyan"
+        ),
         TextColumn("[bright_cyan]{task.completed}/{task.total}[/bright_cyan]"),
         console=console,
     )
@@ -62,7 +66,11 @@ def execute_repairs(console: Console, actions: tuple[RepairAction, ...]) -> tupl
         elif action.action_type in {"venv_repair", "git_repair"}:
             scan = collect_environment_scan()
             plan = build_dependency_plan(scan, LOCAL_DEVELOPMENT)
-            allowed = ("Create Virtual Environment",) if action.action_type == "venv_repair" else ("Install Git",)
+            allowed = (
+                ("Create Virtual Environment",)
+                if action.action_type == "venv_repair"
+                else ("Install Git",)
+            )
             result = execute_install_plan(
                 console,
                 plan,

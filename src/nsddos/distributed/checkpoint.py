@@ -6,7 +6,13 @@ from datetime import datetime, timezone
 from io import TextIOWrapper
 
 from nsddos.constants import RUNTIME_DIR
-from nsddos.distributed.contracts import ClusterNode, DistributedCheckpointState, PartitionAssignment, ReplicationState, WorkerAssignment
+from nsddos.distributed.contracts import (
+    ClusterNode,
+    DistributedCheckpointState,
+    PartitionAssignment,
+    ReplicationState,
+    WorkerAssignment,
+)
 from nsddos.runtime.persistence import atomic_write_json, read_json_checked
 
 DISTRIBUTED_DIR = RUNTIME_DIR / "distributed"
@@ -20,9 +26,21 @@ def build_checkpoint_state(
 ) -> DistributedCheckpointState:
     """Build deterministic checkpoint state."""
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-    node_offsets = tuple((node.node_id, index) for index, node in enumerate(sorted(nodes, key=lambda item: item.node_id), start=1))
-    stream_offsets = tuple((partition.partition_id, index * 100) for index, partition in enumerate(partitions, start=1))
-    state = "corrupt" if not assignments else ("degraded" if any(node.state == "failed" for node in nodes) else "ready")
+    node_offsets = tuple(
+        (node.node_id, index)
+        for index, node in enumerate(
+            sorted(nodes, key=lambda item: item.node_id), start=1
+        )
+    )
+    stream_offsets = tuple(
+        (partition.partition_id, index * 100)
+        for index, partition in enumerate(partitions, start=1)
+    )
+    state = (
+        "corrupt"
+        if not assignments
+        else ("degraded" if any(node.state == "failed" for node in nodes) else "ready")
+    )
     return DistributedCheckpointState(
         checkpoint_id=f"checkpoint-{timestamp}",
         state=state,
@@ -32,10 +50,14 @@ def build_checkpoint_state(
     )
 
 
-def persist_checkpoint(payload: dict[str, object], *, lock_scope: TextIOWrapper | None = None) -> None:
+def persist_checkpoint(
+    payload: dict[str, object], *, lock_scope: TextIOWrapper | None = None
+) -> None:
     """Persist latest checkpoint payload."""
     DISTRIBUTED_DIR.mkdir(parents=True, exist_ok=True)
-    atomic_write_json(DISTRIBUTED_DIR / "checkpoint.json", payload, lock_scope=lock_scope)  # edge serialization
+    atomic_write_json(
+        DISTRIBUTED_DIR / "checkpoint.json", payload, lock_scope=lock_scope
+    )  # edge serialization
 
 
 def latest_checkpoint_payload() -> dict:

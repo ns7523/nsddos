@@ -14,7 +14,9 @@ def build_provider_registry(config: dict[str, Any]) -> dict[str, Any]:
     """Build providers from config once."""
     lab = config.get("lab", {})
     return {
-        "floodlight": FloodlightProvider(api_url=f"http://127.0.0.1:{lab.get('floodlight_port', 8080)}"),
+        "floodlight": FloodlightProvider(
+            api_url=f"http://127.0.0.1:{lab.get('floodlight_port', 8080)}"
+        ),
         "sflowrt": SFlowProvider(api_url=resolve_sflowrt_api_url(config)),
         "mininet": MininetProvider(
             controller_port=lab.get("controller_port", 6653),
@@ -29,6 +31,8 @@ def build_provider_registry(config: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def collect_provider_status_from_registry(registry: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def collect_provider_status_from_registry(
+    registry: dict[str, Any]
+) -> dict[str, dict[str, Any]]:
     """Collect status from provider registry."""
     return {name: provider.status() for name, provider in registry.items()}

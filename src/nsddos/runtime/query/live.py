@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from nsddos.runtime.providers.live import build_provider_diagnostics, collect_live_telemetry, collect_provider_health, discover_runtime_providers
+from nsddos.runtime.providers.live import (
+    build_provider_diagnostics,
+    collect_live_telemetry,
+    collect_provider_health,
+    discover_runtime_providers,
+)
 
 
 def query_live_telemetry(config: dict[str, Any], query) -> dict[str, Any]:
@@ -53,7 +58,11 @@ def query_provider_discovery(config: dict[str, Any], query) -> dict[str, Any]:
         floodlight_switches=tuple(snapshot.topology_state.switches),
         mininet_switches=tuple(snapshot.topology_state.switches),
         mininet_hosts=tuple(snapshot.topology_state.hosts),
-        controller_endpoint=snapshot.topology_state.controllers[0] if snapshot.topology_state.controllers else "",
+        controller_endpoint=(
+            snapshot.topology_state.controllers[0]
+            if snapshot.topology_state.controllers
+            else ""
+        ),
     )
     items = []
     for item in discovery:

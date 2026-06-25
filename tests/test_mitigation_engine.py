@@ -110,8 +110,16 @@ def _detection(
         classification=classification,
         risk=risk,
         evidence=evidence,
-        signatures=(SignatureMatch(attack_type, attack_detected, 1.0),) if attack_type != "normal" else (),
-        anomalies=(AnomalyResult("burst", attack_detected, 2.0, 1.0, 1.5, 1.0),) if attack_detected else (),
+        signatures=(
+            (SignatureMatch(attack_type, attack_detected, 1.0),)
+            if attack_type != "normal"
+            else ()
+        ),
+        anomalies=(
+            (AnomalyResult("burst", attack_detected, 2.0, 1.0, 1.5, 1.0),)
+            if attack_detected
+            else ()
+        ),
         baseline_source="fixture",
         created_at=datetime(2026, 1, 1, tzinfo=timezone.utc).isoformat(),
     )
@@ -132,12 +140,20 @@ def _evaluate(
     monkeypatch.setattr(mitigation_engine, "MITIGATION_DIR", tmp_path / "mitigation")
     monkeypatch.setattr(policy_engine, "POLICY_DIR", tmp_path / "policy")
     monkeypatch.setattr(policy_history, "POLICY_DIR", tmp_path / "policy")
-    monkeypatch.setattr(policy_history, "HISTORY_PATH", tmp_path / "policy" / "history.json")
+    monkeypatch.setattr(
+        policy_history, "HISTORY_PATH", tmp_path / "policy" / "history.json"
+    )
     monkeypatch.setattr(policy_learning, "POLICY_DIR", tmp_path / "policy")
-    monkeypatch.setattr(policy_learning, "LEARNING_PATH", tmp_path / "policy" / "learning.json")
+    monkeypatch.setattr(
+        policy_learning, "LEARNING_PATH", tmp_path / "policy" / "learning.json"
+    )
     monkeypatch.setattr(policy_rollback, "POLICY_DIR", tmp_path / "policy")
-    monkeypatch.setattr(policy_rollback, "ROLLBACK_PATH", tmp_path / "policy" / "rollback.json")
-    return evaluate_mitigation({}, detection=detection, telemetry=telemetry or _telemetry())
+    monkeypatch.setattr(
+        policy_rollback, "ROLLBACK_PATH", tmp_path / "policy" / "rollback.json"
+    )
+    return evaluate_mitigation(
+        {}, detection=detection, telemetry=telemetry or _telemetry()
+    )
 
 
 def test_syn_flood_blocking(tmp_path: Path, monkeypatch) -> None:
@@ -168,13 +184,19 @@ def test_icmp_traffic_dropping(tmp_path: Path, monkeypatch) -> None:
 
 
 def test_quarantine_host_action(tmp_path: Path, monkeypatch) -> None:
-    result = _evaluate(tmp_path, monkeypatch, _detection("connection_exhaustion", "HIGH", 0.87))
+    result = _evaluate(
+        tmp_path, monkeypatch, _detection("connection_exhaustion", "HIGH", 0.87)
+    )
     assert result.mitigation_action == "quarantine_host"
     assert result.action_payload.duration_seconds == 1800
 
 
 def test_subnet_isolation_action(tmp_path: Path, monkeypatch) -> None:
-    policy = type("PolicyEval", (), {"recommended_action": "isolate_subnet", "escalation_level": 3})()
+    policy = type(
+        "PolicyEval",
+        (),
+        {"recommended_action": "isolate_subnet", "escalation_level": 3},
+    )()
     from nsddos.runtime.mitigation import engine as mitigation_engine
 
     monkeypatch.setattr(mitigation_engine, "MITIGATION_DIR", tmp_path / "mitigation")
@@ -198,14 +220,29 @@ def test_invalid_policy_rejection(tmp_path: Path, monkeypatch) -> None:
     from nsddos.runtime.mitigation import engine as mitigation_engine
 
     monkeypatch.setattr(mitigation_engine, "MITIGATION_DIR", tmp_path / "mitigation")
-    monkeypatch.setattr(mitigation_engine, "evaluate_dynamic_policy", lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("offline")))
+    monkeypatch.setattr(
+        mitigation_engine,
+        "evaluate_dynamic_policy",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("offline")),
+    )
     monkeypatch.setattr(
         mitigation_engine,
         "evaluate_policy",
-        lambda detection: type("BadPolicy", (), {"selected_action": "not-real", "reason": "bad", "policy_name": "policy_block_ip", "mitigation_required": True})(),
+        lambda detection: type(
+            "BadPolicy",
+            (),
+            {
+                "selected_action": "not-real",
+                "reason": "bad",
+                "policy_name": "policy_block_ip",
+                "mitigation_required": True,
+            },
+        )(),
     )
     try:
-        evaluate_mitigation({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
+        evaluate_mitigation(
+            {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+        )
     except KeyError as exc:
         assert "not-real" in str(exc)
     else:
@@ -215,27 +252,41 @@ def test_invalid_policy_rejection(tmp_path: Path, monkeypatch) -> None:
 def test_mitigation_hash_determinism(tmp_path: Path, monkeypatch) -> None:
     detection = _detection("syn_flood", "HIGH", 0.91)
     telemetry = _telemetry(timestamp="2026-01-01T00:00:00+00:00")
-    policy = type("PolicyEval", (), {"recommended_action": "rate_limit", "escalation_level": 1})()
+    policy = type(
+        "PolicyEval", (), {"recommended_action": "rate_limit", "escalation_level": 1}
+    )()
     from nsddos.runtime.mitigation import engine as mitigation_engine
 
     monkeypatch.setattr(mitigation_engine, "MITIGATION_DIR", tmp_path / "mitigation")
-    first = evaluate_mitigation({}, detection=detection, policy=policy, telemetry=telemetry)
-    second = evaluate_mitigation({}, detection=detection, policy=policy, telemetry=telemetry)
+    first = evaluate_mitigation(
+        {}, detection=detection, policy=policy, telemetry=telemetry
+    )
+    second = evaluate_mitigation(
+        {}, detection=detection, policy=policy, telemetry=telemetry
+    )
     assert first.mitigation_hash == second.mitigation_hash
     assert first.mitigation_generation == second.mitigation_generation
 
 
 def test_controller_payload_determinism(tmp_path: Path, monkeypatch) -> None:
     detection = _detection("syn_flood", "HIGH", 0.91)
-    policy = type("PolicyEval", (), {"recommended_action": "rate_limit", "escalation_level": 1})()
+    policy = type(
+        "PolicyEval", (), {"recommended_action": "rate_limit", "escalation_level": 1}
+    )()
     from nsddos.runtime.mitigation import engine as mitigation_engine
 
     monkeypatch.setattr(mitigation_engine, "MITIGATION_DIR", tmp_path / "mitigation")
-    first = evaluate_mitigation({}, detection=detection, policy=policy, telemetry=_telemetry())
-    second = evaluate_mitigation({}, detection=detection, policy=policy, telemetry=_telemetry())
+    first = evaluate_mitigation(
+        {}, detection=detection, policy=policy, telemetry=_telemetry()
+    )
+    second = evaluate_mitigation(
+        {}, detection=detection, policy=policy, telemetry=_telemetry()
+    )
     assert first.controller_payload is not None
     assert second.controller_payload is not None
-    assert first.controller_payload.payload_hash == second.controller_payload.payload_hash
+    assert (
+        first.controller_payload.payload_hash == second.controller_payload.payload_hash
+    )
     assert first.controller_payload.command == second.controller_payload.command
     assert first.controller_payload.controller_type == "floodlight-ovs-lab"
     assert "nw_src=10.0.0.8" in first.controller_payload.ovs_flow
@@ -278,8 +329,12 @@ def test_alert_only_enforcement_is_noop(tmp_path: Path, monkeypatch) -> None:
         def __getattr__(self, _name: str):
             raise AssertionError("provider mutation should not run for alert_only")
 
-    registry = type("Registry", (), {"floodlight": _Guard(), "ovs": _Guard(), "mininet": _Guard()})()
-    monkeypatch.setattr(enforcement_module, "build_live_provider_registry", lambda config: registry)
+    registry = type(
+        "Registry", (), {"floodlight": _Guard(), "ovs": _Guard(), "mininet": _Guard()}
+    )()
+    monkeypatch.setattr(
+        enforcement_module, "build_live_provider_registry", lambda config: registry
+    )
 
     enforced = enforcement_module.enforce_mitigation({}, evaluation)
 
@@ -291,7 +346,9 @@ def test_alert_only_enforcement_is_noop(tmp_path: Path, monkeypatch) -> None:
     assert enforced.traffic_block_status == "not_attempted"
 
 
-def test_enforcement_success_updates_verification_state(tmp_path: Path, monkeypatch) -> None:
+def test_enforcement_success_updates_verification_state(
+    tmp_path: Path, monkeypatch
+) -> None:
     from nsddos.runtime.mitigation import enforcement as enforcement_module
     from nsddos.runtime.mitigation import engine as mitigation_engine
 
@@ -327,10 +384,18 @@ def test_enforcement_success_updates_verification_state(tmp_path: Path, monkeypa
                 "detail": "100% packet loss",
             }
 
-    registry = type("Registry", (), {"floodlight": _Floodlight(), "ovs": _Ovs(), "mininet": _Mininet()})()
-    monkeypatch.setattr(enforcement_module, "build_live_provider_registry", lambda config: registry)
+    registry = type(
+        "Registry",
+        (),
+        {"floodlight": _Floodlight(), "ovs": _Ovs(), "mininet": _Mininet()},
+    )()
+    monkeypatch.setattr(
+        enforcement_module, "build_live_provider_registry", lambda config: registry
+    )
 
-    enforced = enforcement_module.enforce_mitigation({"lab": {"ovs_bridge": "s1"}}, evaluation)
+    enforced = enforcement_module.enforce_mitigation(
+        {"lab": {"ovs_bridge": "s1"}}, evaluation
+    )
 
     assert enforced.mitigation_status == "verified"
     assert enforced.execution_result == "traffic_blocked_verified"
@@ -341,7 +406,9 @@ def test_enforcement_success_updates_verification_state(tmp_path: Path, monkeypa
     assert enforced.enforcement_evidence["traffic_probe"]["blocked"] is True
 
 
-def test_enforcement_ovs_failure_sets_failed_result(tmp_path: Path, monkeypatch) -> None:
+def test_enforcement_ovs_failure_sets_failed_result(
+    tmp_path: Path, monkeypatch
+) -> None:
     from nsddos.runtime.mitigation import enforcement as enforcement_module
     from nsddos.runtime.mitigation import engine as mitigation_engine
 
@@ -373,10 +440,18 @@ def test_enforcement_ovs_failure_sets_failed_result(tmp_path: Path, monkeypatch)
         def probe_traffic_drop(self, source_host: str, destination_ip: str) -> dict:
             raise AssertionError("traffic probe must not run after ovs install failure")
 
-    registry = type("Registry", (), {"floodlight": _Floodlight(), "ovs": _Ovs(), "mininet": _Mininet()})()
-    monkeypatch.setattr(enforcement_module, "build_live_provider_registry", lambda config: registry)
+    registry = type(
+        "Registry",
+        (),
+        {"floodlight": _Floodlight(), "ovs": _Ovs(), "mininet": _Mininet()},
+    )()
+    monkeypatch.setattr(
+        enforcement_module, "build_live_provider_registry", lambda config: registry
+    )
 
-    enforced = enforcement_module.enforce_mitigation({"lab": {"ovs_bridge": "s1"}}, evaluation)
+    enforced = enforcement_module.enforce_mitigation(
+        {"lab": {"ovs_bridge": "s1"}}, evaluation
+    )
 
     assert enforced.mitigation_status == "enforcement_failed"
     assert enforced.execution_result == "ovs_flow_insert_failed"
@@ -386,7 +461,9 @@ def test_enforcement_ovs_failure_sets_failed_result(tmp_path: Path, monkeypatch)
     assert enforced.traffic_block_status == "not_attempted"
 
 
-def test_dynamic_policy_feeds_mitigation_recommendation(tmp_path: Path, monkeypatch) -> None:
+def test_dynamic_policy_feeds_mitigation_recommendation(
+    tmp_path: Path, monkeypatch
+) -> None:
     from nsddos.runtime.mitigation import engine as mitigation_engine
     from nsddos.runtime.policy import engine as policy_engine
     from nsddos.runtime.policy import history as policy_history
@@ -396,11 +473,17 @@ def test_dynamic_policy_feeds_mitigation_recommendation(tmp_path: Path, monkeypa
     monkeypatch.setattr(mitigation_engine, "MITIGATION_DIR", tmp_path / "mitigation")
     monkeypatch.setattr(policy_engine, "POLICY_DIR", tmp_path / "policy")
     monkeypatch.setattr(policy_history, "POLICY_DIR", tmp_path / "policy")
-    monkeypatch.setattr(policy_history, "HISTORY_PATH", tmp_path / "policy" / "history.json")
+    monkeypatch.setattr(
+        policy_history, "HISTORY_PATH", tmp_path / "policy" / "history.json"
+    )
     monkeypatch.setattr(policy_learning, "POLICY_DIR", tmp_path / "policy")
-    monkeypatch.setattr(policy_learning, "LEARNING_PATH", tmp_path / "policy" / "learning.json")
+    monkeypatch.setattr(
+        policy_learning, "LEARNING_PATH", tmp_path / "policy" / "learning.json"
+    )
     monkeypatch.setattr(policy_rollback, "POLICY_DIR", tmp_path / "policy")
-    monkeypatch.setattr(policy_rollback, "ROLLBACK_PATH", tmp_path / "policy" / "rollback.json")
+    monkeypatch.setattr(
+        policy_rollback, "ROLLBACK_PATH", tmp_path / "policy" / "rollback.json"
+    )
     policy = policy_engine.evaluate_dynamic_policy(
         {"runtime": {"policy": {"enabled": True}}},
         detection=_detection("syn_flood", "HIGH", 0.91),
@@ -415,11 +498,17 @@ def test_dynamic_policy_feeds_mitigation_recommendation(tmp_path: Path, monkeypa
     assert result.mitigation_action == policy.recommended_action
 
 
-def test_static_mitigation_policy_fallback_when_dynamic_policy_unavailable(tmp_path: Path, monkeypatch) -> None:
+def test_static_mitigation_policy_fallback_when_dynamic_policy_unavailable(
+    tmp_path: Path, monkeypatch
+) -> None:
     from nsddos.runtime.mitigation import engine as mitigation_engine
 
     monkeypatch.setattr(mitigation_engine, "MITIGATION_DIR", tmp_path / "mitigation")
-    monkeypatch.setattr(mitigation_engine, "evaluate_dynamic_policy", lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("offline")))
+    monkeypatch.setattr(
+        mitigation_engine,
+        "evaluate_dynamic_policy",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("offline")),
+    )
     result = evaluate_mitigation(
         {},
         detection=_detection("udp_flood", "MEDIUM", 0.76),

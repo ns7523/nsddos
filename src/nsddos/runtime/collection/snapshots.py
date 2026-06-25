@@ -18,4 +18,3 @@ def write_collection_snapshot(bundle: RuntimeCollectionBundle) -> Path:
     path = snapshot_dir / f"collection-{stamp}.json"
     atomic_write_json(path, bundle.to_dict())
     return path
-

@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from nsddos.runtime.simulation import build_simulation_diagnostics, generate_attack_traffic
+from nsddos.runtime.simulation import (
+    build_simulation_diagnostics,
+    generate_attack_traffic,
+)
 
 
 def query_simulation(config: dict[str, Any], query) -> dict[str, Any]:

@@ -44,7 +44,9 @@ def build_dataset_snapshot(
         rows.append(row)
     rows = sorted(rows, key=lambda item: (item.timestamp, item.row_id))[-limit:]
     updated_at = reference_at or datetime.now(timezone.utc).isoformat()
-    dataset_id = deterministic_id("ml-dataset", f"{len(rows)}:{rows[-1].row_id if rows else 'empty'}")
+    dataset_id = deterministic_id(
+        "ml-dataset", f"{len(rows)}:{rows[-1].row_id if rows else 'empty'}"
+    )
     return MLDatasetSnapshot(
         dataset_id=dataset_id,
         rows=tuple(rows),

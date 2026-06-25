@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from nsddos.runtime.mitigation.contracts import MITIGATION_ACTIONS, POLICY_NAMES, STRATEGY_NAMES
+from nsddos.runtime.mitigation.contracts import (
+    MITIGATION_ACTIONS,
+    POLICY_NAMES,
+    STRATEGY_NAMES,
+)
 
 
 @dataclass(frozen=True)

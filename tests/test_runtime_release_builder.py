@@ -6,7 +6,9 @@ import tarfile
 from pathlib import Path
 
 
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "build_runtime_release.py"
+SCRIPT_PATH = (
+    Path(__file__).resolve().parents[1] / "scripts" / "build_runtime_release.py"
+)
 
 
 def _load_module():
@@ -27,7 +29,9 @@ def test_runtime_release_builder_outputs_bundle_and_manifest(tmp_path):
     (repo_root / "docker").mkdir(parents=True)
     (repo_root / "external/floodlight/floodlight.jar").write_bytes(b"floodlight")
     (repo_root / "external/sflowrt/lib/sflowrt.jar").write_bytes(b"sflowrt")
-    (repo_root / "docker/floodlight.Dockerfile").write_text("FROM scratch\n", encoding="utf-8")
+    (repo_root / "docker/floodlight.Dockerfile").write_text(
+        "FROM scratch\n", encoding="utf-8"
+    )
     (repo_root / "docker-compose.yml").write_text("services: {}\n", encoding="utf-8")
 
     bundle_path, manifest_path = module.build_runtime_release(

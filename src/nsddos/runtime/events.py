@@ -51,7 +51,9 @@ def load_runtime_events(event_path: Path = EVENTS_PATH) -> list[dict[str, Any]]:
     return events
 
 
-def build_runtime_timeline(event_path: Path = EVENTS_PATH) -> list[RuntimeTimelineEvent]:
+def build_runtime_timeline(
+    event_path: Path = EVENTS_PATH,
+) -> list[RuntimeTimelineEvent]:
     """Reconstruct ordered runtime timeline from persisted events."""
     raw_events = load_runtime_events(event_path)
     timeline: list[RuntimeTimelineEvent] = []

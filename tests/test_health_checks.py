@@ -14,10 +14,20 @@ class _StubProvider:
         return dict(self.payload)
 
 
-def test_collect_static_health_only_checks_orchestration_prereqs(monkeypatch, tmp_path) -> None:
-    monkeypatch.setattr("nsddos.health_checks.which", lambda name: "/usr/bin/docker" if name == "docker" else None)
-    monkeypatch.setattr("nsddos.health_checks.load_config", lambda: {"api_port": 8011, "lab": {}})
-    monkeypatch.setattr("nsddos.health_checks.ensure_runtime_directories", lambda: (tmp_path / "runtime",))
+def test_collect_static_health_only_checks_orchestration_prereqs(
+    monkeypatch, tmp_path
+) -> None:
+    monkeypatch.setattr(
+        "nsddos.health_checks.which",
+        lambda name: "/usr/bin/docker" if name == "docker" else None,
+    )
+    monkeypatch.setattr(
+        "nsddos.health_checks.load_config", lambda: {"api_port": 8011, "lab": {}}
+    )
+    monkeypatch.setattr(
+        "nsddos.health_checks.ensure_runtime_directories",
+        lambda: (tmp_path / "runtime",),
+    )
 
     results = {item.name: item for item in health_checks.collect_static_health()}
 
@@ -27,10 +37,14 @@ def test_collect_static_health_only_checks_orchestration_prereqs(monkeypatch, tm
     assert results["runtime_assets"].category == "static"
 
 
-def test_collect_runtime_health_requires_exact_stack_containers_only(monkeypatch) -> None:
+def test_collect_runtime_health_requires_exact_stack_containers_only(
+    monkeypatch,
+) -> None:
     services = [
         ServiceState(name="labhost", status="running", healthy=True, detail="healthy"),
-        ServiceState(name="floodlight", status="running", healthy=True, detail="healthy"),
+        ServiceState(
+            name="floodlight", status="running", healthy=True, detail="healthy"
+        ),
         ServiceState(name="sflowrt", status="running", healthy=True, detail="healthy"),
         ServiceState(name="detector", status="running", healthy=True, detail="healthy"),
         ServiceState(name="unrelated", status="exited", healthy=False, detail="exited"),
@@ -85,9 +99,13 @@ def test_collect_runtime_health_requires_exact_stack_containers_only(monkeypatch
     assert results["ovs"].detail == "ovs-vswitchd running"
 
 
-def test_collect_runtime_health_fails_when_required_container_missing(monkeypatch) -> None:
+def test_collect_runtime_health_fails_when_required_container_missing(
+    monkeypatch,
+) -> None:
     services = [
-        ServiceState(name="floodlight", status="running", healthy=True, detail="healthy"),
+        ServiceState(
+            name="floodlight", status="running", healthy=True, detail="healthy"
+        ),
         ServiceState(name="sflowrt", status="running", healthy=True, detail="healthy"),
         ServiceState(name="detector", status="running", healthy=True, detail="healthy"),
     ]
@@ -116,9 +134,20 @@ def test_collect_runtime_health_fails_when_required_container_missing(monkeypatc
     )
     monkeypatch.setattr(
         "nsddos.health_checks.MininetProvider",
-        lambda: _StubProvider({"installed": False, "controller_reachable": False, "controller": "floodlight:6653", "ready": False, "detail": "labhost unavailable"}),
+        lambda: _StubProvider(
+            {
+                "installed": False,
+                "controller_reachable": False,
+                "controller": "floodlight:6653",
+                "ready": False,
+                "detail": "labhost unavailable",
+            }
+        ),
     )
-    monkeypatch.setattr("nsddos.health_checks.OVSProvider", lambda: _StubProvider({"ready": True, "detail": "ovs-vswitchd running"}))
+    monkeypatch.setattr(
+        "nsddos.health_checks.OVSProvider",
+        lambda: _StubProvider({"ready": True, "detail": "ovs-vswitchd running"}),
+    )
 
     results = {item.name: item for item in health_checks.collect_runtime_health()}
 
@@ -127,9 +156,17 @@ def test_collect_runtime_health_fails_when_required_container_missing(monkeypatc
 
 
 def test_deployment_health_uses_corrected_helper_aware_results(monkeypatch) -> None:
-    monkeypatch.setattr("nsddos.deployment.healthcheck.DockerManager.is_docker_installed", lambda self: True)
-    monkeypatch.setattr("nsddos.deployment.healthcheck.DockerManager.is_daemon_running", lambda self: True)
-    monkeypatch.setattr("nsddos.deployment.healthcheck.DockerManager.compose_exists", lambda self: True)
+    monkeypatch.setattr(
+        "nsddos.deployment.healthcheck.DockerManager.is_docker_installed",
+        lambda self: True,
+    )
+    monkeypatch.setattr(
+        "nsddos.deployment.healthcheck.DockerManager.is_daemon_running",
+        lambda self: True,
+    )
+    monkeypatch.setattr(
+        "nsddos.deployment.healthcheck.DockerManager.compose_exists", lambda self: True
+    )
     monkeypatch.setattr(
         "nsddos.deployment.healthcheck.collect_static_health",
         lambda: [

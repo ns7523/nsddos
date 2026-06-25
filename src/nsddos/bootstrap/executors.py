@@ -9,7 +9,11 @@ from pathlib import Path
 
 from nsddos.bootstrap.commands import SystemCommand
 from nsddos.bootstrap.assets import download_runtime_assets
-from nsddos.config import ensure_default_config, ensure_runtime_directories, ensure_runtime_state
+from nsddos.config import (
+    ensure_default_config,
+    ensure_runtime_directories,
+    ensure_runtime_state,
+)
 from nsddos.constants import get_compose_file
 from nsddos.compose import resolve_compose_command
 
@@ -31,7 +35,9 @@ def run_system_command(command: SystemCommand) -> CommandExecutionResult:
     if command.kind == "compose":
         backend = resolve_compose_command()
         if backend is None:
-            return CommandExecutionResult(command, False, 1, "", "Compose backend unavailable")
+            return CommandExecutionResult(
+                command, False, 1, "", "Compose backend unavailable"
+            )
         try:
             completed = subprocess.run(
                 (*backend, "-f", str(get_compose_file()), *command.compose_args),
@@ -93,8 +99,12 @@ def run_system_command(command: SystemCommand) -> CommandExecutionResult:
         return CommandExecutionResult(command, True, 0, "runtime initialized", "")
     if command.kind == "asset-download":
         try:
-            result = download_runtime_assets(version=command.runtime_version, force=command.force)
+            result = download_runtime_assets(
+                version=command.runtime_version, force=command.force
+            )
         except Exception as exc:
             return CommandExecutionResult(command, False, 1, "", str(exc))
         return CommandExecutionResult(command, True, 0, result.detail, "")
-    return CommandExecutionResult(command, False, 1, "", f"Unsupported command kind: {command.kind}")
+    return CommandExecutionResult(
+        command, False, 1, "", f"Unsupported command kind: {command.kind}"
+    )

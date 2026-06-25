@@ -15,7 +15,11 @@ from nsddos.runtime.domain.identifiers import deterministic_id
 from nsddos.runtime.freshness.validation import filter_expired
 from nsddos.runtime.producers import produce_records
 from nsddos.runtime.query.filters import apply_filters
-from nsddos.runtime.query.models import RuntimeQuery, RuntimeQueryEvidence, RuntimeQueryResult
+from nsddos.runtime.query.models import (
+    RuntimeQuery,
+    RuntimeQueryEvidence,
+    RuntimeQueryResult,
+)
 from nsddos.runtime.query.pagination import paginate
 from nsddos.runtime.query.registry import RuntimeQueryDefinition, default_query_registry
 
@@ -59,7 +63,8 @@ def execute_query(config: dict[str, Any], query: RuntimeQuery) -> RuntimeQueryRe
     filter_start = monotonic()
     filtered = apply_filters(typed_items, query.filters)
     include_expired = query.scope in ARCHIVAL_SCOPES or any(
-        item.field == "validity_state" and item.value == "expired" for item in query.filters
+        item.field == "validity_state" and item.value == "expired"
+        for item in query.filters
     )
     items = filter_expired(filtered, include_expired=include_expired)
     metrics["filter_ms"] = (monotonic() - filter_start) * 1000
@@ -68,9 +73,17 @@ def execute_query(config: dict[str, Any], query: RuntimeQuery) -> RuntimeQueryRe
     page = paginate(items, query.pagination)
     typed_page = []
     for index, item in enumerate(page):
-        item_id = str(item.get("id", deterministic_id("query-item", f"{query.name}:{index}:{item}")))
+        item_id = str(
+            item.get(
+                "id", deterministic_id("query-item", f"{query.name}:{index}:{item}")
+            )
+        )
         item_type = str(item.get("type", query.name))
-        typed_page.append(RuntimeRecord(record_id=item_id, record_type=item_type, payload=item).to_dict())
+        typed_page.append(
+            RuntimeRecord(
+                record_id=item_id, record_type=item_type, payload=item
+            ).to_dict()
+        )
     metrics["pagination_ms"] = (monotonic() - pagination_start) * 1000
     duration_ms = (monotonic() - start) * 1000
     metrics["query_execution_ms"] = duration_ms
@@ -80,7 +93,9 @@ def execute_query(config: dict[str, Any], query: RuntimeQuery) -> RuntimeQueryRe
         metrics["replay_query_ms"] = metrics["selector_ms"]
     evidence = [
         RuntimeQueryEvidence("query", query.name, f"scope={query.scope}"),
-        RuntimeQueryEvidence("dependencies", ",".join(definition.dependencies), "query dependencies"),
+        RuntimeQueryEvidence(
+            "dependencies", ",".join(definition.dependencies), "query dependencies"
+        ),
     ]
     result = RuntimeQueryResult(
         query=query,
@@ -93,14 +108,22 @@ def execute_query(config: dict[str, Any], query: RuntimeQuery) -> RuntimeQueryRe
         freshness={
             "expired_filtered": len(filtered) - len(items),
             "include_expired": include_expired,
-            "valid_items": len([item for item in items if item.get("validity_state") == "valid"]),
-            "stale_items": len([item for item in items if item.get("validity_state") == "stale"]),
-            "replay_only_items": len([item for item in items if item.get("validity_state") == "replay_only"]),
+            "valid_items": len(
+                [item for item in items if item.get("validity_state") == "valid"]
+            ),
+            "stale_items": len(
+                [item for item in items if item.get("validity_state") == "stale"]
+            ),
+            "replay_only_items": len(
+                [item for item in items if item.get("validity_state") == "replay_only"]
+            ),
         },
     )
     record_timing(f"query.{query.name}", duration_ms)
     artifact = _persist_query_result(result)
-    cache_meta = set_cache("runtime-query", query.to_dict(), {"artifact": artifact, "total": total})
+    cache_meta = set_cache(
+        "runtime-query", query.to_dict(), {"artifact": artifact, "total": total}
+    )
     result.cache = cache_meta
     return result
 

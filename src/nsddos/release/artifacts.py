@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import hashlib
 
-from nsddos.release.contracts import ArtifactMetadata, PackageMetadata, ReleaseCandidateEvaluation
+from nsddos.release.contracts import (
+    ArtifactMetadata,
+    PackageMetadata,
+    ReleaseCandidateEvaluation,
+)
 
 
 def build_artifacts(
@@ -20,8 +24,12 @@ def build_artifacts(
     )
     artifacts: list[ArtifactMetadata] = []
     for artifact_type, name in artifact_specs:
-        checksum = hashlib.new(checksum_algorithm, f"{release_id}:{artifact_type}:{name}".encode("utf-8")).hexdigest()
-        signature = hashlib.new(checksum_algorithm, f"sig:{checksum}".encode("utf-8")).hexdigest()
+        checksum = hashlib.new(
+            checksum_algorithm, f"{release_id}:{artifact_type}:{name}".encode("utf-8")
+        ).hexdigest()
+        signature = hashlib.new(
+            checksum_algorithm, f"sig:{checksum}".encode("utf-8")
+        ).hexdigest()
         artifacts.append(
             ArtifactMetadata(
                 artifact_id=f"{release_id}:{artifact_type}",

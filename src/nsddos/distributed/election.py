@@ -12,7 +12,9 @@ _STATE_PRIORITY = {
 }
 
 
-def elect_leaders(nodes: tuple[ClusterNode, ...], election_timeout_seconds: int = 5) -> LeaderState:
+def elect_leaders(
+    nodes: tuple[ClusterNode, ...], election_timeout_seconds: int = 5
+) -> LeaderState:
     """Elect primary and standby leaders deterministically."""
     ranked = sorted(
         nodes,

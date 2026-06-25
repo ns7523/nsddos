@@ -23,7 +23,11 @@ def persist_verification_execution(payload: dict[str, Any]) -> str:
 
 def replay_verification_runs(limit: int = 10) -> dict[str, Any]:
     """Load recent verification executions."""
-    files = sorted(VERIFICATION_DIR.glob("verification-*.json")) if VERIFICATION_DIR.exists() else []
+    files = (
+        sorted(VERIFICATION_DIR.glob("verification-*.json"))
+        if VERIFICATION_DIR.exists()
+        else []
+    )
     runs = [read_json_checked(path) for path in files[-limit:]]
     transitions = []
     for previous, current in zip(runs, runs[1:]):

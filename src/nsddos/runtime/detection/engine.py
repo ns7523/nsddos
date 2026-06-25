@@ -14,11 +14,24 @@ from nsddos.runtime.detection.evidence import build_detection_evidence
 from nsddos.runtime.detection.features import extract_feature_vector
 from nsddos.runtime.detection.models import DetectionEvaluation
 from nsddos.runtime.detection.risk import assess_risk
-from nsddos.runtime.detection.scoring import anomaly_score, signature_score, traffic_intensity_score
+from nsddos.runtime.detection.scoring import (
+    anomaly_score,
+    signature_score,
+    traffic_intensity_score,
+)
 from nsddos.runtime.detection.signatures import match_signatures
-from nsddos.runtime.detection.validation import validate_detection_evaluation, validate_detection_telemetry
-from nsddos.runtime.providers.live.telemetry import collect_live_telemetry, snapshot_to_detection_telemetry
-from nsddos.runtime.simulation import contract_to_detection_telemetry, generate_attack_traffic
+from nsddos.runtime.detection.validation import (
+    validate_detection_evaluation,
+    validate_detection_telemetry,
+)
+from nsddos.runtime.providers.live.telemetry import (
+    collect_live_telemetry,
+    snapshot_to_detection_telemetry,
+)
+from nsddos.runtime.simulation import (
+    contract_to_detection_telemetry,
+    generate_attack_traffic,
+)
 from nsddos.runtime.persistence import atomic_write_json, read_json_checked
 
 DETECTION_DIR = RUNTIME_DIR / "detection"
@@ -28,7 +41,9 @@ def _provider_url(config: dict[str, Any]) -> str:
     return resolve_sflowrt_api_url(config)
 
 
-def _default_telemetry(config: dict[str, Any], reference_at: str | None = None) -> dict[str, Any]:
+def _default_telemetry(
+    config: dict[str, Any], reference_at: str | None = None
+) -> dict[str, Any]:
     if config.get("runtime", {}).get("live", {}).get("enabled", False):
         snapshot = collect_live_telemetry(config)
         return snapshot_to_detection_telemetry(snapshot)
@@ -37,12 +52,17 @@ def _default_telemetry(config: dict[str, Any], reference_at: str | None = None) 
         return contract_to_detection_telemetry(contract)
     bundle = collect_runtime_bundle(config)
     collector_reachable = bool(bundle.telemetry_state.get("collector_reachable", False))
-    provider = SFlowProvider(api_url=_provider_url(config)) if collector_reachable else None
+    provider = (
+        SFlowProvider(api_url=_provider_url(config)) if collector_reachable else None
+    )
     flows = provider.flows() if provider is not None else []
     return {
         "provider_source": "sflowrt" if collector_reachable else "runtime-collection",
         "timestamp": reference_at or datetime.now(timezone.utc).isoformat(),
-        "sample_window_seconds": bundle.freshness_state.get("sample_interval_seconds", 1.0) or 1.0,
+        "sample_window_seconds": bundle.freshness_state.get(
+            "sample_interval_seconds", 1.0
+        )
+        or 1.0,
         "flows": flows,
         "flow_state": bundle.flow_state,
         "telemetry_state": bundle.telemetry_state,
@@ -97,7 +117,9 @@ def evaluate_detection(
         evidence_hash=evidence.evidence_hash,
         classification_generation=evidence.classification_generation,
         detection_status=detection_status,
-        telemetry_timestamp=str(payload.get("timestamp", datetime.now(timezone.utc).isoformat())),
+        telemetry_timestamp=str(
+            payload.get("timestamp", datetime.now(timezone.utc).isoformat())
+        ),
         feature_vector=features,
         classification=classification,
         risk=risk,

@@ -9,9 +9,18 @@ from nsddos.bootstrap.commands import venv_command
 from nsddos.bootstrap.executors import CommandExecutionResult, run_system_command
 from nsddos.bootstrap.installer import commands_for_requirement, execute_install_plan
 from nsddos.bootstrap.os_profiles import OSProfile
-from nsddos.bootstrap.package_manager import build_install_commands, select_package_manager
+from nsddos.bootstrap.package_manager import (
+    build_install_commands,
+    select_package_manager,
+)
 from nsddos.bootstrap.rollback import rollback_commands
-from nsddos.bootstrap.state import DependencyPlan, DeploymentProfile, EnvironmentScan, InstallRequirement, ToolStatus
+from nsddos.bootstrap.state import (
+    DependencyPlan,
+    DeploymentProfile,
+    EnvironmentScan,
+    InstallRequirement,
+    ToolStatus,
+)
 from nsddos.bootstrap.terminal import create_console
 
 
@@ -23,7 +32,9 @@ def _scan(**overrides) -> EnvironmentScan:
         "virtualenv_active": True,
         "docker": ToolStatus(name="docker", installed=True, detail="/usr/bin/docker"),
         "docker_daemon_running": True,
-        "docker_compose": ToolStatus(name="docker-compose", installed=True, detail="docker compose"),
+        "docker_compose": ToolStatus(
+            name="docker-compose", installed=True, detail="docker compose"
+        ),
         "docker_permissions_ready": True,
         "git": ToolStatus(name="git", installed=True, detail="/usr/bin/git"),
         "available_memory_bytes": 16 * 1024**3,
@@ -39,7 +50,13 @@ def _scan(**overrides) -> EnvironmentScan:
 
 def test_package_manager_selection_prefers_apt_for_ubuntu() -> None:
     manager = select_package_manager(
-        OSProfile(family="Linux", distribution="ubuntu", package_manager="apt", supported=True, homebrew_installed=False)
+        OSProfile(
+            family="Linux",
+            distribution="ubuntu",
+            package_manager="apt",
+            supported=True,
+            homebrew_installed=False,
+        )
     )
     commands = build_install_commands(manager, ("git",))
     assert manager.name == "apt"
@@ -52,7 +69,13 @@ def test_commands_for_docker_install_are_generated() -> None:
     commands = commands_for_requirement(
         requirement,
         _scan(docker=ToolStatus(name="docker", installed=False, detail=None)),
-        OSProfile(family="Linux", distribution="ubuntu", package_manager="apt", supported=True, homebrew_installed=False),
+        OSProfile(
+            family="Linux",
+            distribution="ubuntu",
+            package_manager="apt",
+            supported=True,
+            homebrew_installed=False,
+        ),
     )
     assert commands[0].argv == ("sudo", "apt", "update")
     assert commands[1].argv == ("sudo", "apt", "install", "-y", "docker.io")
@@ -64,7 +87,13 @@ def test_build_containers_requirement_uses_compose_command_kind() -> None:
     commands = commands_for_requirement(
         requirement,
         _scan(),
-        OSProfile(family="Linux", distribution="ubuntu", package_manager="apt", supported=True, homebrew_installed=False),
+        OSProfile(
+            family="Linux",
+            distribution="ubuntu",
+            package_manager="apt",
+            supported=True,
+            homebrew_installed=False,
+        ),
     )
 
     assert len(commands) == 1
@@ -78,7 +107,13 @@ def test_download_runtime_assets_requirement_uses_asset_command() -> None:
     commands = commands_for_requirement(
         requirement,
         _scan(runtime_assets_ready=False),
-        OSProfile(family="Linux", distribution="ubuntu", package_manager="apt", supported=True, homebrew_installed=False),
+        OSProfile(
+            family="Linux",
+            distribution="ubuntu",
+            package_manager="apt",
+            supported=True,
+            homebrew_installed=False,
+        ),
     )
 
     assert len(commands) == 1
@@ -89,11 +124,20 @@ def test_run_system_command_uses_v2_compose_backend(monkeypatch) -> None:
     command = commands_for_requirement(
         InstallRequirement("H", "Build Containers", "Build images."),
         _scan(),
-        OSProfile(family="Linux", distribution="ubuntu", package_manager="apt", supported=True, homebrew_installed=False),
+        OSProfile(
+            family="Linux",
+            distribution="ubuntu",
+            package_manager="apt",
+            supported=True,
+            homebrew_installed=False,
+        ),
     )[0]
     captured: dict[str, tuple[str, ...]] = {}
 
-    monkeypatch.setattr("nsddos.bootstrap.executors.resolve_compose_command", lambda: ("docker", "compose"))
+    monkeypatch.setattr(
+        "nsddos.bootstrap.executors.resolve_compose_command",
+        lambda: ("docker", "compose"),
+    )
 
     def fake_run(argv, **kwargs):
         captured["argv"] = tuple(argv)
@@ -112,11 +156,20 @@ def test_run_system_command_uses_v1_compose_backend(monkeypatch) -> None:
     command = commands_for_requirement(
         InstallRequirement("H", "Build Containers", "Build images."),
         _scan(),
-        OSProfile(family="Linux", distribution="ubuntu", package_manager="apt", supported=True, homebrew_installed=False),
+        OSProfile(
+            family="Linux",
+            distribution="ubuntu",
+            package_manager="apt",
+            supported=True,
+            homebrew_installed=False,
+        ),
     )[0]
     captured: dict[str, tuple[str, ...]] = {}
 
-    monkeypatch.setattr("nsddos.bootstrap.executors.resolve_compose_command", lambda: ("docker-compose",))
+    monkeypatch.setattr(
+        "nsddos.bootstrap.executors.resolve_compose_command",
+        lambda: ("docker-compose",),
+    )
 
     def fake_run(argv, **kwargs):
         captured["argv"] = tuple(argv)
@@ -131,14 +184,24 @@ def test_run_system_command_uses_v1_compose_backend(monkeypatch) -> None:
     assert captured["argv"][-1] == "build"
 
 
-def test_run_system_command_fails_cleanly_when_compose_backend_missing(monkeypatch) -> None:
+def test_run_system_command_fails_cleanly_when_compose_backend_missing(
+    monkeypatch,
+) -> None:
     command = commands_for_requirement(
         InstallRequirement("H", "Build Containers", "Build images."),
         _scan(),
-        OSProfile(family="Linux", distribution="ubuntu", package_manager="apt", supported=True, homebrew_installed=False),
+        OSProfile(
+            family="Linux",
+            distribution="ubuntu",
+            package_manager="apt",
+            supported=True,
+            homebrew_installed=False,
+        ),
     )[0]
 
-    monkeypatch.setattr("nsddos.bootstrap.executors.resolve_compose_command", lambda: None)
+    monkeypatch.setattr(
+        "nsddos.bootstrap.executors.resolve_compose_command", lambda: None
+    )
 
     result = run_system_command(command)
 
@@ -153,10 +216,17 @@ def test_installer_execution_skips_on_non_approval(monkeypatch) -> None:
         summary="1 action",
     )
     console = create_console(record=True)
-    monkeypatch.setattr("nsddos.bootstrap.installer.detect_os_profile", lambda: OSProfile("Linux", "ubuntu", "apt", True, False))
-    monkeypatch.setattr("nsddos.bootstrap.installer.confirm_install", lambda console, prompt: False)
+    monkeypatch.setattr(
+        "nsddos.bootstrap.installer.detect_os_profile",
+        lambda: OSProfile("Linux", "ubuntu", "apt", True, False),
+    )
+    monkeypatch.setattr(
+        "nsddos.bootstrap.installer.confirm_install", lambda console, prompt: False
+    )
 
-    result = execute_install_plan(console, plan, _scan(git=ToolStatus(name="git", installed=False, detail=None)))
+    result = execute_install_plan(
+        console, plan, _scan(git=ToolStatus(name="git", installed=False, detail=None))
+    )
 
     assert result.failed_requirement is None
     assert result.skipped_requirements == ("Install Git",)
@@ -166,15 +236,24 @@ def test_installer_execution_skips_on_non_approval(monkeypatch) -> None:
 def test_installer_execution_runs_commands(monkeypatch) -> None:
     plan = DependencyPlan(
         profile=DeploymentProfile("local-development", "Local Development", "dev"),
-        requirements=(InstallRequirement("E", "Create Virtual Environment", "Create venv"),),
+        requirements=(
+            InstallRequirement("E", "Create Virtual Environment", "Create venv"),
+        ),
         summary="1 action",
     )
     console = create_console(record=True)
-    monkeypatch.setattr("nsddos.bootstrap.installer.detect_os_profile", lambda: OSProfile("Linux", "ubuntu", "apt", True, False))
-    monkeypatch.setattr("nsddos.bootstrap.installer.confirm_install", lambda console, prompt: True)
+    monkeypatch.setattr(
+        "nsddos.bootstrap.installer.detect_os_profile",
+        lambda: OSProfile("Linux", "ubuntu", "apt", True, False),
+    )
+    monkeypatch.setattr(
+        "nsddos.bootstrap.installer.confirm_install", lambda console, prompt: True
+    )
     monkeypatch.setattr(
         "nsddos.bootstrap.installer.run_system_command",
-        lambda command: CommandExecutionResult(command=command, success=True, returncode=0, stdout="ok", stderr=""),
+        lambda command: CommandExecutionResult(
+            command=command, success=True, returncode=0, stdout="ok", stderr=""
+        ),
     )
 
     result = execute_install_plan(console, plan, _scan(virtualenv_active=False))

@@ -12,7 +12,9 @@ class TelemetryStreamBuffer:
     batch_size: int
     items: list[LiveTelemetrySnapshot] = field(default_factory=list)
 
-    def push(self, snapshot: LiveTelemetrySnapshot) -> tuple[LiveTelemetrySnapshot, ...]:
+    def push(
+        self, snapshot: LiveTelemetrySnapshot
+    ) -> tuple[LiveTelemetrySnapshot, ...]:
         self.items.append(snapshot)
         ordered = tuple(sorted(self.items, key=lambda item: item.timestamp.isoformat()))
         if len(ordered) >= self.batch_size:

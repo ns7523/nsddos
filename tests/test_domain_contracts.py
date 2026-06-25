@@ -2,9 +2,18 @@ from __future__ import annotations
 
 from nsddos.runtime.domain.evidence import RuntimeEvidence
 from nsddos.runtime.domain.graph import RuntimeEntity
-from nsddos.runtime.domain.identifiers import deterministic_id, evidence_id, graph_id, replay_id, session_id
+from nsddos.runtime.domain.identifiers import (
+    deterministic_id,
+    evidence_id,
+    graph_id,
+    replay_id,
+    session_id,
+)
 from nsddos.runtime.domain.registry import default_domain_registry
-from nsddos.runtime.domain.replay import reconstruct_replay, validate_replay_compatibility
+from nsddos.runtime.domain.replay import (
+    reconstruct_replay,
+    validate_replay_compatibility,
+)
 from nsddos.runtime.domain.relationships import RuntimeRelationship
 from nsddos.runtime.domain.serialization import to_canonical_dict, to_canonical_json
 from nsddos.runtime.domain.validation import (
@@ -25,8 +34,13 @@ def test_identifier_stability() -> None:
 
 
 def test_schema_and_contract_validation() -> None:
-    assert validate_contract_payload({"schema_version": "1.0", "contract_version": "17.0"}) == []
-    assert "schema_version_mismatch" in validate_contract_payload({"schema_version": "2.0", "contract_version": "17.0"})
+    assert (
+        validate_contract_payload({"schema_version": "1.0", "contract_version": "17.0"})
+        == []
+    )
+    assert "schema_version_mismatch" in validate_contract_payload(
+        {"schema_version": "2.0", "contract_version": "17.0"}
+    )
 
 
 def test_serialization_determinism() -> None:
@@ -40,8 +54,20 @@ def test_serialization_determinism() -> None:
 def test_replay_compatibility() -> None:
     replay = reconstruct_replay(
         [
-            {"replay_id": "r1", "event_type": "a", "timestamp": "2", "status": "pass", "message": "ok"},
-            {"replay_id": "r2", "event_type": "b", "timestamp": "1", "status": "pass", "message": "ok"},
+            {
+                "replay_id": "r1",
+                "event_type": "a",
+                "timestamp": "2",
+                "status": "pass",
+                "message": "ok",
+            },
+            {
+                "replay_id": "r2",
+                "event_type": "b",
+                "timestamp": "1",
+                "status": "pass",
+                "message": "ok",
+            },
         ]
     )
     assert len(replay.events) == 2
@@ -54,13 +80,22 @@ def test_relationship_and_graph_integrity() -> None:
         RuntimeEntity(entity_id="n2", entity_type="host", label="n2"),
     )
     relationships = [
-        RuntimeRelationship(relationship_type="link", source_id="n1", target_id="n2").to_dict(),
+        RuntimeRelationship(
+            relationship_type="link", source_id="n1", target_id="n2"
+        ).to_dict(),
     ]
-    assert validate_relationship_integrity(relationships, {item.entity_id for item in entities}) == []
+    assert (
+        validate_relationship_integrity(
+            relationships, {item.entity_id for item in entities}
+        )
+        == []
+    )
 
 
 def test_evidence_lineage_integrity() -> None:
-    evidence = RuntimeEvidence(evidence_id="e1", reference="snapshot", lineage=("verification", "replay"))
+    evidence = RuntimeEvidence(
+        evidence_id="e1", reference="snapshot", lineage=("verification", "replay")
+    )
     payload = evidence.to_dict()
     assert payload["lineage"] == ("verification", "replay")
 

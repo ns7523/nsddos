@@ -15,11 +15,15 @@ CACHE_DIR = RUNTIME_DIR / "cache"
 
 def cache_key(name: str, inputs: dict[str, Any]) -> str:
     """Build deterministic cache key."""
-    digest = hashlib.sha256(json.dumps(inputs, sort_keys=True, default=str).encode()).hexdigest()[:16]
+    digest = hashlib.sha256(
+        json.dumps(inputs, sort_keys=True, default=str).encode()
+    ).hexdigest()[:16]
     return f"{name}-{digest}"
 
 
-def get_cache(name: str, inputs: dict[str, Any]) -> tuple[dict[str, Any] | None, dict[str, Any]]:
+def get_cache(
+    name: str, inputs: dict[str, Any]
+) -> tuple[dict[str, Any] | None, dict[str, Any]]:
     """Read cache entry if present."""
     key = cache_key(name, inputs)
     path = CACHE_DIR / f"{key}.json"
@@ -34,7 +38,9 @@ def get_cache(name: str, inputs: dict[str, Any]) -> tuple[dict[str, Any] | None,
     return payload.get("value", {}), meta
 
 
-def set_cache(name: str, inputs: dict[str, Any], value: dict[str, Any]) -> dict[str, Any]:
+def set_cache(
+    name: str, inputs: dict[str, Any], value: dict[str, Any]
+) -> dict[str, Any]:
     """Write explicit cache entry."""
     key = cache_key(name, inputs)
     path = CACHE_DIR / f"{key}.json"

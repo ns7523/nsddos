@@ -54,16 +54,21 @@ PHASE_GATES = {
 }
 
 
-def build_execution_plan(config: dict[str, Any], preset: str = "minimal-lab") -> RuntimeExecutionPlan:
+def build_execution_plan(
+    config: dict[str, Any], preset: str = "minimal-lab"
+) -> RuntimeExecutionPlan:
     """Build canonical execution plan."""
     profile = detect_runtime_profile()
     phases = [
         RuntimePhase(
             name=name,
-            dependencies=[dep.source for dep in canonical_dependencies() if dep.target == name],
+            dependencies=[
+                dep.source for dep in canonical_dependencies() if dep.target == name
+            ],
             providers=PHASE_PROVIDERS.get(name, []),
             gate=PHASE_GATES.get(name, ""),
-            required=name not in {"topology_start"} or preset in {"controller-lab", "reproducibility-lab"},
+            required=name not in {"topology_start"}
+            or preset in {"controller-lab", "reproducibility-lab"},
         )
         for name in resolve_phase_order()
     ]

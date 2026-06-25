@@ -7,7 +7,9 @@ from nsddos.bootstrap.state import DependencyPlan, DeploymentProfile, Environmen
 from nsddos.bootstrap.validator import build_profile_advisories
 
 
-def build_dependency_plan(scan: EnvironmentScan, profile: DeploymentProfile) -> DependencyPlan:
+def build_dependency_plan(
+    scan: EnvironmentScan, profile: DeploymentProfile
+) -> DependencyPlan:
     """Build non-installing dependency plan."""
 
     advisories = build_profile_advisories(scan, profile)

@@ -31,7 +31,9 @@ def _settings(config: dict[str, Any]) -> dict[str, Any]:
     return config.get("runtime", {}).get("simulation", {})
 
 
-def _pattern_offsets(name: str, packet_rate: float, duration_seconds: int) -> tuple[int, ...]:
+def _pattern_offsets(
+    name: str, packet_rate: float, duration_seconds: int
+) -> tuple[int, ...]:
     if name == "burst":
         return burst_pattern(packet_rate, duration_seconds)
     if name == "sustained":
@@ -70,21 +72,39 @@ def generate_attack_traffic(
 ) -> AttackTrafficContract:
     settings = _settings(config)
     selected_attack = attack_type or settings.get("default_attack_type", "syn_flood")
-    selected_intensity = intensity_level or settings.get("default_intensity_level", "medium")
-    selected_duration = int(duration_seconds or settings.get("default_duration_seconds", 10))
-    selected_replay = bool(settings.get("default_replay_mode", False) if replay_mode is None else replay_mode)
-    selected_target_kind = target_kind or settings.get("targets", {}).get("default_kind", "host")
+    selected_intensity = intensity_level or settings.get(
+        "default_intensity_level", "medium"
+    )
+    selected_duration = int(
+        duration_seconds or settings.get("default_duration_seconds", 10)
+    )
+    selected_replay = bool(
+        settings.get("default_replay_mode", False)
+        if replay_mode is None
+        else replay_mode
+    )
+    selected_target_kind = target_kind or settings.get("targets", {}).get(
+        "default_kind", "host"
+    )
 
     registry = build_registry()
     entry = registry.lookup(selected_attack)
     profile = entry.generator(selected_intensity, selected_duration)
-    target = select_target(config, target_kind=selected_target_kind, target_value=target_value)
+    target = select_target(
+        config, target_kind=selected_target_kind, target_value=target_value
+    )
     packets = generate_packet_metadata(profile, target)
-    offsets = _pattern_offsets(profile.pattern_name, profile.packet_rate, profile.duration_seconds)
+    offsets = _pattern_offsets(
+        profile.pattern_name, profile.packet_rate, profile.duration_seconds
+    )
     schedule = build_schedule(
         offsets,
-        start_delay_seconds=int(settings.get("scheduler", {}).get("start_delay_seconds", 0)),
-        repeat_interval_seconds=int(settings.get("scheduler", {}).get("repeat_interval_seconds", 0)),
+        start_delay_seconds=int(
+            settings.get("scheduler", {}).get("start_delay_seconds", 0)
+        ),
+        repeat_interval_seconds=int(
+            settings.get("scheduler", {}).get("repeat_interval_seconds", 0)
+        ),
     )
     topology = resolve_topology_path(target)
     replay_records = build_replay_records(packets, schedule) if selected_replay else ()

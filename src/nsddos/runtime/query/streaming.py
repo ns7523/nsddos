@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from nsddos.runtime.streaming import latest_checkpoint, latest_streaming_evaluation, process_stream_events
+from nsddos.runtime.streaming import (
+    latest_checkpoint,
+    latest_streaming_evaluation,
+    process_stream_events,
+)
 
 
 def query_stream_status(config: dict, query) -> dict[str, object]:

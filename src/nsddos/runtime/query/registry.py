@@ -5,7 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from nsddos.runtime.query.models import QueryExecutor, RuntimeQuery, RuntimeQueryDependency
+from nsddos.runtime.query.models import (
+    QueryExecutor,
+    RuntimeQuery,
+    RuntimeQueryDependency,
+)
 from nsddos.runtime.query.scopes import default_scopes
 
 
@@ -46,7 +50,9 @@ class RuntimeQueryRegistry:
         edges: list[RuntimeQueryDependency] = []
         for definition in self.definitions.values():
             for dependency in definition.dependencies:
-                edges.append(RuntimeQueryDependency(source=dependency, target=definition.name))
+                edges.append(
+                    RuntimeQueryDependency(source=dependency, target=definition.name)
+                )
         return edges
 
     def ordered(self) -> list[RuntimeQueryDefinition]:
@@ -124,36 +130,102 @@ def default_query_registry() -> RuntimeQueryRegistry:
     for definition in (
         RuntimeQueryDefinition("snapshots", "persistence", query_snapshots),
         RuntimeQueryDefinition("evidence", "evidence", query_evidence, ("snapshots",)),
-        RuntimeQueryDefinition("verification", "verification", query_verification, ("evidence",)),
+        RuntimeQueryDefinition(
+            "verification", "verification", query_verification, ("evidence",)
+        ),
         RuntimeQueryDefinition("timeline", "temporal", query_timeline),
         RuntimeQueryDefinition("graph", "graph", query_graph, ("verification",)),
         RuntimeQueryDefinition("replay", "replay", query_replay, ("verification",)),
-        RuntimeQueryDefinition("convergence", "convergence", query_convergence, ("verification",)),
+        RuntimeQueryDefinition(
+            "convergence", "convergence", query_convergence, ("verification",)
+        ),
         RuntimeQueryDefinition("drift", "temporal", query_drift, ("timeline",)),
         RuntimeQueryDefinition("stability", "temporal", query_stability, ("timeline",)),
         RuntimeQueryDefinition("health", "runtime", query_health),
-        RuntimeQueryDefinition("service", "service", query_service, ("verification", "timeline")),
-        RuntimeQueryDefinition("detection", "detection", query_detection, ("verification",)),
+        RuntimeQueryDefinition(
+            "service", "service", query_service, ("verification", "timeline")
+        ),
+        RuntimeQueryDefinition(
+            "detection", "detection", query_detection, ("verification",)
+        ),
         RuntimeQueryDefinition("ml_infer", "ml", query_ml_infer, ("detection",)),
-        RuntimeQueryDefinition("ml_diagnostics", "ml", query_ml_diagnostics, ("ml_infer",)),
+        RuntimeQueryDefinition(
+            "ml_diagnostics", "ml", query_ml_diagnostics, ("ml_infer",)
+        ),
         RuntimeQueryDefinition("ml_train", "ml", query_ml_train, ("ml_infer",)),
         RuntimeQueryDefinition("ml_retrain", "ml", query_ml_retrain, ("ml_train",)),
-        RuntimeQueryDefinition("mitigation", "mitigation", query_mitigation, ("detection",)),
-        RuntimeQueryDefinition("live_telemetry", "live", query_live_telemetry, ("verification",)),
-        RuntimeQueryDefinition("provider_health", "provider", query_provider_health, ("live_telemetry",)),
-        RuntimeQueryDefinition("provider_discovery", "provider", query_provider_discovery, ("live_telemetry",)),
-        RuntimeQueryDefinition("provider_diagnostics", "provider", query_provider_diagnostics, ("live_telemetry",)),
-        RuntimeQueryDefinition("simulation", "simulation", query_simulation, ("verification",)),
-        RuntimeQueryDefinition("simulation_replay", "simulation", query_simulation_replay, ("simulation",)),
-        RuntimeQueryDefinition("simulation_diagnostics", "simulation", query_simulation_diagnostics, ("simulation_replay",)),
-        RuntimeQueryDefinition("simulation_topology", "simulation", query_simulation_topology, ("simulation",)),
-        RuntimeQueryDefinition("stream_status", "streaming", query_stream_status, ("verification",)),
-        RuntimeQueryDefinition("stream_checkpoint", "streaming", query_stream_checkpoint, ("stream_status",)),
-        RuntimeQueryDefinition("stream_diagnostics", "streaming", query_stream_diagnostics, ("stream_checkpoint",)),
-        RuntimeQueryDefinition("policy_evaluate", "policy", query_policy_evaluate, ("detection", "ml_infer")),
-        RuntimeQueryDefinition("policy_history", "policy", query_policy_history, ("policy_evaluate",)),
-        RuntimeQueryDefinition("policy_diagnostics", "policy", query_policy_diagnostics, ("policy_history",)),
-        RuntimeQueryDefinition("policy_rollback", "policy", query_policy_rollback, ("policy_history",)),
+        RuntimeQueryDefinition(
+            "mitigation", "mitigation", query_mitigation, ("detection",)
+        ),
+        RuntimeQueryDefinition(
+            "live_telemetry", "live", query_live_telemetry, ("verification",)
+        ),
+        RuntimeQueryDefinition(
+            "provider_health", "provider", query_provider_health, ("live_telemetry",)
+        ),
+        RuntimeQueryDefinition(
+            "provider_discovery",
+            "provider",
+            query_provider_discovery,
+            ("live_telemetry",),
+        ),
+        RuntimeQueryDefinition(
+            "provider_diagnostics",
+            "provider",
+            query_provider_diagnostics,
+            ("live_telemetry",),
+        ),
+        RuntimeQueryDefinition(
+            "simulation", "simulation", query_simulation, ("verification",)
+        ),
+        RuntimeQueryDefinition(
+            "simulation_replay", "simulation", query_simulation_replay, ("simulation",)
+        ),
+        RuntimeQueryDefinition(
+            "simulation_diagnostics",
+            "simulation",
+            query_simulation_diagnostics,
+            ("simulation_replay",),
+        ),
+        RuntimeQueryDefinition(
+            "simulation_topology",
+            "simulation",
+            query_simulation_topology,
+            ("simulation",),
+        ),
+        RuntimeQueryDefinition(
+            "stream_status", "streaming", query_stream_status, ("verification",)
+        ),
+        RuntimeQueryDefinition(
+            "stream_checkpoint",
+            "streaming",
+            query_stream_checkpoint,
+            ("stream_status",),
+        ),
+        RuntimeQueryDefinition(
+            "stream_diagnostics",
+            "streaming",
+            query_stream_diagnostics,
+            ("stream_checkpoint",),
+        ),
+        RuntimeQueryDefinition(
+            "policy_evaluate",
+            "policy",
+            query_policy_evaluate,
+            ("detection", "ml_infer"),
+        ),
+        RuntimeQueryDefinition(
+            "policy_history", "policy", query_policy_history, ("policy_evaluate",)
+        ),
+        RuntimeQueryDefinition(
+            "policy_diagnostics",
+            "policy",
+            query_policy_diagnostics,
+            ("policy_history",),
+        ),
+        RuntimeQueryDefinition(
+            "policy_rollback", "policy", query_policy_rollback, ("policy_history",)
+        ),
     ):
         registry.register(definition)
     return registry

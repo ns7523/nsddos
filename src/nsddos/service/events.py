@@ -27,5 +27,7 @@ def load_service_events() -> list[dict[str, Any]]:
             rows.append(json.loads(line))
         except json.JSONDecodeError:
             continue
-    rows.sort(key=lambda item: (int(item.get("sequence", 0)), item.get("timestamp", "")))
+    rows.sort(
+        key=lambda item: (int(item.get("sequence", 0)), item.get("timestamp", ""))
+    )
     return rows

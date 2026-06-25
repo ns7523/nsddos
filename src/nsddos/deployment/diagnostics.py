@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
-from nsddos.deployment.contracts import AutoscalingPolicy, BackupSnapshot, DeploymentDiagnostics, DeploymentHealthState, RollbackState, SecretContract
+from nsddos.deployment.contracts import (
+    AutoscalingPolicy,
+    BackupSnapshot,
+    DeploymentDiagnostics,
+    DeploymentHealthState,
+    RollbackState,
+    SecretContract,
+)
 
 
 def build_deployment_diagnostics(

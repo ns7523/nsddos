@@ -10,7 +10,9 @@ def test_ovs_provider_marks_table_miss_only_as_not_forwarding(monkeypatch):
         if args[:2] == ["--timeout=1", "list-br"]:
             return CompletedProcess(args, 0, stdout="s1\n", stderr="")
         if args[:2] == ["list-ports", "s1"]:
-            return CompletedProcess(args, 0, stdout="s1-eth1\ns1-eth2\ns1-eth3\n", stderr="")
+            return CompletedProcess(
+                args, 0, stdout="s1-eth1\ns1-eth2\ns1-eth3\n", stderr=""
+            )
         if args[:3] == ["get", "bridge", "s1"]:
             if args[3] == "protocols":
                 return CompletedProcess(args, 0, stdout='["OpenFlow13"]\n', stderr="")
@@ -33,9 +35,18 @@ def test_ovs_provider_marks_table_miss_only_as_not_forwarding(monkeypatch):
             )
         raise AssertionError(f"unexpected ovs-ofctl args: {args}")
 
-    monkeypatch.setattr("nsddos.providers.ovs.provider.RuntimeExecutor.lab_container_running", lambda self: True)
-    monkeypatch.setattr("nsddos.providers.ovs.utils.RuntimeExecutor.lab_container_running", lambda self: True)
-    monkeypatch.setattr("nsddos.providers.ovs.utils.ovs_process_running", lambda process_name='ovs-vswitchd': True)
+    monkeypatch.setattr(
+        "nsddos.providers.ovs.provider.RuntimeExecutor.lab_container_running",
+        lambda self: True,
+    )
+    monkeypatch.setattr(
+        "nsddos.providers.ovs.utils.RuntimeExecutor.lab_container_running",
+        lambda self: True,
+    )
+    monkeypatch.setattr(
+        "nsddos.providers.ovs.utils.ovs_process_running",
+        lambda process_name="ovs-vswitchd": True,
+    )
     monkeypatch.setattr("nsddos.providers.ovs.provider.run_ovs_vsctl", _run_vsctl)
     monkeypatch.setattr("nsddos.providers.ovs.provider.run_ovs_ofctl", _run_ofctl)
 
@@ -62,15 +73,27 @@ def test_ovs_provider_installs_normal_flow_with_expected_protocol(monkeypatch):
             return CompletedProcess(args, 0, stdout="", stderr="")
         raise AssertionError(f"unexpected ovs-ofctl args: {args}")
 
-    monkeypatch.setattr("nsddos.providers.ovs.provider.RuntimeExecutor.lab_container_running", lambda self: True)
-    monkeypatch.setattr("nsddos.providers.ovs.utils.RuntimeExecutor.lab_container_running", lambda self: True)
+    monkeypatch.setattr(
+        "nsddos.providers.ovs.provider.RuntimeExecutor.lab_container_running",
+        lambda self: True,
+    )
+    monkeypatch.setattr(
+        "nsddos.providers.ovs.utils.RuntimeExecutor.lab_container_running",
+        lambda self: True,
+    )
     monkeypatch.setattr("nsddos.providers.ovs.provider.run_ovs_vsctl", _run_vsctl)
     monkeypatch.setattr("nsddos.providers.ovs.provider.run_ovs_ofctl", _run_ofctl)
 
     provider = OVSProvider(expected_protocol="OpenFlow13")
 
     assert provider.install_normal_flow("s1") is True
-    assert commands[0] == ["-O", "OpenFlow13", "add-flow", "s1", "table=0,priority=0,actions=NORMAL"]
+    assert commands[0] == [
+        "-O",
+        "OpenFlow13",
+        "add-flow",
+        "s1",
+        "table=0,priority=0,actions=NORMAL",
+    ]
 
 
 def test_mininet_helper_start_pins_openflow13(monkeypatch):
@@ -94,18 +117,32 @@ def test_mininet_helper_start_pins_openflow13(monkeypatch):
         if args[:2] == ["sh", "-lc"] and "labhost-mininet.py" in args[2]:
             return CompletedProcess(args, 0, stdout="", stderr="")
         if args[:2] == ["pgrep", "-af"]:
-            return CompletedProcess(args, 0, stdout="123 python3 /usr/local/bin/labhost-mininet.py\n", stderr="")
+            return CompletedProcess(
+                args,
+                0,
+                stdout="123 python3 /usr/local/bin/labhost-mininet.py\n",
+                stderr="",
+            )
         if args[:2] == ["python3", "-c"]:
             return CompletedProcess(args, 0, stdout="", stderr="")
         raise AssertionError(f"unexpected helper_exec args: {args}")
 
-    monkeypatch.setattr("nsddos.providers.mininet.provider.RuntimeExecutor.lab_container_running", lambda self: True)
+    monkeypatch.setattr(
+        "nsddos.providers.mininet.provider.RuntimeExecutor.lab_container_running",
+        lambda self: True,
+    )
     monkeypatch.setattr(
         "nsddos.providers.mininet.provider.RuntimeExecutor.execute_lab",
-        lambda self, args, detached=False, timeout=30: _helper_exec(args, detached=detached, timeout=timeout),
+        lambda self, args, detached=False, timeout=30: _helper_exec(
+            args, detached=detached, timeout=timeout
+        ),
     )
-    monkeypatch.setattr("nsddos.providers.mininet.provider.load_runtime_state", lambda: _State())
-    monkeypatch.setattr("nsddos.providers.mininet.provider.write_runtime_state", lambda state: None)
+    monkeypatch.setattr(
+        "nsddos.providers.mininet.provider.load_runtime_state", lambda: _State()
+    )
+    monkeypatch.setattr(
+        "nsddos.providers.mininet.provider.write_runtime_state", lambda state: None
+    )
 
     provider = MininetProvider(ovs_protocol="OpenFlow13")
     provider.start()
@@ -113,7 +150,8 @@ def test_mininet_helper_start_pins_openflow13(monkeypatch):
     start_command = next(
         args
         for args in commands
-        if args[:2] == ["sh", "-lc"] and "nohup python3 /usr/local/bin/labhost-mininet.py" in args[2]
+        if args[:2] == ["sh", "-lc"]
+        and "nohup python3 /usr/local/bin/labhost-mininet.py" in args[2]
     )
     assert "OpenFlow13" in start_command[2]
 

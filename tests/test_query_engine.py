@@ -5,16 +5,30 @@ from datetime import datetime, timezone
 from nsddos.runtime.persistence import atomic_write_json
 from nsddos.runtime.query.engine import execute_query, explain_query_system
 from nsddos.runtime.query.filters import apply_filters
-from nsddos.runtime.query.models import RuntimeQuery, RuntimeQueryFilter, RuntimeQueryPagination
+from nsddos.runtime.query.models import (
+    RuntimeQuery,
+    RuntimeQueryFilter,
+    RuntimeQueryPagination,
+)
 from nsddos.runtime.query.pagination import paginate
-from nsddos.runtime.query.registry import RuntimeQueryDefinition, RuntimeQueryRegistry, default_query_registry
+from nsddos.runtime.query.registry import (
+    RuntimeQueryDefinition,
+    RuntimeQueryRegistry,
+    default_query_registry,
+)
 from nsddos.runtime.query.selectors import select_graph_edges, select_graph_nodes
 
 
 def test_query_registry_orders_dependencies():
     registry = RuntimeQueryRegistry()
-    registry.register(RuntimeQueryDefinition("base", "runtime", lambda config, query: {"items": []}))
-    registry.register(RuntimeQueryDefinition("child", "graph", lambda config, query: {"items": []}, ("base",)))
+    registry.register(
+        RuntimeQueryDefinition("base", "runtime", lambda config, query: {"items": []})
+    )
+    registry.register(
+        RuntimeQueryDefinition(
+            "child", "graph", lambda config, query: {"items": []}, ("base",)
+        )
+    )
 
     assert [item.name for item in registry.ordered()] == ["base", "child"]
     assert registry.dependencies()[0].source == "base"
@@ -23,7 +37,11 @@ def test_query_registry_orders_dependencies():
 def test_query_registry_rejects_unknown_scope():
     registry = RuntimeQueryRegistry()
     try:
-        registry.register(RuntimeQueryDefinition("bad", "unknown", lambda config, query: {"items": []}))
+        registry.register(
+            RuntimeQueryDefinition(
+                "bad", "unknown", lambda config, query: {"items": []}
+            )
+        )
     except ValueError as exc:
         assert "unknown query scope" in str(exc)
     else:
@@ -94,7 +112,9 @@ def test_evidence_query_reads_schema_checked_bundle(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(evidence_module, "EVIDENCE_DIR", tmp_path / "evidence")
 
-    payload = evidence_module.query_evidence({}, RuntimeQuery(name="evidence", scope="evidence"))
+    payload = evidence_module.query_evidence(
+        {}, RuntimeQuery(name="evidence", scope="evidence")
+    )
 
     assert payload["items"][0]["verification_count"] == 1
     assert payload["relationships"][0]["type"] == "evidence_convergence"
@@ -121,7 +141,11 @@ def test_explain_query_system_contains_required_queries():
 
 def test_default_registry_missing_dependency_detection():
     registry = RuntimeQueryRegistry()
-    registry.register(RuntimeQueryDefinition("broken", "runtime", lambda config, query: {"items": []}, ("missing",)))
+    registry.register(
+        RuntimeQueryDefinition(
+            "broken", "runtime", lambda config, query: {"items": []}, ("missing",)
+        )
+    )
 
     try:
         registry.ordered()
@@ -141,14 +165,22 @@ def test_streaming_query_registry_dependencies():
     registry = default_query_registry()
     ordered = [item.name for item in registry.ordered()]
 
-    assert ordered.index("stream_status") < ordered.index("stream_checkpoint") < ordered.index("stream_diagnostics")
+    assert (
+        ordered.index("stream_status")
+        < ordered.index("stream_checkpoint")
+        < ordered.index("stream_diagnostics")
+    )
 
 
 def test_policy_query_registry_dependencies() -> None:
     registry = default_query_registry()
     ordered = [item.name for item in registry.ordered()]
 
-    assert ordered.index("policy_evaluate") < ordered.index("policy_history") < ordered.index("policy_diagnostics")
+    assert (
+        ordered.index("policy_evaluate")
+        < ordered.index("policy_history")
+        < ordered.index("policy_diagnostics")
+    )
     assert ordered.index("policy_history") < ordered.index("policy_rollback")
 
 
@@ -157,4 +189,8 @@ def test_ml_query_registry_dependencies() -> None:
     ordered = [item.name for item in registry.ordered()]
 
     assert ordered.index("ml_infer") < ordered.index("ml_diagnostics")
-    assert ordered.index("ml_infer") < ordered.index("ml_train") < ordered.index("ml_retrain")
+    assert (
+        ordered.index("ml_infer")
+        < ordered.index("ml_train")
+        < ordered.index("ml_retrain")
+    )

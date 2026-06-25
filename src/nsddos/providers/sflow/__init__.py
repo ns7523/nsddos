@@ -1,2 +1,1 @@
 """sFlow provider package."""
-

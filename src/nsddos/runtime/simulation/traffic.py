@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from nsddos.runtime.simulation.contracts import AttackGeneratorProfile, PacketMetadata, TargetSelection
+from nsddos.runtime.simulation.contracts import (
+    AttackGeneratorProfile,
+    PacketMetadata,
+    TargetSelection,
+)
 
 
 def generate_packet_metadata(

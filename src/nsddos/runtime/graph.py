@@ -76,21 +76,33 @@ def build_runtime_graph(config: dict[str, Any]) -> dict[str, Any]:
     edges: list[dict[str, Any]] = []
 
     profile_id = f"profile:{profile.name}"
-    nodes.append({"id": profile_id, "type": "runtime_profile", "platform": profile.platform})
+    nodes.append(
+        {"id": profile_id, "type": "runtime_profile", "platform": profile.platform}
+    )
     for capability in profile.supported_capabilities:
         capability_id = f"capability:{capability}"
         nodes.append({"id": capability_id, "type": "capability"})
-        edges.append({"source": profile_id, "target": capability_id, "type": "supports"})
+        edges.append(
+            {"source": profile_id, "target": capability_id, "type": "supports"}
+        )
     repro_id = f"reproducibility:{reproducibility.status}"
     nodes.append({"id": repro_id, "type": "reproducibility"})
-    edges.append({"source": profile_id, "target": repro_id, "type": "profile_reproducibility"})
+    edges.append(
+        {"source": profile_id, "target": repro_id, "type": "profile_reproducibility"}
+    )
     for provider, status in environment.provider_support.items():
         provider_id = f"provider:{provider}"
-        nodes.append({"id": provider_id, "type": "provider_capability", "status": status})
-        edges.append({"source": profile_id, "target": provider_id, "type": "provider_support"})
+        nodes.append(
+            {"id": provider_id, "type": "provider_capability", "status": status}
+        )
+        edges.append(
+            {"source": profile_id, "target": provider_id, "type": "provider_support"}
+        )
     for phase in execution.get("nodes", []):
         phase_id = f"phase:{phase['id']}"
-        nodes.append({"id": phase_id, "type": "execution_phase", "gate": phase.get("gate", "")})
+        nodes.append(
+            {"id": phase_id, "type": "execution_phase", "gate": phase.get("gate", "")}
+        )
     for edge in execution.get("edges", []):
         edges.append(
             {
@@ -102,61 +114,204 @@ def build_runtime_graph(config: dict[str, Any]) -> dict[str, Any]:
     for rule in verification_registry.ordered_rules():
         validator_id = f"validator:{rule.name}"
         category_id = f"verification_category:{rule.category}"
-        nodes.append({"id": validator_id, "type": "verification_validator", "category": rule.category})
+        nodes.append(
+            {
+                "id": validator_id,
+                "type": "verification_validator",
+                "category": rule.category,
+            }
+        )
         nodes.append({"id": category_id, "type": "verification_category"})
-        edges.append({"source": category_id, "target": validator_id, "type": "owns_validator"})
+        edges.append(
+            {"source": category_id, "target": validator_id, "type": "owns_validator"}
+        )
         for dependency in rule.dependencies:
-            edges.append({"source": f"validator:{dependency}", "target": validator_id, "type": "validator_dependency"})
+            edges.append(
+                {
+                    "source": f"validator:{dependency}",
+                    "target": validator_id,
+                    "type": "validator_dependency",
+                }
+            )
     for index, run in enumerate(verification_replay.get("runs", [])):
         run_id = f"verification_run:{index}"
-        nodes.append({"id": run_id, "type": "verification_run", "severity": run.get("severity", "unknown")})
-        edges.append({"source": "phase:verification_execute", "target": run_id, "type": "verification_replay"})
+        nodes.append(
+            {
+                "id": run_id,
+                "type": "verification_run",
+                "severity": run.get("severity", "unknown"),
+            }
+        )
+        edges.append(
+            {
+                "source": "phase:verification_execute",
+                "target": run_id,
+                "type": "verification_replay",
+            }
+        )
     for query in query_system.get("queries", []):
         query_id = f"query:{query['name']}"
         scope_id = f"query_scope:{query['scope']}"
         nodes.append({"id": query_id, "type": "runtime_query", "scope": query["scope"]})
         nodes.append({"id": scope_id, "type": "runtime_query_scope"})
         edges.append({"source": scope_id, "target": query_id, "type": "query_scope"})
-        edges.append({"source": "phase:query_execute", "target": query_id, "type": "query_execution"})
+        edges.append(
+            {
+                "source": "phase:query_execute",
+                "target": query_id,
+                "type": "query_execution",
+            }
+        )
         for dependency in query.get("dependencies", []):
-            edges.append({"source": f"query:{dependency}", "target": query_id, "type": "query_dependency"})
+            edges.append(
+                {
+                    "source": f"query:{dependency}",
+                    "target": query_id,
+                    "type": "query_dependency",
+                }
+            )
     for route in api_summary.get("routes", []):
         route_id = f"api:{route['path']}:{','.join(route['methods'])}"
-        nodes.append({"id": route_id, "type": "api_endpoint", "path": route["path"], "methods": route["methods"]})
-        edges.append({"source": "phase:api_query_bind", "target": route_id, "type": "api_route_binding"})
+        nodes.append(
+            {
+                "id": route_id,
+                "type": "api_endpoint",
+                "path": route["path"],
+                "methods": route["methods"],
+            }
+        )
+        edges.append(
+            {
+                "source": "phase:api_query_bind",
+                "target": route_id,
+                "type": "api_route_binding",
+            }
+        )
         if route["path"].startswith("/runtime/query"):
-            edges.append({"source": route_id, "target": "query:snapshots", "type": "api_query_surface"})
+            edges.append(
+                {
+                    "source": route_id,
+                    "target": "query:snapshots",
+                    "type": "api_query_surface",
+                }
+            )
         elif "/verification" in route["path"]:
-            edges.append({"source": route_id, "target": "query:verification", "type": "api_query_surface"})
+            edges.append(
+                {
+                    "source": route_id,
+                    "target": "query:verification",
+                    "type": "api_query_surface",
+                }
+            )
         elif "/graph" in route["path"]:
-            edges.append({"source": route_id, "target": "query:graph", "type": "api_query_surface"})
+            edges.append(
+                {
+                    "source": route_id,
+                    "target": "query:graph",
+                    "type": "api_query_surface",
+                }
+            )
         elif "/evidence" in route["path"]:
-            edges.append({"source": route_id, "target": "query:evidence", "type": "api_query_surface"})
+            edges.append(
+                {
+                    "source": route_id,
+                    "target": "query:evidence",
+                    "type": "api_query_surface",
+                }
+            )
         elif "/timeline" in route["path"]:
-            edges.append({"source": route_id, "target": "query:timeline", "type": "api_query_surface"})
+            edges.append(
+                {
+                    "source": route_id,
+                    "target": "query:timeline",
+                    "type": "api_query_surface",
+                }
+            )
         elif "/snapshots" in route["path"]:
-            edges.append({"source": route_id, "target": "query:snapshots", "type": "api_query_surface"})
+            edges.append(
+                {
+                    "source": route_id,
+                    "target": "query:snapshots",
+                    "type": "api_query_surface",
+                }
+            )
         elif "/replay" in route["path"]:
-            edges.append({"source": route_id, "target": "query:replay", "type": "api_query_surface"})
+            edges.append(
+                {
+                    "source": route_id,
+                    "target": "query:replay",
+                    "type": "api_query_surface",
+                }
+            )
     service_id = f"service:{service_state.service_id}"
-    nodes.append({"id": service_id, "type": "service_node", "state": service_state.state, "degraded": service_state.degraded})
-    edges.append({"source": "phase:service_start", "target": service_id, "type": "service_lifecycle"})
+    nodes.append(
+        {
+            "id": service_id,
+            "type": "service_node",
+            "state": service_state.state,
+            "degraded": service_state.degraded,
+        }
+    )
+    edges.append(
+        {
+            "source": "phase:service_start",
+            "target": service_id,
+            "type": "service_lifecycle",
+        }
+    )
     for session in service_sessions:
         session_id = f"service_session:{session.session_id}"
-        nodes.append({"id": session_id, "type": "session_node", "state": session.state, "lifecycle": session.lifecycle})
-        edges.append({"source": service_id, "target": session_id, "type": "service_session"})
-        edges.append({"source": "phase:service_sync", "target": session_id, "type": "synchronization_edge"})
+        nodes.append(
+            {
+                "id": session_id,
+                "type": "session_node",
+                "state": session.state,
+                "lifecycle": session.lifecycle,
+            }
+        )
+        edges.append(
+            {"source": service_id, "target": session_id, "type": "service_session"}
+        )
+        edges.append(
+            {
+                "source": "phase:service_sync",
+                "target": session_id,
+                "type": "synchronization_edge",
+            }
+        )
     for index, heartbeat in enumerate(service_heartbeat.get("heartbeats", [])[-20:]):
         heartbeat_id = f"heartbeat:{index}"
-        nodes.append({"id": heartbeat_id, "type": "heartbeat_node", "service_state": heartbeat.get("service_state", "unknown")})
-        edges.append({"source": service_id, "target": heartbeat_id, "type": "heartbeat_edge"})
+        nodes.append(
+            {
+                "id": heartbeat_id,
+                "type": "heartbeat_node",
+                "service_state": heartbeat.get("service_state", "unknown"),
+            }
+        )
+        edges.append(
+            {"source": service_id, "target": heartbeat_id, "type": "heartbeat_edge"}
+        )
     stream_id = "service_stream:internal"
-    nodes.append({"id": stream_id, "type": "stream_node", "events": service_replay.get("event_count", 0)})
+    nodes.append(
+        {
+            "id": stream_id,
+            "type": "stream_node",
+            "events": service_replay.get("event_count", 0),
+        }
+    )
     edges.append({"source": service_id, "target": stream_id, "type": "stream_edge"})
-    edges.append({"source": "phase:service_finalize", "target": stream_id, "type": "replay_session_edge"})
+    edges.append(
+        {
+            "source": "phase:service_finalize",
+            "target": stream_id,
+            "type": "replay_session_edge",
+        }
+    )
 
     for switch in identity.switches:
-        nodes.append({"id": switch.canonical_id, "type": "switch", "aliases": switch.aliases})
+        nodes.append(
+            {"id": switch.canonical_id, "type": "switch", "aliases": switch.aliases}
+        )
     for switch in controller.switches:
         nodes.append(
             {
@@ -167,7 +322,13 @@ def build_runtime_graph(config: dict[str, Any]) -> dict[str, Any]:
             }
         )
         if switch.datapath_id:
-            edges.append({"source": switch.canonical_id, "target": f"switch:{switch.datapath_id}", "type": "controller_identity"})
+            edges.append(
+                {
+                    "source": switch.canonical_id,
+                    "target": f"switch:{switch.datapath_id}",
+                    "type": "controller_identity",
+                }
+            )
     for host in topology.expected_hosts:
         nodes.append({"id": f"host:{host}", "type": "host"})
         edges.append({"source": "switch:s1", "target": f"host:{host}", "type": "link"})
@@ -181,7 +342,13 @@ def build_runtime_graph(config: dict[str, Any]) -> dict[str, Any]:
             }
         )
         if interface.switch_id:
-            edges.append({"source": interface.switch_id, "target": interface.canonical_id, "type": "has_interface"})
+            edges.append(
+                {
+                    "source": interface.switch_id,
+                    "target": interface.canonical_id,
+                    "type": "has_interface",
+                }
+            )
     for port in openflow.ports:
         nodes.append(
             {
@@ -194,12 +361,26 @@ def build_runtime_graph(config: dict[str, Any]) -> dict[str, Any]:
             }
         )
         if port.switch_id:
-            edges.append({"source": port.switch_id, "target": port.canonical_id, "type": "has_port"})
+            edges.append(
+                {
+                    "source": port.switch_id,
+                    "target": port.canonical_id,
+                    "type": "has_port",
+                }
+            )
         if port.ovs_name:
-            edges.append({"source": port.canonical_id, "target": f"iface:{port.ovs_name}", "type": "maps_interface"})
+            edges.append(
+                {
+                    "source": port.canonical_id,
+                    "target": f"iface:{port.ovs_name}",
+                    "type": "maps_interface",
+                }
+            )
     for switch in controller.switches:
         for port in switch.ports:
-            controller_port_id = f"{switch.canonical_id}:port:{port.port_no or 'unknown'}"
+            controller_port_id = (
+                f"{switch.canonical_id}:port:{port.port_no or 'unknown'}"
+            )
             nodes.append(
                 {
                     "id": controller_port_id,
@@ -208,9 +389,21 @@ def build_runtime_graph(config: dict[str, Any]) -> dict[str, Any]:
                     "port_no": port.port_no,
                 }
             )
-            edges.append({"source": switch.canonical_id, "target": controller_port_id, "type": "has_controller_port"})
+            edges.append(
+                {
+                    "source": switch.canonical_id,
+                    "target": controller_port_id,
+                    "type": "has_controller_port",
+                }
+            )
             if port.name:
-                edges.append({"source": controller_port_id, "target": f"iface:{port.name}", "type": "controller_port_map"})
+                edges.append(
+                    {
+                        "source": controller_port_id,
+                        "target": f"iface:{port.name}",
+                        "type": "controller_port_map",
+                    }
+                )
     for path in paths.observed_paths:
         nodes.append(
             {
@@ -220,10 +413,28 @@ def build_runtime_graph(config: dict[str, Any]) -> dict[str, Any]:
                 "visible_in_telemetry": path.visible_in_telemetry,
             }
         )
-        edges.append({"source": path.source_id, "target": path.canonical_id, "type": "path_source"})
-        edges.append({"source": path.canonical_id, "target": path.target_id, "type": "path_target"})
+        edges.append(
+            {
+                "source": path.source_id,
+                "target": path.canonical_id,
+                "type": "path_source",
+            }
+        )
+        edges.append(
+            {
+                "source": path.canonical_id,
+                "target": path.target_id,
+                "type": "path_target",
+            }
+        )
         if path.port_id:
-            edges.append({"source": path.port_id, "target": path.canonical_id, "type": "path_port"})
+            edges.append(
+                {
+                    "source": path.port_id,
+                    "target": path.canonical_id,
+                    "type": "path_port",
+                }
+            )
     for link in controller.links:
         if link.source_dpid and link.target_dpid:
             edges.append(
@@ -237,15 +448,21 @@ def build_runtime_graph(config: dict[str, Any]) -> dict[str, Any]:
         node_id = f"transition:{index}"
         nodes.append({"id": node_id, "type": "transition"})
         for entity in item.get("runtime", {}).get("affected_entities", []):
-            edges.append({"source": node_id, "target": str(entity), "type": "transition_affects"})
+            edges.append(
+                {"source": node_id, "target": str(entity), "type": "transition_affects"}
+            )
 
     graph_start = monotonic()
     typed_nodes = tuple(
         RuntimeEntity(
-            entity_id=str(node.get("id", graph_id(str(node.get("type", "node")), str(node)))),
+            entity_id=str(
+                node.get("id", graph_id(str(node.get("type", "node")), str(node)))
+            ),
             entity_type=str(node.get("type", "node")),
             label=str(node.get("id", "")),
-            detail=str({key: value for key, value in node.items() if key not in {"id", "type"}}),
+            detail=str(
+                {key: value for key, value in node.items() if key not in {"id", "type"}}
+            ),
         )
         for node in nodes
     )
@@ -254,7 +471,13 @@ def build_runtime_graph(config: dict[str, Any]) -> dict[str, Any]:
             relationship_type=str(edge.get("type", "relationship")),
             source_id=str(edge.get("source", "")),
             target_id=str(edge.get("target", "")),
-            detail=str({key: value for key, value in edge.items() if key not in {"source", "target", "type"}}),
+            detail=str(
+                {
+                    key: value
+                    for key, value in edge.items()
+                    if key not in {"source", "target", "type"}
+                }
+            ),
         )
         for edge in edges
     )
@@ -296,7 +519,9 @@ def build_runtime_graph(config: dict[str, Any]) -> dict[str, Any]:
         "identity": identity.to_dict(),
         "reconciliation": reconciliation.to_dict(),
         "verification": {
-            "validators": [rule.to_dict() for rule in verification_registry.ordered_rules()],
+            "validators": [
+                rule.to_dict() for rule in verification_registry.ordered_rules()
+            ],
             "replay": verification_replay,
         },
         "query": query_system,
@@ -314,7 +539,9 @@ def _graph_as_mermaid(graph: dict[str, Any]) -> str:
     """Render Mermaid graph."""
     lines = ["graph TD"]
     for node in graph.get("nodes", []):
-        lines.append(f"    {node['id'].replace(':', '_').replace('-', '_')}[{node['id']}]")
+        lines.append(
+            f"    {node['id'].replace(':', '_').replace('-', '_')}[{node['id']}]"
+        )
     for edge in graph.get("edges", []):
         source = edge["source"].replace(":", "_").replace("-", "_")
         target = edge["target"].replace(":", "_").replace("-", "_")
@@ -328,7 +555,9 @@ def _graph_as_dot(graph: dict[str, Any]) -> str:
     for node in graph.get("nodes", []):
         lines.append(f'  "{node["id"]}" [label="{node["id"]}"];')
     for edge in graph.get("edges", []):
-        lines.append(f'  "{edge["source"]}" -> "{edge["target"]}" [label="{edge["type"]}"];')
+        lines.append(
+            f'  "{edge["source"]}" -> "{edge["target"]}" [label="{edge["type"]}"];'
+        )
     lines.append("}")
     return "\n".join(lines) + "\n"
 

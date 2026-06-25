@@ -144,9 +144,17 @@ class MitigationEvaluation:
     risk_level: str
     target_subnet: str = ""
     detection_evidence_hash: str = ""
-    policy: MitigationPolicyDecision = field(default_factory=lambda: MitigationPolicyDecision("", False, "alert_only", ""))
-    strategy: MitigationStrategySelection = field(default_factory=lambda: MitigationStrategySelection("", "alert_only", "dry_run", ""))
-    action_payload: MitigationActionPayload = field(default_factory=lambda: MitigationActionPayload("alert_only"))
+    policy: MitigationPolicyDecision = field(
+        default_factory=lambda: MitigationPolicyDecision("", False, "alert_only", "")
+    )
+    strategy: MitigationStrategySelection = field(
+        default_factory=lambda: MitigationStrategySelection(
+            "", "alert_only", "dry_run", ""
+        )
+    )
+    action_payload: MitigationActionPayload = field(
+        default_factory=lambda: MitigationActionPayload("alert_only")
+    )
     controller_payload: MitigationControllerPayload | None = None
     controller_mutation_status: str = "not_attempted"
     ovs_insertion_status: str = "not_attempted"

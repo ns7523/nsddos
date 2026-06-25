@@ -257,7 +257,9 @@ class StreamingEvaluation:
     source_events: tuple[StreamEvent, ...] = field(default_factory=tuple)
     schema_version: str = SCHEMA_VERSION
     contract_version: str = CONTRACT_VERSION
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
 
     def to_dict(self) -> dict[str, Any]:
         return {

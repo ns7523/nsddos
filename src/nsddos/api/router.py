@@ -35,15 +35,30 @@ from nsddos.api.service_api import router as service_router
 from nsddos.api.snapshots_api import router as snapshots_router
 from nsddos.api.timeline_api import router as timeline_router
 from nsddos.api.verification_api import router as verification_router
-from nsddos.dashboard import dashboard_alerts, dashboard_diagnostics, dashboard_report, generate_dashboard_state
+from nsddos.dashboard import (
+    dashboard_alerts,
+    dashboard_diagnostics,
+    dashboard_report,
+    generate_dashboard_state,
+)
 from nsddos.distributed import (
     distributed_failover_plan,
     distributed_health,
     latest_diagnostics_payload as latest_distributed_diagnostics_payload,
     orchestrate_cluster_runtime,
 )
-from nsddos.deployment import deploy_runtime_stack, deployment_health, latest_diagnostics_payload, rollback_runtime_stack
-from nsddos.release import generate_release_candidate, release_benchmark, release_diagnostics, release_security_audit
+from nsddos.deployment import (
+    deploy_runtime_stack,
+    deployment_health,
+    latest_diagnostics_payload,
+    rollback_runtime_stack,
+)
+from nsddos.release import (
+    generate_release_candidate,
+    release_benchmark,
+    release_diagnostics,
+    release_security_audit,
+)
 from nsddos.runtime.ml import retrain_ml_model, train_ml_model
 from nsddos.runtime.policy import evaluate_dynamic_policy, rollback_dynamic_policy
 from nsddos.runtime.streaming import process_stream_events
@@ -60,7 +75,9 @@ router.include_router(replay_router)
 router.include_router(service_router)
 
 
-def _state_endpoint(name: str, scope: str, limit: int, offset: int, config: dict[str, Any]) -> ApiQueryResponse:
+def _state_endpoint(
+    name: str, scope: str, limit: int, offset: int, config: dict[str, Any]
+) -> ApiQueryResponse:
     return execute_api_query(
         config,
         ApiQueryRequest(
@@ -270,7 +287,9 @@ def runtime_simulation_diagnostics(
     config: dict[str, Any] = Depends(get_config),
 ) -> ApiQueryResponse:
     """Query simulation diagnostics."""
-    return _state_endpoint("simulation_diagnostics", "simulation", limit, offset, config)
+    return _state_endpoint(
+        "simulation_diagnostics", "simulation", limit, offset, config
+    )
 
 
 @router.post("/runtime/stream/start", response_model=StreamingResponse)
@@ -484,7 +503,8 @@ def distributed_diagnostics(
         "schema_version": evaluation.schema_version,
         "cluster_id": evaluation.cluster_id,
         "environment": evaluation.environment,
-        "diagnostics": latest_distributed_diagnostics_payload() or evaluation.diagnostics.to_dict(),
+        "diagnostics": latest_distributed_diagnostics_payload()
+        or evaluation.diagnostics.to_dict(),
     }
 
 
@@ -598,7 +618,11 @@ def route_summary(routes: list[Any]) -> ApiRouteSummary:
     items = []
     for route in routes:
         if isinstance(route, APIRoute):
-            methods = sorted(method for method in route.methods if method not in {"HEAD", "OPTIONS"})
-            items.append(ApiRouteInfo(path=route.path, methods=methods, name=route.name))
+            methods = sorted(
+                method for method in route.methods if method not in {"HEAD", "OPTIONS"}
+            )
+            items.append(
+                ApiRouteInfo(path=route.path, methods=methods, name=route.name)
+            )
     items.sort(key=lambda item: (item.path, ",".join(item.methods)))
     return ApiRouteSummary(routes=items, endpoint_count=len(items))

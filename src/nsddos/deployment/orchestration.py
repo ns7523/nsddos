@@ -53,12 +53,20 @@ def _persist(evaluation: DeploymentEvaluation) -> None:
     stamp = evaluation.created_at.replace(":", "").replace("-", "")
     atomic_write_json(DEPLOYMENT_DIR / f"deployment-{stamp}.json", payload)
     atomic_write_json(DEPLOYMENT_DIR / "latest.json", payload)
-    atomic_write_json(DEPLOYMENT_DIR / "backup.json", evaluation.backup_snapshot.to_dict())
-    atomic_write_json(DEPLOYMENT_DIR / "rollback.json", evaluation.rollback_state.to_dict())
-    atomic_write_json(DEPLOYMENT_DIR / "diagnostics.json", evaluation.diagnostics.to_dict())
+    atomic_write_json(
+        DEPLOYMENT_DIR / "backup.json", evaluation.backup_snapshot.to_dict()
+    )
+    atomic_write_json(
+        DEPLOYMENT_DIR / "rollback.json", evaluation.rollback_state.to_dict()
+    )
+    atomic_write_json(
+        DEPLOYMENT_DIR / "diagnostics.json", evaluation.diagnostics.to_dict()
+    )
 
 
-def deploy_runtime_stack(config: dict, environment: str = "prod") -> DeploymentEvaluation:
+def deploy_runtime_stack(
+    config: dict, environment: str = "prod"
+) -> DeploymentEvaluation:
     """Compute deterministic deployment evaluation without mutating live infrastructure."""
     manifests = _manifest_paths()
     container_contracts = build_container_contracts(environment)
@@ -69,7 +77,9 @@ def deploy_runtime_stack(config: dict, environment: str = "prod") -> DeploymentE
     autoscaling_policy = build_autoscaling_policy(len(container_contracts))
     rolling_update = build_rolling_update_plan(len(container_contracts))
     backup_snapshot = build_backup_snapshot(environment)
-    deployment_id = f"deploy-{environment}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+    deployment_id = (
+        f"deploy-{environment}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+    )
     rollback_state = build_rollback_state(environment, deployment_id)
     recovery_state = build_recovery_state(health)
     diagnostics = build_deployment_diagnostics(
@@ -84,7 +94,9 @@ def deploy_runtime_stack(config: dict, environment: str = "prod") -> DeploymentE
     evaluation = DeploymentEvaluation(
         deployment_id=deployment_id,
         environment=environment,
-        deployment_state=_deployment_state(health.state, bool(secret_contract.missing_keys)),
+        deployment_state=_deployment_state(
+            health.state, bool(secret_contract.missing_keys)
+        ),
         container_contracts=container_contracts,
         secret_contract=secret_contract,
         networking_contract=networking_contract,
@@ -115,7 +127,9 @@ def deployment_health(config: dict, environment: str = "prod") -> DeploymentEval
     return deploy_runtime_stack(config, environment=environment)
 
 
-def rollback_runtime_stack(config: dict, environment: str = "prod") -> DeploymentEvaluation:
+def rollback_runtime_stack(
+    config: dict, environment: str = "prod"
+) -> DeploymentEvaluation:
     """Compute a deterministic rollback deployment evaluation."""
     evaluation = deploy_runtime_stack(config, environment=environment)
     rollback_evaluation = DeploymentEvaluation(

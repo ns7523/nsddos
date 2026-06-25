@@ -5,14 +5,20 @@ from __future__ import annotations
 from io import TextIOWrapper
 
 from nsddos.constants import RUNTIME_DIR
-from nsddos.runtime.persistence import atomic_write_json, recover_json, read_json_checked
+from nsddos.runtime.persistence import (
+    atomic_write_json,
+    recover_json,
+    read_json_checked,
+)
 from nsddos.runtime.policy.contracts_models import PolicyHistoryEntry
 
 POLICY_DIR = RUNTIME_DIR / "policy"
 HISTORY_PATH = POLICY_DIR / "history.json"
 
 
-def load_history(*, lock_scope: TextIOWrapper | None = None) -> tuple[PolicyHistoryEntry, ...]:
+def load_history(
+    *, lock_scope: TextIOWrapper | None = None
+) -> tuple[PolicyHistoryEntry, ...]:
     payload = recover_json(HISTORY_PATH, {"entries": []}, lock_scope=lock_scope)
     return tuple(
         PolicyHistoryEntry(
@@ -29,9 +35,15 @@ def load_history(*, lock_scope: TextIOWrapper | None = None) -> tuple[PolicyHist
     )
 
 
-def save_history(entries: tuple[PolicyHistoryEntry, ...], *, lock_scope: TextIOWrapper | None = None) -> None:
+def save_history(
+    entries: tuple[PolicyHistoryEntry, ...], *, lock_scope: TextIOWrapper | None = None
+) -> None:
     POLICY_DIR.mkdir(parents=True, exist_ok=True)
-    atomic_write_json(HISTORY_PATH, {"entries": [item.to_dict() for item in entries]}, lock_scope=lock_scope)
+    atomic_write_json(
+        HISTORY_PATH,
+        {"entries": [item.to_dict() for item in entries]},
+        lock_scope=lock_scope,
+    )
 
 
 def latest_history_payload() -> dict[str, object]:

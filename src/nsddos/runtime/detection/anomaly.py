@@ -27,7 +27,9 @@ def _history_values() -> dict[str, list[float]]:
         flow_state = payload.get("flow_state", {})
         telemetry_state = payload.get("telemetry_state", {})
         values["packet_rate"].append(float(flow_state.get("flow_count", 0)))
-        values["byte_rate"].append(float(telemetry_state.get("active_flow_count", 0)) * 1024.0)
+        values["byte_rate"].append(
+            float(telemetry_state.get("active_flow_count", 0)) * 1024.0
+        )
         values["connection_rate"].append(float(flow_state.get("flow_count", 0)))
         values["flow_duration"].append(30.0)
     for path in sorted(EVIDENCE_DIR.glob("*/evidence.json"))[-5:]:
@@ -55,14 +57,20 @@ def build_baseline() -> tuple[dict[str, float], str]:
     return baseline, source
 
 
-def detect_anomalies(features: FeatureVector, baseline: dict[str, float]) -> tuple[AnomalyResult, ...]:
+def detect_anomalies(
+    features: FeatureVector, baseline: dict[str, float]
+) -> tuple[AnomalyResult, ...]:
     """Compute anomaly results from baseline thresholds."""
     checks = (
         ("packet_anomaly", features.packet_rate, baseline["packet_rate"]),
         ("connection_anomaly", features.connection_rate, baseline["connection_rate"]),
         ("bandwidth_anomaly", features.byte_rate, baseline["byte_rate"]),
         ("latency_anomaly", max(features.flow_duration, 0.0), baseline["latency"]),
-        ("flow_anomaly", max(features.connection_burst_factor, 0.0), baseline["flow_duration"]),
+        (
+            "flow_anomaly",
+            max(features.connection_burst_factor, 0.0),
+            baseline["flow_duration"],
+        ),
     )
     anomalies = []
     for name, current, base in checks:

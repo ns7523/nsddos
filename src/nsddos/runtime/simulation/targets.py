@@ -35,10 +35,17 @@ def select_target(
     )
     metadata = mininet.topology_metadata()
     if target_kind == "controller":
-        return TargetSelection("controller", "127.0.0.1", (int(config.get("lab", {}).get("controller_port", 6653)),), metadata.controller)
+        return TargetSelection(
+            "controller",
+            "127.0.0.1",
+            (int(config.get("lab", {}).get("controller_port", 6653)),),
+            metadata.controller,
+        )
     if target_kind == "switch":
         switch = target_value or metadata.switches[0]
-        return TargetSelection("switch", HOST_IPS.get("h1", "10.0.0.1"), (6633,), switch)
+        return TargetSelection(
+            "switch", HOST_IPS.get("h1", "10.0.0.1"), (6633,), switch
+        )
     if target_kind == "subnet":
         subnet = target_value or "10.0.0.0"
         return TargetSelection("subnet", subnet, (80, 443), subnet)

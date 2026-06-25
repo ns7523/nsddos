@@ -36,4 +36,8 @@ class ServiceStream:
         return event
 
     def replay(self, from_sequence: int = 0) -> list[dict]:
-        return [item for item in load_service_events() if int(item.get("sequence", 0)) >= from_sequence]
+        return [
+            item
+            for item in load_service_events()
+            if int(item.get("sequence", 0)) >= from_sequence
+        ]

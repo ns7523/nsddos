@@ -14,7 +14,9 @@ from nsddos.runtime.controller import normalize_controller_topology
 CONTROLLER_HISTORY_PATH = RUNTIME_DIR / "controller-history.jsonl"
 
 
-def record_controller_snapshot(config: dict[str, Any], path: Path = CONTROLLER_HISTORY_PATH) -> dict[str, Any]:
+def record_controller_snapshot(
+    config: dict[str, Any], path: Path = CONTROLLER_HISTORY_PATH
+) -> dict[str, Any]:
     """Persist normalized controller snapshot."""
     ensure_runtime_directories()
     topology = normalize_controller_topology(config)
@@ -27,7 +29,9 @@ def record_controller_snapshot(config: dict[str, Any], path: Path = CONTROLLER_H
     return payload
 
 
-def load_controller_history(path: Path = CONTROLLER_HISTORY_PATH) -> list[dict[str, Any]]:
+def load_controller_history(
+    path: Path = CONTROLLER_HISTORY_PATH,
+) -> list[dict[str, Any]]:
     """Load controller snapshot history."""
     if not path.exists():
         return []
@@ -49,8 +53,16 @@ def controller_history_summary(config: dict[str, Any]) -> dict[str, Any]:
     history = load_controller_history()
     current = normalize_controller_topology(config).to_dict()
     previous = history[-1]["topology"] if history else {}
-    previous_switches = {item.get("datapath_id") for item in previous.get("switches", []) if item.get("datapath_id")}
-    current_switches = {item.get("datapath_id") for item in current.get("switches", []) if item.get("datapath_id")}
+    previous_switches = {
+        item.get("datapath_id")
+        for item in previous.get("switches", [])
+        if item.get("datapath_id")
+    }
+    current_switches = {
+        item.get("datapath_id")
+        for item in current.get("switches", [])
+        if item.get("datapath_id")
+    }
     return {
         "samples": len(history),
         "appeared_switches": sorted(current_switches - previous_switches),

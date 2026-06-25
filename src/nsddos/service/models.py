@@ -8,7 +8,9 @@ from typing import Any, Literal
 
 from nsddos.runtime.models import SCHEMA_VERSION
 
-SessionState = Literal["created", "active", "synchronizing", "degraded", "replaying", "stopped", "failed"]
+SessionState = Literal[
+    "created", "active", "synchronizing", "degraded", "replaying", "stopped", "failed"
+]
 SessionLifecycle = Literal["startup", "steady", "syncing", "recovery", "shutdown"]
 
 
@@ -55,9 +57,15 @@ class RuntimeSession:
     lifecycle: SessionLifecycle = "startup"
     capabilities: SessionCapabilities = field(default_factory=SessionCapabilities)
     replay: SessionReplayState = field(default_factory=SessionReplayState)
-    synchronization: SessionSynchronizationState = field(default_factory=SessionSynchronizationState)
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    synchronization: SessionSynchronizationState = field(
+        default_factory=SessionSynchronizationState
+    )
+    created_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
+    updated_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
@@ -69,9 +77,15 @@ class RuntimeSession:
             lifecycle=payload.get("lifecycle", "startup"),
             capabilities=SessionCapabilities(**(payload.get("capabilities", {}) or {})),
             replay=SessionReplayState(**(payload.get("replay", {}) or {})),
-            synchronization=SessionSynchronizationState(**(payload.get("synchronization", {}) or {})),
-            created_at=str(payload.get("created_at", datetime.now(timezone.utc).isoformat())),
-            updated_at=str(payload.get("updated_at", datetime.now(timezone.utc).isoformat())),
+            synchronization=SessionSynchronizationState(
+                **(payload.get("synchronization", {}) or {})
+            ),
+            created_at=str(
+                payload.get("created_at", datetime.now(timezone.utc).isoformat())
+            ),
+            updated_at=str(
+                payload.get("updated_at", datetime.now(timezone.utc).isoformat())
+            ),
             metadata=payload.get("metadata", {}) or {},
         )
 
@@ -89,7 +103,9 @@ class ServiceEvent:
     event_type: str
     status: str
     message: str
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
     session_id: str | None = None
     details: dict[str, Any] = field(default_factory=dict)
 
@@ -104,7 +120,9 @@ class ServiceHeartbeat:
     session_count: int
     synchronization_state: str
     replay_state: str
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
     detail: str = ""
 
     def to_dict(self) -> dict[str, Any]:

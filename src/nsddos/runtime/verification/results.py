@@ -32,7 +32,9 @@ class VerificationCategoryResult:
 
     @property
     def severity(self) -> str:
-        return worst_severity([severity_for_status(item.status) for item in self.results])
+        return worst_severity(
+            [severity_for_status(item.status) for item in self.results]
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -62,7 +64,9 @@ class VerificationExecutionResult:
 
     @property
     def severity(self) -> str:
-        return worst_severity([severity_for_status(item.status) for item in self.results])
+        return worst_severity(
+            [severity_for_status(item.status) for item in self.results]
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return {

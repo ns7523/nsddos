@@ -38,7 +38,9 @@ def install_middleware(app: FastAPI) -> None:
     @app.middleware("http")
     async def request_timing(request: Request, call_next):
         if not _authorized(request):
-            return JSONResponse(status_code=401, content={"detail": "missing or invalid api token"})
+            return JSONResponse(
+                status_code=401, content={"detail": "missing or invalid api token"}
+            )
         start = monotonic()
         response = await call_next(request)
         duration_ms = (monotonic() - start) * 1000

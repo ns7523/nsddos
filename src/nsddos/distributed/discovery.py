@@ -20,9 +20,17 @@ def discover_candidate_nodes(config: dict[str, Any]) -> tuple[dict[str, Any], ..
             normalized.append(
                 {
                     "node_id": str(item.get("node_id") or f"node-{index + 1}"),
-                    "hostname": str(item.get("hostname") or item.get("node_id") or f"node-{index + 1}"),
-                    "roles": tuple(sorted(str(role) for role in item.get("roles", []))) or ("runtime",),
-                    "capabilities": tuple(sorted(str(cap) for cap in item.get("capabilities", []))) or ("runtime",),
+                    "hostname": str(
+                        item.get("hostname")
+                        or item.get("node_id")
+                        or f"node-{index + 1}"
+                    ),
+                    "roles": tuple(sorted(str(role) for role in item.get("roles", [])))
+                    or ("runtime",),
+                    "capabilities": tuple(
+                        sorted(str(cap) for cap in item.get("capabilities", []))
+                    )
+                    or ("runtime",),
                     "worker_capacity": int(item.get("worker_capacity", 5)),
                     "state": str(item.get("state", "healthy")),
                     "source": "config",

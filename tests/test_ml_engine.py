@@ -108,8 +108,16 @@ def _detection(
         classification=classification,
         risk=risk,
         evidence=evidence,
-        signatures=(SignatureMatch(attack_type, attack_detected, 1.0),) if attack_type != "normal" else (),
-        anomalies=(AnomalyResult("burst", attack_detected, 2.0, 1.0, 1.5, 1.0),) if attack_detected else (),
+        signatures=(
+            (SignatureMatch(attack_type, attack_detected, 1.0),)
+            if attack_type != "normal"
+            else ()
+        ),
+        anomalies=(
+            (AnomalyResult("burst", attack_detected, 2.0, 1.0, 1.5, 1.0),)
+            if attack_detected
+            else ()
+        ),
         baseline_source="fixture",
     )
 
@@ -120,9 +128,15 @@ def _patch_ml_dirs(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(ml_persistence, "ML_DIR", tmp_path / "ml")
     monkeypatch.setattr(ml_persistence, "LATEST_PATH", tmp_path / "ml" / "latest.json")
     monkeypatch.setattr(ml_persistence, "MODEL_PATH", tmp_path / "ml" / "model.json")
-    monkeypatch.setattr(ml_persistence, "DATASET_PATH", tmp_path / "ml" / "dataset.json")
-    monkeypatch.setattr(ml_persistence, "METRICS_PATH", tmp_path / "ml" / "metrics.json")
-    monkeypatch.setattr(ml_persistence, "FEEDBACK_PATH", tmp_path / "ml" / "feedback.json")
+    monkeypatch.setattr(
+        ml_persistence, "DATASET_PATH", tmp_path / "ml" / "dataset.json"
+    )
+    monkeypatch.setattr(
+        ml_persistence, "METRICS_PATH", tmp_path / "ml" / "metrics.json"
+    )
+    monkeypatch.setattr(
+        ml_persistence, "FEEDBACK_PATH", tmp_path / "ml" / "feedback.json"
+    )
 
 
 def _patch_policy_inputs(tmp_path: Path, monkeypatch) -> None:
@@ -130,28 +144,38 @@ def _patch_policy_inputs(tmp_path: Path, monkeypatch) -> None:
     from nsddos.runtime.mitigation import engine as mitigation_engine
 
     monkeypatch.setattr(policy_history, "POLICY_DIR", tmp_path / "policy")
-    monkeypatch.setattr(policy_history, "HISTORY_PATH", tmp_path / "policy" / "history.json")
+    monkeypatch.setattr(
+        policy_history, "HISTORY_PATH", tmp_path / "policy" / "history.json"
+    )
     monkeypatch.setattr(mitigation_engine, "MITIGATION_DIR", tmp_path / "mitigation")
 
 
 def test_dataset_generation(tmp_path: Path, monkeypatch) -> None:
     _patch_ml_dirs(tmp_path, monkeypatch)
     _patch_policy_inputs(tmp_path, monkeypatch)
-    result = evaluate_ml_detection({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
+    result = evaluate_ml_detection(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
     assert result.dataset.row_count == 1
 
 
 def test_feature_engineering_correctness(tmp_path: Path, monkeypatch) -> None:
     _patch_ml_dirs(tmp_path, monkeypatch)
     _patch_policy_inputs(tmp_path, monkeypatch)
-    result = evaluate_ml_detection({}, detection=_detection("udp_flood", "HIGH", 0.77), telemetry=_telemetry(protocol="udp", udp_rate=1500, syn_rate=0))
+    result = evaluate_ml_detection(
+        {},
+        detection=_detection("udp_flood", "HIGH", 0.77),
+        telemetry=_telemetry(protocol="udp", udp_rate=1500, syn_rate=0),
+    )
     assert result.feature_vector.udp_rate == 1500.0
 
 
 def test_model_training(tmp_path: Path, monkeypatch) -> None:
     _patch_ml_dirs(tmp_path, monkeypatch)
     _patch_policy_inputs(tmp_path, monkeypatch)
-    result = evaluate_ml_detection({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
+    result = evaluate_ml_detection(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
     assert result.training_state.model_id
     assert result.model_version
 
@@ -159,38 +183,60 @@ def test_model_training(tmp_path: Path, monkeypatch) -> None:
 def test_deterministic_retraining(tmp_path: Path, monkeypatch) -> None:
     _patch_ml_dirs(tmp_path, monkeypatch)
     _patch_policy_inputs(tmp_path, monkeypatch)
-    evaluate_ml_detection({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
-    first = retrain_ml_model({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
-    second = retrain_ml_model({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
+    evaluate_ml_detection(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
+    first = retrain_ml_model(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
+    second = retrain_ml_model(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
     assert first.model_version == second.model_version
 
 
 def test_inference_scoring(tmp_path: Path, monkeypatch) -> None:
     _patch_ml_dirs(tmp_path, monkeypatch)
     _patch_policy_inputs(tmp_path, monkeypatch)
-    result = evaluate_ml_detection({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
+    result = evaluate_ml_detection(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
     assert 0.0 <= result.attack_probability <= 1.0
 
 
 def test_anomaly_scoring(tmp_path: Path, monkeypatch) -> None:
     _patch_ml_dirs(tmp_path, monkeypatch)
     _patch_policy_inputs(tmp_path, monkeypatch)
-    result = evaluate_ml_detection({}, detection=_detection("icmp_flood", "HIGH", 0.84), telemetry=_telemetry(protocol="icmp", icmp_rate=1800, syn_rate=0))
+    result = evaluate_ml_detection(
+        {},
+        detection=_detection("icmp_flood", "HIGH", 0.84),
+        telemetry=_telemetry(protocol="icmp", icmp_rate=1800, syn_rate=0),
+    )
     assert 0.0 <= result.anomaly_score <= 1.0
 
 
 def test_drift_detection(tmp_path: Path, monkeypatch) -> None:
     _patch_ml_dirs(tmp_path, monkeypatch)
     _patch_policy_inputs(tmp_path, monkeypatch)
-    evaluate_ml_detection({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
-    result = evaluate_ml_detection({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry(packets=5000, bytes_value=2000000))
+    evaluate_ml_detection(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
+    result = evaluate_ml_detection(
+        {},
+        detection=_detection("syn_flood", "HIGH", 0.91),
+        telemetry=_telemetry(packets=5000, bytes_value=2000000),
+    )
     assert result.drift_score >= 0.0
 
 
 def test_false_positive_calculation(tmp_path: Path, monkeypatch) -> None:
     _patch_ml_dirs(tmp_path, monkeypatch)
     _patch_policy_inputs(tmp_path, monkeypatch)
-    result = evaluate_ml_detection({}, detection=_detection("syn_flood", "HIGH", 0.42, attack_detected=False), telemetry=_telemetry())
+    result = evaluate_ml_detection(
+        {},
+        detection=_detection("syn_flood", "HIGH", 0.42, attack_detected=False),
+        telemetry=_telemetry(),
+    )
     assert 0.0 <= result.false_positive_score <= 1.0
 
 
@@ -198,7 +244,11 @@ def test_retraining_trigger_logic(tmp_path: Path, monkeypatch) -> None:
     _patch_ml_dirs(tmp_path, monkeypatch)
     _patch_policy_inputs(tmp_path, monkeypatch)
     result = evaluate_ml_detection(
-        {"runtime": {"ml": {"drift_threshold": 0.01, "false_positive_threshold": 0.01}}},
+        {
+            "runtime": {
+                "ml": {"drift_threshold": 0.01, "false_positive_threshold": 0.01}
+            }
+        },
         detection=_detection("syn_flood", "HIGH", 0.91),
         telemetry=_telemetry(packets=9000, bytes_value=5000000),
     )
@@ -210,6 +260,8 @@ def test_model_persistence_integrity(tmp_path: Path, monkeypatch) -> None:
 
     _patch_ml_dirs(tmp_path, monkeypatch)
     _patch_policy_inputs(tmp_path, monkeypatch)
-    result = evaluate_ml_detection({}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry())
+    result = evaluate_ml_detection(
+        {}, detection=_detection("syn_flood", "HIGH", 0.91), telemetry=_telemetry()
+    )
     assert latest_ml_evaluation()["model_id"] == result.model_id
     assert load_model() is not None

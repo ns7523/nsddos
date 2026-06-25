@@ -12,4 +12,6 @@ def build_secret_contract() -> SecretContract:
     required = ("NSDDOS_API_TOKEN", "NSDDOS_SECRET_KEY")
     optional = ("NSDDOS_CONTROLLER_PASSWORD", "NSDDOS_SFLOW_AUTH")
     missing = tuple(key for key in required if not os.getenv(key))
-    return SecretContract(required_keys=required, optional_keys=optional, missing_keys=missing)
+    return SecretContract(
+        required_keys=required, optional_keys=optional, missing_keys=missing
+    )

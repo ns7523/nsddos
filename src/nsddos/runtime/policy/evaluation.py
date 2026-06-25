@@ -33,8 +33,14 @@ def build_policy_evaluation(
     diagnostics: PolicyDiagnostics,
     timestamp: datetime,
 ) -> PolicyEvaluation:
-    generation = deterministic_id("policy-generation", f"{attack_type}:{source_ip}:{recommended_action}:{timestamp.isoformat()}")
-    policy_id = deterministic_id("policy", f"{attack_type}:{source_ip}:{escalation_level}:{threshold_state.threshold_score:.4f}")
+    generation = deterministic_id(
+        "policy-generation",
+        f"{attack_type}:{source_ip}:{recommended_action}:{timestamp.isoformat()}",
+    )
+    policy_id = deterministic_id(
+        "policy",
+        f"{attack_type}:{source_ip}:{escalation_level}:{threshold_state.threshold_score:.4f}",
+    )
     return PolicyEvaluation(
         policy_id=policy_id,
         attack_type=attack_type,

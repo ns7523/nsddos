@@ -9,10 +9,11 @@ from nsddos.runtime.collection.snapshots import write_collection_snapshot
 from nsddos.runtime.models import RuntimeCollectionBundle
 
 
-def collect_runtime_bundle(config: dict[str, Any], persist: bool = False) -> RuntimeCollectionBundle:
+def collect_runtime_bundle(
+    config: dict[str, Any], persist: bool = False
+) -> RuntimeCollectionBundle:
     """Collect normalized runtime state."""
     bundle = aggregate_collection(config)
     if persist:
         write_collection_snapshot(bundle)
     return bundle
-

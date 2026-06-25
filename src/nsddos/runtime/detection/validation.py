@@ -15,7 +15,11 @@ from nsddos.runtime.detection.models import DetectionEvaluation, FeatureVector
 
 
 def validate_detection_telemetry(telemetry: dict[str, Any]) -> list[str]:
-    errors = [f"missing:{field}" for field in REQUIRED_TELEMETRY_FIELDS if field not in telemetry]
+    errors = [
+        f"missing:{field}"
+        for field in REQUIRED_TELEMETRY_FIELDS
+        if field not in telemetry
+    ]
     flows = telemetry.get("flows", [])
     if not isinstance(flows, list):
         errors.append("invalid:flows")

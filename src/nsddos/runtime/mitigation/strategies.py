@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from nsddos.runtime.detection.models import DetectionEvaluation
-from nsddos.runtime.mitigation.models import MitigationPolicyDecision, MitigationStrategySelection
+from nsddos.runtime.mitigation.models import (
+    MitigationPolicyDecision,
+    MitigationStrategySelection,
+)
 
 
 def select_strategy(
@@ -15,9 +18,19 @@ def select_strategy(
     freshness_stale: bool,
 ) -> MitigationStrategySelection:
     if replay_mode:
-        return MitigationStrategySelection("strategy_alert_only", "alert_only", "replay_safe", "replay mode suppresses live-style mitigation")
+        return MitigationStrategySelection(
+            "strategy_alert_only",
+            "alert_only",
+            "replay_safe",
+            "replay mode suppresses live-style mitigation",
+        )
     if freshness_stale or not provider_reachable:
-        return MitigationStrategySelection("strategy_alert_only", "alert_only", "degraded_input", "provider or freshness state degraded")
+        return MitigationStrategySelection(
+            "strategy_alert_only",
+            "alert_only",
+            "degraded_input",
+            "provider or freshness state degraded",
+        )
     mapping = {
         "block_ip": "strategy_block_ip",
         "drop_traffic": "strategy_drop_traffic",

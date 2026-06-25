@@ -14,7 +14,11 @@ def build_stream_state(sources: DashboardSourceBundle) -> StreamState:
     return StreamState(
         active_streams=1 if session.get("session_id") else 0,
         stream_latency_ms=float(diagnostics.get("queue_latency_ms", 0.0)),
-        event_throughput=float(stream.get("throughput", diagnostics.get("processing_throughput", 0.0))),
+        event_throughput=float(
+            stream.get("throughput", diagnostics.get("processing_throughput", 0.0))
+        ),
         queue_depth=int(queue_state.get("queue_depth", 0)),
-        dropped_events=int(stream.get("dropped_events", diagnostics.get("dropped_event_count", 0))),
+        dropped_events=int(
+            stream.get("dropped_events", diagnostics.get("dropped_event_count", 0))
+        ),
     )

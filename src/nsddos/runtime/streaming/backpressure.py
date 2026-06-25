@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from nsddos.runtime.streaming.contracts import StreamBackpressureState, StreamBufferState, StreamQueueState
+from nsddos.runtime.streaming.contracts import (
+    StreamBackpressureState,
+    StreamBufferState,
+    StreamQueueState,
+)
 
 
 def evaluate_backpressure(

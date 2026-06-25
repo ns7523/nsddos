@@ -47,7 +47,9 @@ def default_producer_registry() -> ProducerRegistry:
         ProducerDefinition("topology", "RuntimeTopology", ("runtime",)),
         ProducerDefinition("datapath", "RuntimeDatapath", ("topology",)),
         ProducerDefinition("telemetry", "RuntimeTelemetry", ("runtime",)),
-        ProducerDefinition("convergence", "RuntimeConvergence", ("topology", "datapath", "telemetry")),
+        ProducerDefinition(
+            "convergence", "RuntimeConvergence", ("topology", "datapath", "telemetry")
+        ),
         ProducerDefinition("verification", "RuntimeVerification", ("convergence",)),
         ProducerDefinition("evidence", "RuntimeEvidence", ("verification",)),
         ProducerDefinition("graph", "RuntimeGraph", ("evidence",)),

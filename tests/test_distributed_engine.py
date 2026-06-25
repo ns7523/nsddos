@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from nsddos.distributed import orchestrate_cluster_runtime, validate_distributed_evaluation
+from nsddos.distributed import (
+    orchestrate_cluster_runtime,
+    validate_distributed_evaluation,
+)
 
 
 def _config() -> dict:
@@ -34,7 +37,9 @@ def test_deterministic_node_discovery_and_election(monkeypatch, tmp_path):
     from nsddos.distributed import orchestrator as orchestrator_module
     from nsddos.distributed import checkpoint as checkpoint_module
 
-    monkeypatch.setattr(orchestrator_module, "DISTRIBUTED_DIR", tmp_path / "distributed")
+    monkeypatch.setattr(
+        orchestrator_module, "DISTRIBUTED_DIR", tmp_path / "distributed"
+    )
     monkeypatch.setattr(checkpoint_module, "DISTRIBUTED_DIR", tmp_path / "distributed")
     evaluation = orchestrate_cluster_runtime(_config())
 
@@ -48,7 +53,9 @@ def test_worker_assignment_and_partition_stability(monkeypatch, tmp_path):
     from nsddos.distributed import orchestrator as orchestrator_module
     from nsddos.distributed import checkpoint as checkpoint_module
 
-    monkeypatch.setattr(orchestrator_module, "DISTRIBUTED_DIR", tmp_path / "distributed")
+    monkeypatch.setattr(
+        orchestrator_module, "DISTRIBUTED_DIR", tmp_path / "distributed"
+    )
     monkeypatch.setattr(checkpoint_module, "DISTRIBUTED_DIR", tmp_path / "distributed")
     evaluation = orchestrate_cluster_runtime(_config())
 
@@ -98,7 +105,9 @@ def test_invalid_cluster_rejection_when_duplicate_node_ids(monkeypatch, tmp_path
 
     config = _config()
     config["distributed"]["nodes"][1]["node_id"] = "node-1"
-    monkeypatch.setattr(orchestrator_module, "DISTRIBUTED_DIR", tmp_path / "distributed")
+    monkeypatch.setattr(
+        orchestrator_module, "DISTRIBUTED_DIR", tmp_path / "distributed"
+    )
     monkeypatch.setattr(checkpoint_module, "DISTRIBUTED_DIR", tmp_path / "distributed")
 
     try:

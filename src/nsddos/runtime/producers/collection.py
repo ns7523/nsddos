@@ -37,20 +37,36 @@ def _as_record(producer: str, item: dict[str, Any], index: int) -> RuntimeRecord
     payload.setdefault("observed_at", observed_at)
     payload.setdefault("synchronized_at", observed_at)
     payload.setdefault("replay_only", producer == "replay")
-    item_id = str(payload.get("id", deterministic_id("producer-item", f"{producer}:{index}:{to_canonical_json(payload)}")))
+    item_id = str(
+        payload.get(
+            "id",
+            deterministic_id(
+                "producer-item", f"{producer}:{index}:{to_canonical_json(payload)}"
+            ),
+        )
+    )
     record_type = str(payload.get("type", producer))
     evaluation = evaluate_freshness(producer, payload)
     payload.update(evaluation.freshness.to_dict())
     enforce_freshness_contract(payload)
     errors = validate_contract_payload(payload)
     if errors:
-        raise ValueError(f"contract validation failed for {producer}: {','.join(errors)}")
+        raise ValueError(
+            f"contract validation failed for {producer}: {','.join(errors)}"
+        )
     return RuntimeRecord(record_id=item_id, record_type=record_type, payload=payload)
 
 
 def produce_records(producer: str, items: list[dict[str, Any]]) -> ProducerOutput:
     start = monotonic()
-    entities = tuple(ProducerEntity(producer=producer, record=_as_record(producer, item, index)) for index, item in enumerate(items))
+    entities = tuple(
+        ProducerEntity(producer=producer, record=_as_record(producer, item, index))
+        for index, item in enumerate(items)
+    )
     duration_ms = (monotonic() - start) * 1000
     record_timing(f"producer.{producer}.construction", duration_ms)
-    return ProducerOutput(producer=producer, entities=entities, metadata=producer_metadata(producer, len(entities), duration_ms))
+    return ProducerOutput(
+        producer=producer,
+        entities=entities,
+        metadata=producer_metadata(producer, len(entities), duration_ms),
+    )

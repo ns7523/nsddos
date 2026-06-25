@@ -14,8 +14,14 @@ def recreate_startup_session() -> StartupSession:
 
     backend = detect_compose_backend()
     services = list_stack_services(backend) if backend is not None else ()
-    running = tuple(service.container_name for service in services if service.container_name)
-    health_state = "healthy" if ui_reachable(DEFAULT_STARTUP_PROFILE.ui_url) else "degraded"
-    session = build_startup_session(running, health_state, DEFAULT_STARTUP_PROFILE.ui_url)
+    running = tuple(
+        service.container_name for service in services if service.container_name
+    )
+    health_state = (
+        "healthy" if ui_reachable(DEFAULT_STARTUP_PROFILE.ui_url) else "degraded"
+    )
+    session = build_startup_session(
+        running, health_state, DEFAULT_STARTUP_PROFILE.ui_url
+    )
     persist_startup_session(session)
     return session

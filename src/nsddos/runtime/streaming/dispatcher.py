@@ -16,8 +16,14 @@ from nsddos.runtime.policy.contracts_models import PolicyEvaluation
 from nsddos.runtime.streaming.contracts import StreamAggregation, StreamEvent
 
 
-def build_detection_telemetry(aggregation: StreamAggregation, events: tuple[StreamEvent, ...]) -> dict[str, Any]:
-    timestamp = events[-1].timestamp.isoformat() if events else datetime.now(timezone.utc).isoformat()
+def build_detection_telemetry(
+    aggregation: StreamAggregation, events: tuple[StreamEvent, ...]
+) -> dict[str, Any]:
+    timestamp = (
+        events[-1].timestamp.isoformat()
+        if events
+        else datetime.now(timezone.utc).isoformat()
+    )
     flows = [
         {
             "source_ip": item.source_ip,
@@ -31,13 +37,17 @@ def build_detection_telemetry(aggregation: StreamAggregation, events: tuple[Stre
             "duration": item.duration_seconds,
             "flags": item.flags,
             "http_rate": float(item.metadata.get("http_rate", 0.0)),
-            "partial_connection_rate": float(item.metadata.get("partial_connection_rate", 0.0)),
+            "partial_connection_rate": float(
+                item.metadata.get("partial_connection_rate", 0.0)
+            ),
         }
         for item in events
     ]
     stale = any(item.freshness_state in {"stale", "expired"} for item in events)
     return {
-        "provider_source": f"streaming:{events[0].source_type}" if events else "streaming:unknown",
+        "provider_source": (
+            f"streaming:{events[0].source_type}" if events else "streaming:unknown"
+        ),
         "timestamp": timestamp,
         "sample_window_seconds": 1.0,
         "flows": flows,
@@ -60,16 +70,26 @@ def build_detection_telemetry(aggregation: StreamAggregation, events: tuple[Stre
             "last_flow_timestamp": timestamp,
             "sample_interval_seconds": 1.0,
             "stale": stale,
-            "detail": f"stream_state={events[0].source_type}" if events else "stream_state=empty",
+            "detail": (
+                f"stream_state={events[0].source_type}"
+                if events
+                else "stream_state=empty"
+            ),
         },
         "replay_mode": any(item.freshness_state == "replay_only" for item in events),
         "stream_aggregation": aggregation.to_dict(),
     }
 
 
-def dispatch_detection(config: dict[str, Any], aggregation: StreamAggregation, events: tuple[StreamEvent, ...]) -> tuple[DetectionEvaluation, dict[str, Any]]:
+def dispatch_detection(
+    config: dict[str, Any],
+    aggregation: StreamAggregation,
+    events: tuple[StreamEvent, ...],
+) -> tuple[DetectionEvaluation, dict[str, Any]]:
     telemetry = build_detection_telemetry(aggregation, events)
-    evaluation = evaluate_detection(config, telemetry=telemetry, reference_at=telemetry["timestamp"])
+    evaluation = evaluate_detection(
+        config, telemetry=telemetry, reference_at=telemetry["timestamp"]
+    )
     return evaluation, telemetry
 
 
@@ -79,8 +99,16 @@ def dispatch_mitigation(
     policy: PolicyEvaluation,
     telemetry: dict[str, Any],
 ) -> MitigationEvaluation:
-    evaluation = evaluate_mitigation(config, detection=detection, policy=policy, telemetry=telemetry, reference_at=telemetry["timestamp"])
-    if not hasattr(evaluation, "mitigation_required") or not hasattr(evaluation, "controller_payload"):
+    evaluation = evaluate_mitigation(
+        config,
+        detection=detection,
+        policy=policy,
+        telemetry=telemetry,
+        reference_at=telemetry["timestamp"],
+    )
+    if not hasattr(evaluation, "mitigation_required") or not hasattr(
+        evaluation, "controller_payload"
+    ):
         return evaluation
     if not evaluation.mitigation_required:
         return evaluation
@@ -92,7 +120,12 @@ def dispatch_ml(
     detection: DetectionEvaluation,
     telemetry: dict[str, Any],
 ) -> MLDetectionEvaluation:
-    return evaluate_ml_detection(config, detection=detection, telemetry=telemetry, reference_at=telemetry["timestamp"])
+    return evaluate_ml_detection(
+        config,
+        detection=detection,
+        telemetry=telemetry,
+        reference_at=telemetry["timestamp"],
+    )
 
 
 def dispatch_policy(
@@ -101,4 +134,10 @@ def dispatch_policy(
     ml: MLDetectionEvaluation,
     telemetry: dict[str, Any],
 ) -> PolicyEvaluation:
-    return evaluate_dynamic_policy(config, detection=detection, ml=ml, telemetry=telemetry, reference_at=telemetry["timestamp"])
+    return evaluate_dynamic_policy(
+        config,
+        detection=detection,
+        ml=ml,
+        telemetry=telemetry,
+        reference_at=telemetry["timestamp"],
+    )

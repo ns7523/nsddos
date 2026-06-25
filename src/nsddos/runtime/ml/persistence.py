@@ -14,7 +14,11 @@ from nsddos.runtime.ml.models import (
     MLFeedbackState,
     MLTrainingState,
 )
-from nsddos.runtime.persistence import atomic_write_json, read_json_checked, recover_json
+from nsddos.runtime.persistence import (
+    atomic_write_json,
+    read_json_checked,
+    recover_json,
+)
 
 ML_DIR = RUNTIME_DIR / "ml"
 LATEST_PATH = ML_DIR / "latest.json"
@@ -81,7 +85,9 @@ def load_model() -> MLTrainingState | None:
             for item in payload.get("type_centroids", [])
             if isinstance(item, list) and len(item) == 2
         ),
-        feature_weights=tuple(float(item) for item in payload.get("feature_weights", [])),
+        feature_weights=tuple(
+            float(item) for item in payload.get("feature_weights", [])
+        ),
         trained_row_count=int(payload.get("trained_row_count", 0)),
         trained_at=str(payload.get("trained_at", "")),
     )

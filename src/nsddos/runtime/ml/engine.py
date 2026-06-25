@@ -28,9 +28,12 @@ from nsddos.runtime.ml.persistence import (
     persist_metrics,
     persist_model,
 )
-from nsddos.runtime.ml.registry import retraining_required as registry_retraining_required
+from nsddos.runtime.ml.registry import (
+    retraining_required as registry_retraining_required,
+)
 from nsddos.runtime.ml.training import retrain_model, train_model
 from nsddos.runtime.ml.validation import validate_ml_evaluation
+
 
 def _settings(config: dict[str, Any]) -> dict[str, Any]:
     top_level = config.get("ml", {})
@@ -42,12 +45,16 @@ def _settings(config: dict[str, Any]) -> dict[str, Any]:
         "dataset_limit": int(runtime.get("dataset_limit", 256)),
         "history_limit": int(runtime.get("history_limit", 100)),
         "drift_threshold": float(runtime.get("drift_threshold", 0.30)),
-        "false_positive_threshold": float(runtime.get("false_positive_threshold", 0.20)),
+        "false_positive_threshold": float(
+            runtime.get("false_positive_threshold", 0.20)
+        ),
         "model": str(top_level.get("model", "default.pkl")),
     }
 
 
-def _telemetry_from_detection(detection: DetectionEvaluation, reference_at: str | None = None) -> dict[str, Any]:
+def _telemetry_from_detection(
+    detection: DetectionEvaluation, reference_at: str | None = None
+) -> dict[str, Any]:
     timestamp = reference_at or detection.telemetry_timestamp
     return {
         "provider_source": detection.evidence.provider_source,
@@ -56,14 +63,20 @@ def _telemetry_from_detection(detection: DetectionEvaluation, reference_at: str 
         "flows": [
             {
                 "source": "0.0.0.0",
-                "destination_port": detection.feature_vector.destination_port_distribution[0][0]
-                if detection.feature_vector.destination_port_distribution
-                else 0,
+                "destination_port": (
+                    detection.feature_vector.destination_port_distribution[0][0]
+                    if detection.feature_vector.destination_port_distribution
+                    else 0
+                ),
                 "packets": detection.feature_vector.packet_rate,
                 "bytes": detection.feature_vector.byte_rate,
                 "connections": detection.feature_vector.connection_rate,
                 "duration": detection.feature_vector.flow_duration,
-                "protocol": detection.attack_type if detection.attack_type != "normal" else "tcp",
+                "protocol": (
+                    detection.attack_type
+                    if detection.attack_type != "normal"
+                    else "tcp"
+                ),
             }
         ],
         "flow_state": {"flow_count": 1, "telemetry_present": True},
@@ -73,15 +86,30 @@ def _telemetry_from_detection(detection: DetectionEvaluation, reference_at: str 
     }
 
 
-def _attack_frequency(policy_history_payload: dict[str, Any], attack_type: str) -> float:
+def _attack_frequency(
+    policy_history_payload: dict[str, Any], attack_type: str
+) -> float:
     entries = policy_history_payload.get("entries", [])
     if not isinstance(entries, list):
         return 1.0
-    return float(len([item for item in entries if isinstance(item, dict) and item.get("attack_type") == attack_type]) + 1)
+    return float(
+        len(
+            [
+                item
+                for item in entries
+                if isinstance(item, dict) and item.get("attack_type") == attack_type
+            ]
+        )
+        + 1
+    )
 
 
-def _timestamp(reference_at: str | None, detection: DetectionEvaluation, telemetry: dict[str, Any]) -> datetime:
-    value = reference_at or str(telemetry.get("timestamp", detection.telemetry_timestamp))
+def _timestamp(
+    reference_at: str | None, detection: DetectionEvaluation, telemetry: dict[str, Any]
+) -> datetime:
+    value = reference_at or str(
+        telemetry.get("timestamp", detection.telemetry_timestamp)
+    )
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
@@ -91,7 +119,13 @@ def train_ml_model(
     telemetry: dict[str, Any] | None = None,
     reference_at: str | None = None,
 ) -> MLDetectionEvaluation:
-    return evaluate_ml_detection(config, detection=detection, telemetry=telemetry, reference_at=reference_at, force_retrain=True)
+    return evaluate_ml_detection(
+        config,
+        detection=detection,
+        telemetry=telemetry,
+        reference_at=reference_at,
+        force_retrain=True,
+    )
 
 
 def retrain_ml_model(
@@ -100,7 +134,13 @@ def retrain_ml_model(
     telemetry: dict[str, Any] | None = None,
     reference_at: str | None = None,
 ) -> MLDetectionEvaluation:
-    return evaluate_ml_detection(config, detection=detection, telemetry=telemetry, reference_at=reference_at, force_retrain=True)
+    return evaluate_ml_detection(
+        config,
+        detection=detection,
+        telemetry=telemetry,
+        reference_at=reference_at,
+        force_retrain=True,
+    )
 
 
 def evaluate_ml_detection(
@@ -111,23 +151,34 @@ def evaluate_ml_detection(
     force_retrain: bool = False,
 ) -> MLDetectionEvaluation:
     settings = _settings(config)
-    detection_evaluation = detection or evaluate_detection(config, telemetry=telemetry, reference_at=reference_at)
-    payload = telemetry or _telemetry_from_detection(detection_evaluation, reference_at=reference_at)
+    detection_evaluation = detection or evaluate_detection(
+        config, telemetry=telemetry, reference_at=reference_at
+    )
+    payload = telemetry or _telemetry_from_detection(
+        detection_evaluation, reference_at=reference_at
+    )
     from nsddos.runtime.mitigation.engine import latest_mitigation_evidence
     from nsddos.runtime.policy.history import latest_history_payload
 
     policy_history = latest_history_payload()
     mitigation_payload = latest_mitigation_evidence()
-    feedback_state = load_feedback() or build_feedback_state(policy_history, mitigation_payload)
-    attack_frequency = _attack_frequency(policy_history, detection_evaluation.attack_type)
-    features = extract_ml_features(payload, detection_evaluation, feedback_state, attack_frequency)
+    feedback_state = load_feedback() or build_feedback_state(
+        policy_history, mitigation_payload
+    )
+    attack_frequency = _attack_frequency(
+        policy_history, detection_evaluation.attack_type
+    )
+    features = extract_ml_features(
+        payload, detection_evaluation, feedback_state, attack_frequency
+    )
     dataset = build_dataset_snapshot(
         load_dataset(),
         build_dataset_row(
             detection_evaluation,
             features,
             str(mitigation_payload.get("mitigation_action", "alert_only")),
-            str(mitigation_payload.get("mitigation_action", "alert_only")) != "alert_only",
+            str(mitigation_payload.get("mitigation_action", "alert_only"))
+            != "alert_only",
             reference_at or detection_evaluation.telemetry_timestamp,
         ),
         limit=settings["dataset_limit"],
@@ -142,16 +193,25 @@ def evaluate_ml_detection(
         settings["retrain_threshold"],
     )
     if current_model is None:
-        current_model = train_model(dataset, settings["model_family"], version_seed=settings["model"])
+        current_model = train_model(
+            dataset, settings["model_family"], version_seed=settings["model"]
+        )
     elif needs_retrain:
         current_model = retrain_model(dataset, current_model)
-    metrics = load_metrics() or MLEvaluationMetrics(0.0, 0.0, feedback_state.false_positive_score, 0.0, 0.0)
+    metrics = load_metrics() or MLEvaluationMetrics(
+        0.0, 0.0, feedback_state.false_positive_score, 0.0, 0.0
+    )
     inference = run_inference(current_model, features, anomaly_score=anomaly_value)
     evaluation_metrics = compute_evaluation_metrics(dataset, feedback_state)
     drift_state = detect_drift(features, baseline, metrics, anomaly_value)
     false_positive_score = max(
         feedback_state.false_positive_score,
-        (1.0 - inference.attack_probability) if detection_evaluation.attack_detected and inference.predicted_attack_type == "normal" else 0.0,
+        (
+            (1.0 - inference.attack_probability)
+            if detection_evaluation.attack_detected
+            and inference.predicted_attack_type == "normal"
+            else 0.0
+        ),
     )
     retraining_required = (
         force_retrain

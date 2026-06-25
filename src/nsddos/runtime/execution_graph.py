@@ -10,7 +10,9 @@ from nsddos.constants import RUNTIME_DIR
 from nsddos.runtime.pipeline import build_execution_plan
 
 
-def build_execution_graph(config: dict[str, Any], preset: str = "minimal-lab") -> dict[str, Any]:
+def build_execution_graph(
+    config: dict[str, Any], preset: str = "minimal-lab"
+) -> dict[str, Any]:
     """Build canonical execution DAG."""
     plan = build_execution_plan(config, preset=preset)
     nodes = [
@@ -48,7 +50,9 @@ def execution_graph_mermaid(graph: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def export_execution_graph(config: dict[str, Any], preset: str = "minimal-lab") -> dict[str, str]:
+def export_execution_graph(
+    config: dict[str, Any], preset: str = "minimal-lab"
+) -> dict[str, str]:
     """Export execution graph artifacts."""
     export_dir = RUNTIME_DIR / "pipeline"
     export_dir.mkdir(parents=True, exist_ok=True)

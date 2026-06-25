@@ -17,13 +17,17 @@ from nsddos.health_checks import (
 from nsddos.runtime.models import HealthResult
 
 
-def get_health_report(verbose: bool = False) -> dict[str, list[HealthResult] | dict[str, bool]]:
+def get_health_report(
+    verbose: bool = False,
+) -> dict[str, list[HealthResult] | dict[str, bool]]:
     """Return grouped health report."""
 
     static_results = collect_static_health()
     runtime_results = collect_runtime_health()
     if not verbose:
-        flat = {result.name: result.ok for result in [*static_results, *runtime_results]}
+        flat = {
+            result.name: result.ok for result in [*static_results, *runtime_results]
+        }
         return {"flat": flat}
     return {
         "static": static_results,

@@ -37,7 +37,9 @@ def _patch_release_sources(monkeypatch):
     monkeypatch.setattr(
         packaging_module,
         "replay_verification_runs",
-        lambda limit=1: {"runs": [{"results": [{"status": "pass"}, {"status": "warn"}]}]},
+        lambda limit=1: {
+            "runs": [{"results": [{"status": "pass"}, {"status": "warn"}]}]
+        },
     )
     monkeypatch.setattr(
         packaging_module,

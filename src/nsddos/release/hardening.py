@@ -5,9 +5,13 @@ from __future__ import annotations
 from nsddos.release.contracts import HardeningResult, ReleaseSourceBundle
 
 
-def build_hardening_result(config: dict, sources: ReleaseSourceBundle) -> HardeningResult:
+def build_hardening_result(
+    config: dict, sources: ReleaseSourceBundle
+) -> HardeningResult:
     """Build hardening validation result."""
-    runtime_live_enabled = bool(config.get("runtime", {}).get("live", {}).get("enabled", False))
+    runtime_live_enabled = bool(
+        config.get("runtime", {}).get("live", {}).get("enabled", False)
+    )
     production_config_ready = bool(config.get("release", {}).get("version"))
     strict_runtime_config = not runtime_live_enabled or sources.provider_burst_supported
     secret_enforcement = sources.missing_secret_count == 0
@@ -21,7 +25,14 @@ def build_hardening_result(config: dict, sources: ReleaseSourceBundle) -> Harden
         findings.append("secret_enforcement_failed")
     if not deployment_integrity:
         findings.append("deployment_integrity_failed")
-    if all((production_config_ready, strict_runtime_config, secret_enforcement, deployment_integrity)):
+    if all(
+        (
+            production_config_ready,
+            strict_runtime_config,
+            secret_enforcement,
+            deployment_integrity,
+        )
+    ):
         state = "strict"
     elif deployment_integrity:
         state = "degraded"

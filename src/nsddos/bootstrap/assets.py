@@ -108,7 +108,9 @@ def _expected_paths(root: Path) -> tuple[Path, Path, Path]:
     )
 
 
-def _status_for_root(root: Path, source: str, version: str, detail: str) -> RuntimeAssetStatus:
+def _status_for_root(
+    root: Path, source: str, version: str, detail: str
+) -> RuntimeAssetStatus:
     compose_file, floodlight_jar, sflowrt_jar = _expected_paths(root)
     ready = compose_file.exists() and floodlight_jar.exists() and sflowrt_jar.exists()
     return RuntimeAssetStatus(
@@ -124,7 +126,9 @@ def _status_for_root(root: Path, source: str, version: str, detail: str) -> Runt
 
 
 def _repo_runtime_ready() -> bool:
-    return all((REPOSITORY_ROOT / relative).exists() for relative in REQUIRED_REPO_FILES) and all(
+    return all(
+        (REPOSITORY_ROOT / relative).exists() for relative in REQUIRED_REPO_FILES
+    ) and all(
         (REPOSITORY_ROOT / relative).exists() for relative in REQUIRED_REPO_DIRECTORIES
     )
 
@@ -153,7 +157,9 @@ def release_download_base_url(version: str) -> str:
     override = getenv(APP_RUNTIME_ASSET_BASE_URL_ENV)
     if override:
         return override.rstrip("/")
-    return f"https://github.com/{RUNTIME_ASSET_RELEASE_REPO}/releases/download/v{version}"
+    return (
+        f"https://github.com/{RUNTIME_ASSET_RELEASE_REPO}/releases/download/v{version}"
+    )
 
 
 def release_manifest_url(version: str) -> str:
@@ -222,7 +228,9 @@ def _parse_manifest(payload: bytes) -> RuntimeReleaseManifest:
             raise ValueError("Runtime manifest file entry missing path or sha256.")
         files_payload.append(RuntimeAssetFile(path=path, sha256=sha256))
     raw_dirs = raw.get("required_directories", ())
-    required_directories = tuple(str(item).strip() for item in raw_dirs if str(item).strip())
+    required_directories = tuple(
+        str(item).strip() for item in raw_dirs if str(item).strip()
+    )
     version = str(raw.get("version", "")).strip()
     bundle_name = str(raw.get("bundle_name", "")).strip()
     bundle_sha256 = str(raw.get("bundle_sha256", "")).strip()
@@ -257,11 +265,15 @@ def _verify_manifest(root: Path, manifest: RuntimeReleaseManifest) -> None:
     for relative in manifest.required_directories:
         path = root / relative
         if not path.exists():
-            raise RuntimeError(f"Runtime asset directory missing after extraction: {relative}")
+            raise RuntimeError(
+                f"Runtime asset directory missing after extraction: {relative}"
+            )
     for item in manifest.required_files:
         path = root / item.path
         if not path.exists():
-            raise RuntimeError(f"Runtime asset file missing after extraction: {item.path}")
+            raise RuntimeError(
+                f"Runtime asset file missing after extraction: {item.path}"
+            )
         digest = _sha256_file(path)
         if digest != item.sha256:
             raise RuntimeError(f"Runtime asset checksum mismatch: {item.path}")
@@ -282,17 +294,39 @@ def detect_runtime_asset_status(version: str | None = None) -> RuntimeAssetStatu
             f"{APP_ASSET_ROOT_ENV}={Path(override).expanduser()}",
         )
     if _repo_runtime_ready():
-        return _status_for_root(REPOSITORY_ROOT, "repo", resolved_version, "repository runtime payloads available")
+        return _status_for_root(
+            REPOSITORY_ROOT,
+            "repo",
+            resolved_version,
+            "repository runtime payloads available",
+        )
     receipt = _read_active_receipt()
     if receipt:
         cached_version = str(receipt.get("version", resolved_version))
-        cached_root = Path(str(receipt.get("root", _cached_release_root(cached_version)))).expanduser()
+        cached_root = Path(
+            str(receipt.get("root", _cached_release_root(cached_version)))
+        ).expanduser()
         if cached_version == resolved_version or version is None:
-            return _status_for_root(cached_root, "cache", cached_version, f"cached runtime assets: {cached_root}")
+            return _status_for_root(
+                cached_root,
+                "cache",
+                cached_version,
+                f"cached runtime assets: {cached_root}",
+            )
     cached_root = _cached_release_root(resolved_version)
     if cached_root.exists():
-        return _status_for_root(cached_root, "cache", resolved_version, f"cached runtime assets: {cached_root}")
-    return _status_for_root(PACKAGE_TEMPLATE_DIR, "package", resolved_version, "packaged templates available; runtime payload download required")
+        return _status_for_root(
+            cached_root,
+            "cache",
+            resolved_version,
+            f"cached runtime assets: {cached_root}",
+        )
+    return _status_for_root(
+        PACKAGE_TEMPLATE_DIR,
+        "package",
+        resolved_version,
+        "packaged templates available; runtime payload download required",
+    )
 
 
 def compose_file_path() -> Path:
@@ -323,7 +357,12 @@ def download_runtime_assets(
 
     resolved_version = runtime_asset_version(version)
     current = detect_runtime_asset_status(resolved_version)
-    if current.source == "cache" and current.ready and current.version == resolved_version and not force:
+    if (
+        current.source == "cache"
+        and current.ready
+        and current.version == resolved_version
+        and not force
+    ):
         _write_active_receipt(current.version, current.root)
         return RuntimeAssetDownloadResult(
             downloaded=False,
@@ -341,7 +380,9 @@ def download_runtime_assets(
     progress = Progress(
         SpinnerColumn(style="bright_cyan"),
         TextColumn("[bold white]{task.description}[/bold white]"),
-        BarColumn(bar_width=24, complete_style="bright_cyan", finished_style="bright_cyan"),
+        BarColumn(
+            bar_width=24, complete_style="bright_cyan", finished_style="bright_cyan"
+        ),
         TextColumn("[bright_cyan]{task.completed}/{task.total}[/bright_cyan]"),
         console=active_console,
         transient=console is not None,
@@ -377,9 +418,13 @@ def download_runtime_assets(
 
     _write_active_receipt(manifest.version, release_root)
     progress.update(task_id, advance=1)
-    status = _status_for_root(release_root, "cache", manifest.version, f"downloaded from {bundle_url}")
+    status = _status_for_root(
+        release_root, "cache", manifest.version, f"downloaded from {bundle_url}"
+    )
     if not status.ready:
-        raise RuntimeError("Runtime asset download completed but required paths are still missing.")
+        raise RuntimeError(
+            "Runtime asset download completed but required paths are still missing."
+        )
     if console is not None:
         active_console.print(
             Panel(

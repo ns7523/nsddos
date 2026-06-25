@@ -14,15 +14,22 @@ def _distance(left: tuple[float, ...], right: tuple[float, ...]) -> float:
     return math.sqrt(sum((a - b) ** 2 for a, b in zip(left, right, strict=False)))
 
 
-def run_inference(model: MLTrainingState, features: MLFeatureVector, anomaly_score: float = 0.0) -> MLInferenceResult:
+def run_inference(
+    model: MLTrainingState, features: MLFeatureVector, anomaly_score: float = 0.0
+) -> MLInferenceResult:
     values = features.values()
-    weighted_sum = sum(weight * min(value / 1000.0, 1.0) for weight, value in zip(model.feature_weights, values, strict=False))
+    weighted_sum = sum(
+        weight * min(value / 1000.0, 1.0)
+        for weight, value in zip(model.feature_weights, values, strict=False)
+    )
     centroid_map = model.centroid_map()
     if not centroid_map:
         predicted_type = "normal"
         nearest_distance = 1.0
     else:
-        ranked = sorted((key, _distance(values, centroid)) for key, centroid in centroid_map.items())
+        ranked = sorted(
+            (key, _distance(values, centroid)) for key, centroid in centroid_map.items()
+        )
         predicted_type, nearest_distance = ranked[0]
     probability = max(0.0, min(1.0, (weighted_sum * 0.75) + (anomaly_score * 0.25)))
     if predicted_type == "normal" and probability >= model.attack_threshold:

@@ -11,7 +11,13 @@ from fastapi.staticfiles import StaticFiles
 
 from nsddos.api.middleware import install_middleware
 from nsddos.api.router import router as api_router
-from nsddos.ui.router import PRIMARY_PATHS, EXPLORER_PATHS, builder, render_page, router as ui_router
+from nsddos.ui.router import (
+    PRIMARY_PATHS,
+    EXPLORER_PATHS,
+    builder,
+    render_page,
+    router as ui_router,
+)
 from nsddos.ui.state import build_ui_state
 
 STATIC_DIR = Path(__file__).with_name("static")

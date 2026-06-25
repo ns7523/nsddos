@@ -31,6 +31,8 @@ def to_runtime_query(request: ApiQueryRequest) -> RuntimeQuery:
     )
 
 
-def execute_api_query(config: dict[str, Any], request: ApiQueryRequest) -> ApiQueryResponse:
+def execute_api_query(
+    config: dict[str, Any], request: ApiQueryRequest
+) -> ApiQueryResponse:
     """Execute query through authoritative runtime query engine."""
     return query_response(execute_query(config, to_runtime_query(request)))

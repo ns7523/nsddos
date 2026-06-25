@@ -47,10 +47,14 @@ def _lab_payload() -> UiPagePayload:
             edges=(UiLabEdge(source="h1", target="mitigation", label="observed_by"),),
             telemetry=(
                 UiLabTelemetryItem("Packets/sec", "220.0", "Live packet rate", "good"),
-                UiLabTelemetryItem("Mitigation state", "planned", "Latest mitigation state", "warn"),
+                UiLabTelemetryItem(
+                    "Mitigation state", "planned", "Latest mitigation state", "warn"
+                ),
             ),
             terminal_tabs=(
-                UiLabTerminalTab(host="h1", label="h1", state="connected", prompt="h1#"),
+                UiLabTerminalTab(
+                    host="h1", label="h1", state="connected", prompt="h1#"
+                ),
                 UiLabTerminalTab(host="h2", label="h2", state="idle", prompt="h2#"),
                 UiLabTerminalTab(host="h3", label="h3", state="idle", prompt="h3#"),
             ),
@@ -104,14 +108,21 @@ def test_lab_console_terminal_websocket_rejects_invalid_host() -> None:
         try:
             with client.websocket_connect("/ui/ws/lab-terminal/badhost"):
                 pass
-        except Exception as exc:  # pragma: no cover - exact exception type differs by Starlette version
-            assert getattr(exc, "code", 0) == 1008 or "invalid host" in getattr(exc, "reason", "").lower()
+        except (
+            Exception
+        ) as exc:  # pragma: no cover - exact exception type differs by Starlette version
+            assert (
+                getattr(exc, "code", 0) == 1008
+                or "invalid host" in getattr(exc, "reason", "").lower()
+            )
         else:  # pragma: no cover
             assert False, "invalid host websocket should reject"
 
 
 def test_lab_console_terminal_websocket_accepts_valid_host(monkeypatch) -> None:
-    monkeypatch.setattr("nsddos.ui.lab_console.terminal_manager.build_command", lambda host: ["/bin/sh"])
+    monkeypatch.setattr(
+        "nsddos.ui.lab_console.terminal_manager.build_command", lambda host: ["/bin/sh"]
+    )
 
     with TestClient(create_ui_app()) as client:
         with client.websocket_connect("/ui/ws/lab-terminal/h1") as websocket:
@@ -126,11 +137,14 @@ def test_lab_console_terminal_websocket_accepts_valid_host(monkeypatch) -> None:
     assert "lab-ready" in output
 
 
-def test_lab_console_action_endpoint_dispatches_expected_runtime_helper(monkeypatch) -> None:
+def test_lab_console_action_endpoint_dispatches_expected_runtime_helper(
+    monkeypatch,
+) -> None:
     calls: list[tuple[str, dict]] = []
     monkeypatch.setattr(
         "nsddos.ui.lab_console.control_manager.run_action",
-        lambda action, payload=None: calls.append((action, payload or {})) or {
+        lambda action, payload=None: calls.append((action, payload or {}))
+        or {
             "action": action,
             "state": "started",
             "detail": "ok",

@@ -28,7 +28,15 @@ def _patch_sources(monkeypatch):
             "timestamp": "2100-01-01T00:00:01+00:00",
         },
     )
-    monkeypatch.setattr(server_module, "latest_policy_evaluation", lambda: {"policy_id": "policy-1", "recommended_action": "block_ip", "threshold_score": 0.8})
+    monkeypatch.setattr(
+        server_module,
+        "latest_policy_evaluation",
+        lambda: {
+            "policy_id": "policy-1",
+            "recommended_action": "block_ip",
+            "threshold_score": 0.8,
+        },
+    )
     monkeypatch.setattr(
         server_module,
         "latest_policy_history_payload",
@@ -65,8 +73,20 @@ def _patch_sources(monkeypatch):
             },
         },
     )
-    monkeypatch.setattr(server_module, "latest_distributed_evaluation", lambda: {"active_nodes": 2, "cluster_health": "healthy", "timestamp": "2100-01-01T00:00:03+00:00"})
-    monkeypatch.setattr(server_module, "latest_deployment_payload", lambda: {"deployment_id": "deploy-1"})
+    monkeypatch.setattr(
+        server_module,
+        "latest_distributed_evaluation",
+        lambda: {
+            "active_nodes": 2,
+            "cluster_health": "healthy",
+            "timestamp": "2100-01-01T00:00:03+00:00",
+        },
+    )
+    monkeypatch.setattr(
+        server_module,
+        "latest_deployment_payload",
+        lambda: {"deployment_id": "deploy-1"},
+    )
     monkeypatch.setattr(
         server_module,
         "latest_streaming_evaluation",
@@ -86,14 +106,24 @@ def _patch_sources(monkeypatch):
             "runs": [
                 {
                     "results": [
-                        {"name": "live_provider_mode", "status": "warn", "category": "live"},
-                        {"name": "policy_rollback_validation", "status": "pass", "category": "policy"},
+                        {
+                            "name": "live_provider_mode",
+                            "status": "warn",
+                            "category": "live",
+                        },
+                        {
+                            "name": "policy_rollback_validation",
+                            "status": "pass",
+                            "category": "policy",
+                        },
                     ]
                 }
             ]
         },
     )
-    monkeypatch.setattr(server_module, "persist_dashboard_history", lambda evaluation: None)
+    monkeypatch.setattr(
+        server_module, "persist_dashboard_history", lambda evaluation: None
+    )
 
 
 def test_dashboard_metrics_alerts_and_reports(monkeypatch):

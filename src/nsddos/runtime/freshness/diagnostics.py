@@ -12,5 +12,13 @@ def explain_freshness() -> dict[str, Any]:
     return {
         "metadata": FRESHNESS_METADATA,
         "thresholds": threshold_summary(),
-        "states": ["valid", "stale", "expired", "degraded", "replay_only", "inconsistent", "divergent"],
+        "states": [
+            "valid",
+            "stale",
+            "expired",
+            "degraded",
+            "replay_only",
+            "inconsistent",
+            "divergent",
+        ],
     }

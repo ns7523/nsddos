@@ -25,7 +25,11 @@ def _build_profile_table() -> Table:
 def ask_deployment_profile(console: Console) -> DeploymentProfile:
     """Prompt for deployment profile selection."""
 
-    console.print(Panel(_build_profile_table(), title="Select Deployment Mode", border_style="cyan"))
+    console.print(
+        Panel(
+            _build_profile_table(), title="Select Deployment Mode", border_style="cyan"
+        )
+    )
     try:
         choice = IntPrompt.ask(
             "Select deployment mode",

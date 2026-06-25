@@ -31,7 +31,9 @@ def _findings_table(findings):
         badge = "OK" if finding.status == "pass" else "WARN"
         if finding.status == "fail":
             badge = "MISSING" if finding.repairable else "WARN"
-        table.add_row(finding.area, finding.check_name, status_text(badge), finding.detail)
+        table.add_row(
+            finding.area, finding.check_name, status_text(badge), finding.detail
+        )
     return table
 
 
@@ -56,18 +58,29 @@ def run_doctor_command(console: Console | None = None) -> DoctorResult:
         "Critical path diagnostics, repair planning, runtime integrity",
     )
     repairable = sum(1 for finding in findings if finding.repairable)
-    critical = sum(1 for finding in findings if finding.critical and finding.status == "fail")
+    critical = sum(
+        1 for finding in findings if finding.critical and finding.status == "fail"
+    )
     primary_sections = [
-        Panel(_findings_table(findings), title="Diagnostic Feed", border_style="bright_cyan"),
+        Panel(
+            _findings_table(findings),
+            title="Diagnostic Feed",
+            border_style="bright_cyan",
+        ),
     ]
     plan = build_repair_plan(findings)
     if plan:
-        primary_sections.append(Panel(_repair_table(plan), title="Operator Repairs", border_style="yellow"))
+        primary_sections.append(
+            Panel(_repair_table(plan), title="Operator Repairs", border_style="yellow")
+        )
     primary = Group(*primary_sections)
     secondary = Group(
         build_operator_chips(
             (
-                ("FAILURES", str(sum(1 for finding in findings if finding.status == "fail"))),
+                (
+                    "FAILURES",
+                    str(sum(1 for finding in findings if finding.status == "fail")),
+                ),
                 ("CRITICAL", str(critical)),
                 ("REPAIRABLE", str(repairable)),
             )
@@ -78,7 +91,9 @@ def run_doctor_command(console: Console | None = None) -> DoctorResult:
             header,
             primary,
             secondary,
-            footer=build_footer_line("Doctor console engaged. Repairs apply only to explicit operator-safe actions."),
+            footer=build_footer_line(
+                "Doctor console engaged. Repairs apply only to explicit operator-safe actions."
+            ),
         )
     )
     applied = execute_repairs(active_console, plan)

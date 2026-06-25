@@ -5,7 +5,11 @@ from __future__ import annotations
 from nsddos.bootstrap.orchestrator import load_startup_session
 from nsddos.bootstrap.service_monitor import parse_compose_ps_output
 from nsddos.bootstrap.setup import collect_environment_scan
-from nsddos.bootstrap.stack import detect_compose_backend, list_stack_services, run_compose_command
+from nsddos.bootstrap.stack import (
+    detect_compose_backend,
+    list_stack_services,
+    run_compose_command,
+)
 from nsddos.bootstrap.startup_profiles import DEFAULT_STARTUP_PROFILE
 from nsddos.bootstrap.state import DiagnosticFinding
 from nsddos.bootstrap.ui_launcher import ui_reachable
@@ -27,7 +31,9 @@ def collect_diagnostic_findings() -> tuple[DiagnosticFinding, ...]:
 
     scan = collect_environment_scan()
     findings: list[DiagnosticFinding] = [
-        DiagnosticFinding("environment", "python", "pass", scan.python_version, repairable=False),
+        DiagnosticFinding(
+            "environment", "python", "pass", scan.python_version, repairable=False
+        ),
         DiagnosticFinding(
             "environment",
             "venv",
@@ -91,7 +97,14 @@ def collect_diagnostic_findings() -> tuple[DiagnosticFinding, ...]:
         service = service_by_name.get(container_name)
         if service is None:
             findings.append(
-                DiagnosticFinding("containers", container_name, "fail", "Missing", repairable=True, critical=True)
+                DiagnosticFinding(
+                    "containers",
+                    container_name,
+                    "fail",
+                    "Missing",
+                    repairable=True,
+                    critical=True,
+                )
             )
             continue
         findings.append(
@@ -128,7 +141,11 @@ def collect_diagnostic_findings() -> tuple[DiagnosticFinding, ...]:
                 "containers",
                 f"{container_name}:restart_loop",
                 "fail" if container_name in restart_loops else "pass",
-                "Restart loop suspected" if container_name in restart_loops else "Stable",
+                (
+                    "Restart loop suspected"
+                    if container_name in restart_loops
+                    else "Stable"
+                ),
                 repairable=container_name in restart_loops,
                 critical=container_name in restart_loops,
             )
@@ -162,17 +179,37 @@ def collect_diagnostic_findings() -> tuple[DiagnosticFinding, ...]:
     session_path = DEFAULT_STARTUP_PROFILE.session_path
     if not session_path.exists():
         findings.append(
-            DiagnosticFinding("session", "session_file", "fail", "Missing", repairable=True, critical=False)
+            DiagnosticFinding(
+                "session",
+                "session_file",
+                "fail",
+                "Missing",
+                repairable=True,
+                critical=False,
+            )
         )
     else:
         session = load_startup_session(session_path)
         if session is None or not session.ui_url or not session.started_at:
             findings.append(
-                DiagnosticFinding("session", "session_file", "fail", "Corrupt", repairable=True, critical=False)
+                DiagnosticFinding(
+                    "session",
+                    "session_file",
+                    "fail",
+                    "Corrupt",
+                    repairable=True,
+                    critical=False,
+                )
             )
         else:
             findings.append(
-                DiagnosticFinding("session", "session_file", "pass", str(session_path), repairable=False)
+                DiagnosticFinding(
+                    "session",
+                    "session_file",
+                    "pass",
+                    str(session_path),
+                    repairable=False,
+                )
             )
 
     return tuple(findings)

@@ -19,7 +19,13 @@ SIMULATION_ATTACK_TYPES = {
 
 INTENSITY_LEVELS = {"low", "medium", "high"}
 TARGET_KINDS = {"host", "subnet", "switch", "controller"}
-PATTERN_NAMES = {"burst", "sustained", "exponential_ramp_up", "random_burst", "wave_attack"}
+PATTERN_NAMES = {
+    "burst",
+    "sustained",
+    "exponential_ramp_up",
+    "random_burst",
+    "wave_attack",
+}
 
 
 @dataclass(frozen=True)
@@ -170,10 +176,14 @@ class AttackTrafficContract:
     replay_records: tuple[ReplayTrafficRecord, ...] = field(default_factory=tuple)
     target_kind: str = "host"
     pattern_name: str = "burst"
-    diagnostics: SimulationDiagnostics = field(default_factory=lambda: SimulationDiagnostics(0, 0, 0))
+    diagnostics: SimulationDiagnostics = field(
+        default_factory=lambda: SimulationDiagnostics(0, 0, 0)
+    )
     schema_version: str = SCHEMA_VERSION
     contract_version: str = CONTRACT_VERSION
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
 
     def to_dict(self) -> dict[str, Any]:
         return {

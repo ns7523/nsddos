@@ -7,7 +7,13 @@ from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 import typer
 
-from nsddos.api import evidence_api, graph_api, health_api, query_api, replay as replay_api
+from nsddos.api import (
+    evidence_api,
+    graph_api,
+    health_api,
+    query_api,
+    replay as replay_api,
+)
 from nsddos.api import router as router_module
 from nsddos.api import service_api, snapshots_api, timeline_api, verification_api
 from nsddos.api.app import create_app
@@ -73,7 +79,12 @@ def _fake_query_response(name: str, scope: str) -> ApiQueryResponse:
         "validity_state": "valid",
     }
     if name == "health":
-        item = {"id": "health-1", "type": "health", "status": "ok", "checks": {"config": True, "runtime_dirs": True}}
+        item = {
+            "id": "health-1",
+            "type": "health",
+            "status": "ok",
+            "checks": {"config": True, "runtime_dirs": True},
+        }
     return ApiQueryResponse(
         request_id=f"request-{name}",
         query={"name": name, "scope": scope},
@@ -82,7 +93,11 @@ def _fake_query_response(name: str, scope: str) -> ApiQueryResponse:
         evidence=[ApiEvidenceRef(kind="query", reference=name, detail=scope)],
         plan={"query": name, "scope": scope, "replay_safe": True},
         cache={"hit": False},
-        performance={"query_execution_ms": 1.0, "selector_ms": 0.5, "pagination_ms": 0.1},
+        performance={
+            "query_execution_ms": 1.0,
+            "selector_ms": 0.5,
+            "pagination_ms": 0.1,
+        },
         duration_ms=1.0,
         timestamp="2026-01-01T00:00:00+00:00",
     )
@@ -104,7 +119,9 @@ def _install_api_stubs(monkeypatch) -> None:
         monkeypatch.setattr(
             module,
             "execute_api_query",
-            lambda config, request, _module=module: _fake_query_response(request.name, request.scope),
+            lambda config, request, _module=module: _fake_query_response(
+                request.name, request.scope
+            ),
         )
 
     monkeypatch.setattr(
@@ -112,24 +129,32 @@ def _install_api_stubs(monkeypatch) -> None:
         "_state_endpoint",
         lambda name, scope, limit, offset, config: _fake_query_response(name, scope),
     )
-    monkeypatch.setattr(router_module, "train_ml_model", lambda config: SimpleNamespace(
-        attack_probability=0.9,
-        predicted_attack_type="syn_flood",
-        confidence_score=0.91,
-        anomaly_score=0.15,
-        drift_score=0.05,
-        model_version="model-v1",
-        retraining_required=False,
-    ))
-    monkeypatch.setattr(router_module, "retrain_ml_model", lambda config: SimpleNamespace(
-        attack_probability=0.88,
-        predicted_attack_type="syn_flood",
-        confidence_score=0.89,
-        anomaly_score=0.11,
-        drift_score=0.03,
-        model_version="model-v2",
-        retraining_required=False,
-    ))
+    monkeypatch.setattr(
+        router_module,
+        "train_ml_model",
+        lambda config: SimpleNamespace(
+            attack_probability=0.9,
+            predicted_attack_type="syn_flood",
+            confidence_score=0.91,
+            anomaly_score=0.15,
+            drift_score=0.05,
+            model_version="model-v1",
+            retraining_required=False,
+        ),
+    )
+    monkeypatch.setattr(
+        router_module,
+        "retrain_ml_model",
+        lambda config: SimpleNamespace(
+            attack_probability=0.88,
+            predicted_attack_type="syn_flood",
+            confidence_score=0.89,
+            anomaly_score=0.11,
+            drift_score=0.03,
+            model_version="model-v2",
+            retraining_required=False,
+        ),
+    )
     monkeypatch.setattr(
         router_module,
         "process_stream_events",
@@ -176,10 +201,18 @@ def _install_api_stubs(monkeypatch) -> None:
         rollback_state=SimpleNamespace(rollback_available=True),
         diagnostics=SimpleNamespace(to_dict=lambda: {"warnings": []}),
     )
-    monkeypatch.setattr(router_module, "deploy_runtime_stack", lambda config: deployment_eval)
-    monkeypatch.setattr(router_module, "deployment_health", lambda config: deployment_eval)
-    monkeypatch.setattr(router_module, "rollback_runtime_stack", lambda config: deployment_eval)
-    monkeypatch.setattr(router_module, "latest_diagnostics_payload", lambda: {"warnings": []})
+    monkeypatch.setattr(
+        router_module, "deploy_runtime_stack", lambda config: deployment_eval
+    )
+    monkeypatch.setattr(
+        router_module, "deployment_health", lambda config: deployment_eval
+    )
+    monkeypatch.setattr(
+        router_module, "rollback_runtime_stack", lambda config: deployment_eval
+    )
+    monkeypatch.setattr(
+        router_module, "latest_diagnostics_payload", lambda: {"warnings": []}
+    )
     distributed_eval = SimpleNamespace(
         schema_version="1.0",
         cluster_id="cluster-1",
@@ -195,14 +228,24 @@ def _install_api_stubs(monkeypatch) -> None:
         diagnostics=SimpleNamespace(to_dict=lambda: {"warnings": []}),
         timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
     )
-    monkeypatch.setattr(router_module, "orchestrate_cluster_runtime", lambda config: distributed_eval)
-    monkeypatch.setattr(router_module, "distributed_health", lambda config: distributed_eval)
+    monkeypatch.setattr(
+        router_module, "orchestrate_cluster_runtime", lambda config: distributed_eval
+    )
+    monkeypatch.setattr(
+        router_module, "distributed_health", lambda config: distributed_eval
+    )
     monkeypatch.setattr(
         router_module,
         "distributed_failover_plan",
-        lambda config: SimpleNamespace(leader_failover_node="node-2", failover_available=True),
+        lambda config: SimpleNamespace(
+            leader_failover_node="node-2", failover_available=True
+        ),
     )
-    monkeypatch.setattr(router_module, "latest_distributed_diagnostics_payload", lambda: {"warnings": []})
+    monkeypatch.setattr(
+        router_module,
+        "latest_distributed_diagnostics_payload",
+        lambda: {"warnings": []},
+    )
     dashboard_eval = SimpleNamespace(
         dashboard_id="dashboard-1",
         active_attacks=1,
@@ -215,10 +258,18 @@ def _install_api_stubs(monkeypatch) -> None:
         dashboard_health="healthy",
         timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
     )
-    monkeypatch.setattr(router_module, "generate_dashboard_state", lambda config: dashboard_eval)
-    monkeypatch.setattr(router_module, "dashboard_alerts", lambda config: ({"alert_id": "alert-1"},))
-    monkeypatch.setattr(router_module, "dashboard_report", lambda config: ({"report_id": "report-1"},))
-    monkeypatch.setattr(router_module, "dashboard_diagnostics", lambda config: {"status": "ok"})
+    monkeypatch.setattr(
+        router_module, "generate_dashboard_state", lambda config: dashboard_eval
+    )
+    monkeypatch.setattr(
+        router_module, "dashboard_alerts", lambda config: ({"alert_id": "alert-1"},)
+    )
+    monkeypatch.setattr(
+        router_module, "dashboard_report", lambda config: ({"report_id": "report-1"},)
+    )
+    monkeypatch.setattr(
+        router_module, "dashboard_diagnostics", lambda config: {"status": "ok"}
+    )
     release_eval = SimpleNamespace(
         release_version="1.0.0-rc1",
         benchmark_score=0.9,
@@ -227,12 +278,26 @@ def _install_api_stubs(monkeypatch) -> None:
         security_score=0.9,
         release_state="release_ready",
     )
-    monkeypatch.setattr(router_module, "generate_release_candidate", lambda config: release_eval)
-    monkeypatch.setattr(router_module, "release_diagnostics", lambda config: {"status": "ok"})
-    monkeypatch.setattr(router_module, "release_benchmark", lambda config: {"benchmark_score": 0.9})
-    monkeypatch.setattr(router_module, "release_security_audit", lambda config: {"security_score": 0.9})
-    monkeypatch.setattr(verification_api, "explain_verification", lambda config: {"validators": ["runtime"]})
-    monkeypatch.setattr(replay_api, "explain_query_system", lambda: {"queries": [{"name": "replay"}]})
+    monkeypatch.setattr(
+        router_module, "generate_release_candidate", lambda config: release_eval
+    )
+    monkeypatch.setattr(
+        router_module, "release_diagnostics", lambda config: {"status": "ok"}
+    )
+    monkeypatch.setattr(
+        router_module, "release_benchmark", lambda config: {"benchmark_score": 0.9}
+    )
+    monkeypatch.setattr(
+        router_module, "release_security_audit", lambda config: {"security_score": 0.9}
+    )
+    monkeypatch.setattr(
+        verification_api,
+        "explain_verification",
+        lambda config: {"validators": ["runtime"]},
+    )
+    monkeypatch.setattr(
+        replay_api, "explain_query_system", lambda: {"queries": [{"name": "replay"}]}
+    )
 
 
 def test_api_token_protects_runtime_routes(monkeypatch):
@@ -242,7 +307,9 @@ def test_api_token_protects_runtime_routes(monkeypatch):
 
     assert client.get("/health").status_code == 200
     assert client.get("/runtime/detection").status_code == 401
-    response = client.get("/runtime/detection", headers={"X-NSDDOS-API-Token": "secret-token"})
+    response = client.get(
+        "/runtime/detection", headers={"X-NSDDOS-API-Token": "secret-token"}
+    )
 
     assert response.status_code == 200
     assert response.json()["attack_type"] == "syn_flood"
@@ -252,14 +319,20 @@ def test_all_api_routes_avoid_500_in_isolated_mode(monkeypatch):
     _install_api_stubs(monkeypatch)
     client = _client()
     route_inputs = {
-        "/runtime/query": {"json": ApiQueryRequest(name="health", scope="runtime").model_dump()},
-        "/runtime/snapshots/compare": {"params": {"left": "snapshot-1", "right": "snapshot-2"}},
+        "/runtime/query": {
+            "json": ApiQueryRequest(name="health", scope="runtime").model_dump()
+        },
+        "/runtime/snapshots/compare": {
+            "params": {"left": "snapshot-1", "right": "snapshot-2"}
+        },
     }
 
     for route in create_app().routes:
         if not isinstance(route, APIRoute):
             continue
-        methods = sorted(method for method in route.methods if method not in {"HEAD", "OPTIONS"})
+        methods = sorted(
+            method for method in route.methods if method not in {"HEAD", "OPTIONS"}
+        )
         path = route.path.replace("{snapshot_id}", "snapshot-1")
         for method in methods:
             kwargs = dict(route_inputs.get(path, {}))

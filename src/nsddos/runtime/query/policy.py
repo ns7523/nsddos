@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
-from nsddos.runtime.policy import evaluate_dynamic_policy, latest_history_payload, latest_policy_evaluation, latest_rollback_payload
+from nsddos.runtime.policy import (
+    evaluate_dynamic_policy,
+    latest_history_payload,
+    latest_policy_evaluation,
+    latest_rollback_payload,
+)
 
 
 def query_policy_evaluate(config: dict, query) -> dict[str, object]:
@@ -76,7 +81,9 @@ def query_policy_rollback(config: dict, query) -> dict[str, object]:
                 "type": "policy_rollback",
                 "restored_policy_id": payload.get("restored_policy_id", ""),
                 "restored_action": payload.get("restored_action", "alert_only"),
-                "restored_escalation_level": payload.get("restored_escalation_level", 0),
+                "restored_escalation_level": payload.get(
+                    "restored_escalation_level", 0
+                ),
                 "restored": payload.get("restored", False),
                 "timestamp": payload.get("timestamp", ""),
             }

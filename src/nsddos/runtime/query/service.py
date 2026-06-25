@@ -15,8 +15,18 @@ def query_service(config: dict[str, Any], query: RuntimeQuery) -> dict[str, Any]
     sessions = list_sessions()
     diagnostics = collect_service_diagnostics()
     items = [
-        {"id": "service-state", "kind": "service", "state": state.state, "owner": state.owner, "replay_safe": state.replay_safe},
-        {"id": "service-sync", "kind": "synchronization", **(state.synchronization or {})},
+        {
+            "id": "service-state",
+            "kind": "service",
+            "state": state.state,
+            "owner": state.owner,
+            "replay_safe": state.replay_safe,
+        },
+        {
+            "id": "service-sync",
+            "kind": "synchronization",
+            **(state.synchronization or {}),
+        },
     ]
     items.extend(
         {

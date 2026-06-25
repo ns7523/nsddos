@@ -16,7 +16,12 @@ def run_ovs_vsctl(
     """Run ovs-vsctl inside labhost container."""
 
     if not _EXECUTOR.lab_container_running():
-        return subprocess.CompletedProcess(args=["ovs-vsctl", *args], returncode=1, stdout="", stderr="labhost unavailable")
+        return subprocess.CompletedProcess(
+            args=["ovs-vsctl", *args],
+            returncode=1,
+            stdout="",
+            stderr="labhost unavailable",
+        )
     return _EXECUTOR.execute_lab(["ovs-vsctl", *args], timeout=timeout)
 
 
@@ -27,7 +32,12 @@ def run_ovs_ofctl(
     """Run ovs-ofctl inside labhost container."""
 
     if not _EXECUTOR.lab_container_running():
-        return subprocess.CompletedProcess(args=["ovs-ofctl", *args], returncode=1, stdout="", stderr="labhost unavailable")
+        return subprocess.CompletedProcess(
+            args=["ovs-ofctl", *args],
+            returncode=1,
+            stdout="",
+            stderr="labhost unavailable",
+        )
     return _EXECUTOR.execute_lab(["ovs-ofctl", *args], timeout=timeout)
 
 

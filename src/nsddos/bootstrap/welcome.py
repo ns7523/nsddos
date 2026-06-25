@@ -57,7 +57,10 @@ def build_welcome_renderable(snapshot: EnvironmentSnapshot) -> RenderableType:
             (
                 ("STATUS", readiness_label(snapshot)),
                 ("PYTHON", snapshot.python_version),
-                ("DOCKER", "CONNECTED" if snapshot.docker_daemon_running else "WAITING"),
+                (
+                    "DOCKER",
+                    "CONNECTED" if snapshot.docker_daemon_running else "WAITING",
+                ),
             )
         ),
         section_panel(
@@ -68,7 +71,9 @@ def build_welcome_renderable(snapshot: EnvironmentSnapshot) -> RenderableType:
             ),
         ),
         build_command_deck(commands),
-        build_footer_line("NSDDOS operator console ready. Use command deck to continue."),
+        build_footer_line(
+            "NSDDOS operator console ready. Use command deck to continue."
+        ),
     )
 
 

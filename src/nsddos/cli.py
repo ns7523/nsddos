@@ -17,7 +17,13 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from nsddos.bootstrap import render_welcome_screen, run_doctor_command, run_reset_command, run_setup_wizard, run_startup_command
+from nsddos.bootstrap import (
+    render_welcome_screen,
+    run_doctor_command,
+    run_reset_command,
+    run_setup_wizard,
+    run_startup_command,
+)
 from nsddos.bootstrap.assets import download_runtime_assets
 from nsddos.bootstrap.doctor import ensure_doctor_success
 from nsddos.bootstrap.reset import ensure_reset_success
@@ -25,15 +31,36 @@ from nsddos.bootstrap.startup_profiles import DEFAULT_STARTUP_PROFILE
 from nsddos.bootstrap.ui_launcher import launch_ui_background, replace_listener_on_port
 from nsddos.config import load_config, load_runtime_state, write_runtime_state
 from nsddos.constants import APP_NAME, APP_VERSION, CONFIG_PATH, STATE_PATH
-from nsddos.dashboard import dashboard_alerts, dashboard_diagnostics, dashboard_report, generate_dashboard_state
-from nsddos.distributed import distributed_failover_plan, distributed_health, orchestrate_cluster_runtime
-from nsddos.distributed.diagnostics import diagnostics_to_rows as distributed_diagnostics_to_rows
-from nsddos.deployment import deploy_runtime_stack, deployment_health, rollback_runtime_stack
+from nsddos.dashboard import (
+    dashboard_alerts,
+    dashboard_diagnostics,
+    dashboard_report,
+    generate_dashboard_state,
+)
+from nsddos.distributed import (
+    distributed_failover_plan,
+    distributed_health,
+    orchestrate_cluster_runtime,
+)
+from nsddos.distributed.diagnostics import (
+    diagnostics_to_rows as distributed_diagnostics_to_rows,
+)
+from nsddos.deployment import (
+    deploy_runtime_stack,
+    deployment_health,
+    rollback_runtime_stack,
+)
 from nsddos.deployment.diagnostics import diagnostics_to_rows
 from nsddos.docker_manager import DockerManager
 from nsddos.health import collect_static_health, get_health_report
 from nsddos.logger import setup_logging
-from nsddos.release import generate_release_candidate, release_benchmark, release_diagnostics, release_security_audit, validate_release_candidate
+from nsddos.release import (
+    generate_release_candidate,
+    release_benchmark,
+    release_diagnostics,
+    release_security_audit,
+    validate_release_candidate,
+)
 from nsddos.runtime.controller import normalize_controller_topology
 from nsddos.runtime.capabilities import detect_runtime_capabilities
 from nsddos.runtime.correlation import correlate_runtime_events
@@ -55,13 +82,21 @@ from nsddos.runtime.interfaces import correlate_interfaces
 from nsddos.runtime.lifecycle import start_lab_runtime, stop_lab_runtime
 from nsddos.runtime.models import RuntimeState, SCHEMA_VERSION
 from nsddos.runtime.openflow import correlate_openflow_ports
-from nsddos.runtime.orchestrator import execute_pipeline, shutdown_pipeline, use_runtime_preset
+from nsddos.runtime.orchestrator import (
+    execute_pipeline,
+    shutdown_pipeline,
+    use_runtime_preset,
+)
 from nsddos.runtime.paths import correlate_paths
 from nsddos.runtime.persistence import atomic_write_json, recover_json
 from nsddos.runtime.pipeline import build_execution_plan
 from nsddos.runtime.profiles import detect_runtime_profile
 from nsddos.runtime.query.engine import execute_query, explain_query_system
-from nsddos.runtime.query.models import RuntimeQuery, RuntimeQueryFilter, RuntimeQueryPagination
+from nsddos.runtime.query.models import (
+    RuntimeQuery,
+    RuntimeQueryFilter,
+    RuntimeQueryPagination,
+)
 from nsddos.runtime.reconcile import reconcile_runtime
 from nsddos.runtime.reproducibility import analyze_reproducibility
 from nsddos.runtime.replay import replay_execution_history
@@ -70,7 +105,12 @@ from nsddos.runtime.analysis_layer import aggregate_runtime
 from nsddos.runtime.attack import run_live_attack_suite
 from nsddos.runtime.cache import cache_summary
 from nsddos.runtime.stability import analyze_runtime_stability
-from nsddos.runtime.telemetry import build_runtime_snapshot, compare_snapshots, snapshot_file_path, verify_runtime
+from nsddos.runtime.telemetry import (
+    build_runtime_snapshot,
+    compare_snapshots,
+    snapshot_file_path,
+    verify_runtime,
+)
 from nsddos.runtime.timeline import build_runtime_history_timeline
 from nsddos.runtime.verification.engine import explain_verification
 from nsddos.runtime.verification.replay import replay_verification_runs
@@ -80,20 +120,46 @@ from nsddos.runtime.domain.validation import (
     validate_identifier_stability,
     validate_relationship_integrity,
 )
-from nsddos.runtime.detection import evaluate_detection, explain_detection, latest_detection_evidence
+from nsddos.runtime.detection import (
+    evaluate_detection,
+    explain_detection,
+    latest_detection_evidence,
+)
 from nsddos.runtime.detection.validation import validate_detection_evaluation
-from nsddos.runtime.mitigation import enforce_mitigation, evaluate_mitigation, explain_mitigation, latest_mitigation_evidence
+from nsddos.runtime.mitigation import (
+    enforce_mitigation,
+    evaluate_mitigation,
+    explain_mitigation,
+    latest_mitigation_evidence,
+)
 from nsddos.runtime.mitigation.validation import validate_mitigation_evaluation
-from nsddos.runtime.ml import evaluate_ml_detection, latest_ml_evaluation, retrain_ml_model, train_ml_model
+from nsddos.runtime.ml import (
+    evaluate_ml_detection,
+    latest_ml_evaluation,
+    retrain_ml_model,
+    train_ml_model,
+)
 from nsddos.runtime.providers.live import (
     build_provider_diagnostics,
     collect_live_telemetry,
     collect_provider_health,
     discover_runtime_providers,
 )
-from nsddos.runtime.policy import evaluate_dynamic_policy, latest_history_payload, latest_policy_evaluation, rollback_dynamic_policy
-from nsddos.runtime.simulation import build_simulation_diagnostics, generate_attack_traffic
-from nsddos.runtime.streaming import latest_checkpoint, latest_streaming_evaluation, process_stream_events
+from nsddos.runtime.policy import (
+    evaluate_dynamic_policy,
+    latest_history_payload,
+    latest_policy_evaluation,
+    rollback_dynamic_policy,
+)
+from nsddos.runtime.simulation import (
+    build_simulation_diagnostics,
+    generate_attack_traffic,
+)
+from nsddos.runtime.streaming import (
+    latest_checkpoint,
+    latest_streaming_evaluation,
+    process_stream_events,
+)
 from nsddos.runtime.producers import default_producer_registry, produce_records
 from nsddos.runtime.freshness.consistency import validate_consistency
 from nsddos.runtime.freshness.diagnostics import explain_freshness
@@ -166,7 +232,12 @@ def _render_verification_table(title: str, results: list) -> None:
     colors = {"pass": "green", "fail": "red", "warn": "yellow", "stale": "magenta"}
     for result in results:
         color = colors.get(result.status, "white")
-        table.add_row(result.name, f"[{color}]{result.status.upper()}[/{color}]", result.category, result.detail)
+        table.add_row(
+            result.name,
+            f"[{color}]{result.status.upper()}[/{color}]",
+            result.category,
+            result.detail,
+        )
     console.print(table)
 
 
@@ -249,11 +320,22 @@ def _render_query_result(title: str, result) -> None:
     )
 
 
-def _query(name: str, scope: str, limit: int = 25, field: str | None = None, value: str | None = None):
+def _query(
+    name: str,
+    scope: str,
+    limit: int = 25,
+    field: str | None = None,
+    value: str | None = None,
+):
     filters = ()
     if field and value is not None:
         filters = (RuntimeQueryFilter(field=field, value=value, operator="contains"),)
-    return RuntimeQuery(name=name, scope=scope, filters=filters, pagination=RuntimeQueryPagination(limit=limit))
+    return RuntimeQuery(
+        name=name,
+        scope=scope,
+        filters=filters,
+        pagination=RuntimeQueryPagination(limit=limit),
+    )
 
 
 @lab_app.command("start")
@@ -271,7 +353,9 @@ def lab_start() -> None:
     except typer.Exit:
         raise
     except RuntimeError as exc:
-        emit_runtime_event("lab.start", "failed", "Lab start failed.", {"detail": str(exc)})
+        emit_runtime_event(
+            "lab.start", "failed", "Lab start failed.", {"detail": str(exc)}
+        )
         console.print(f"[bold red]Lab start failed:[/bold red] {exc}")
         raise typer.Exit(code=1) from exc
     console.print(
@@ -292,7 +376,9 @@ def lab_stop() -> None:
         stop_lab_runtime(config)
     except typer.Exit:
         raise
-    console.print(Panel.fit("[bold yellow]NS-DDoS lab stopped[/bold yellow]", title="Lab Stop"))
+    console.print(
+        Panel.fit("[bold yellow]NS-DDoS lab stopped[/bold yellow]", title="Lab Stop")
+    )
 
 
 @lab_app.command("status")
@@ -441,7 +527,9 @@ def verify() -> None:
         )
     )
     if failed:
-        emit_runtime_event("verify", "failed", "Runtime verification failed.", {"failed": failed})
+        emit_runtime_event(
+            "verify", "failed", "Runtime verification failed.", {"failed": failed}
+        )
         raise typer.Exit(code=1)
     if warned or stale:
         emit_runtime_event(
@@ -482,7 +570,9 @@ def runtime_timeline() -> None:
     table.add_column("Message")
     for event in events:
         delta = "" if event.duration_ms is None else f"{event.duration_ms:.0f}"
-        table.add_row(event.timestamp, event.event_type, event.status, delta, event.message)
+        table.add_row(
+            event.timestamp, event.event_type, event.status, delta, event.message
+        )
     console.print(table)
 
 
@@ -531,7 +621,11 @@ def runtime_explain_correlation() -> None:
     _render_mapping_table(
         "Correlation Summary",
         [
-            ("patterns", ", ".join(correlation.get("recurring_instability_patterns", [])) or "none"),
+            (
+                "patterns",
+                ", ".join(correlation.get("recurring_instability_patterns", []))
+                or "none",
+            ),
             ("timeline_events", str(correlation.get("timeline_events", 0))),
             ("transition_events", str(correlation.get("transition_events", 0))),
         ],
@@ -547,10 +641,20 @@ def runtime_explain_stability() -> None:
         "Runtime Stability",
         [
             ("classification", str(stability.get("classification", "unknown"))),
-            ("recurring_convergence_failures", str(stability.get("recurring_convergence_failures", 0))),
+            (
+                "recurring_convergence_failures",
+                str(stability.get("recurring_convergence_failures", 0)),
+            ),
             ("repeated_drift_events", str(stability.get("repeated_drift_events", 0))),
-            ("unstable_entities", ", ".join(stability.get("unstable_entities", [])) or "none"),
-            ("patterns", ", ".join(stability.get("recurring_instability_patterns", [])) or "none"),
+            (
+                "unstable_entities",
+                ", ".join(stability.get("unstable_entities", [])) or "none",
+            ),
+            (
+                "patterns",
+                ", ".join(stability.get("recurring_instability_patterns", []))
+                or "none",
+            ),
         ],
     )
 
@@ -593,7 +697,14 @@ def runtime_explain_analysis() -> None:
             ("convergence", str(analysis.convergence.get("status", "unknown"))),
             ("reconciliation", analysis.reconciliation.get("detail", "")),
             ("drift_items", str(len(analysis.drift))),
-            ("stability", str(analysis.temporal.get("stability", {}).get("classification", "unknown"))),
+            (
+                "stability",
+                str(
+                    analysis.temporal.get("stability", {}).get(
+                        "classification", "unknown"
+                    )
+                ),
+            ),
             ("cache_entries", str(cache_summary().get("entries", 0))),
         ],
     )
@@ -641,7 +752,11 @@ def runtime_explain_verification() -> None:
     degraded = set(explanation.get("degraded_validators", []))
     skipped = set(explanation.get("skipped_validators", []))
     for index, validator in enumerate(explanation.get("validator_order", []), start=1):
-        state = "skipped" if validator in skipped else ("degraded" if validator in degraded else "ready")
+        state = (
+            "skipped"
+            if validator in skipped
+            else ("degraded" if validator in degraded else "ready")
+        )
         table.add_row(validator, str(index), state)
     console.print(table)
     category_table = Table(title="Verification Categories")
@@ -691,7 +806,10 @@ def runtime_replay_verification() -> None:
         [
             ("runs", str(replay.get("run_count", 0))),
             ("transitions", str(len(replay.get("transitions", [])))),
-            ("repeated_failures", ", ".join(sorted(replay.get("repeated_failures", {}))) or "none"),
+            (
+                "repeated_failures",
+                ", ".join(sorted(replay.get("repeated_failures", {}))) or "none",
+            ),
         ],
     )
 
@@ -728,14 +846,20 @@ def runtime_explain_query() -> None:
 def runtime_query_snapshots(limit: int = typer.Option(25, "--limit")) -> None:
     """Query runtime snapshots."""
     config = _bootstrap()
-    _render_query_result("Runtime Snapshot Query", execute_query(config, _query("snapshots", "persistence", limit)))
+    _render_query_result(
+        "Runtime Snapshot Query",
+        execute_query(config, _query("snapshots", "persistence", limit)),
+    )
 
 
 @runtime_app.command("query-evidence")
 def runtime_query_evidence(limit: int = typer.Option(25, "--limit")) -> None:
     """Query runtime evidence bundles."""
     config = _bootstrap()
-    _render_query_result("Runtime Evidence Query", execute_query(config, _query("evidence", "evidence", limit)))
+    _render_query_result(
+        "Runtime Evidence Query",
+        execute_query(config, _query("evidence", "evidence", limit)),
+    )
 
 
 @runtime_app.command("query-verification")
@@ -745,7 +869,11 @@ def runtime_query_verification(
 ) -> None:
     """Query verification registry and replay."""
     config = _bootstrap()
-    query = _query("verification", "verification", limit, "category", category) if category else _query("verification", "verification", limit)
+    query = (
+        _query("verification", "verification", limit, "category", category)
+        if category
+        else _query("verification", "verification", limit)
+    )
     _render_query_result("Runtime Verification Query", execute_query(config, query))
 
 
@@ -756,7 +884,11 @@ def runtime_query_timeline(
 ) -> None:
     """Query runtime timeline events."""
     config = _bootstrap()
-    query = _query("timeline", "temporal", limit, "status", status) if status else _query("timeline", "temporal", limit)
+    query = (
+        _query("timeline", "temporal", limit, "status", status)
+        if status
+        else _query("timeline", "temporal", limit)
+    )
     _render_query_result("Runtime Timeline Query", execute_query(config, query))
 
 
@@ -767,7 +899,11 @@ def runtime_query_graph(
 ) -> None:
     """Query runtime graph."""
     config = _bootstrap()
-    query = _query("graph", "graph", limit, "type", node_type) if node_type else _query("graph", "graph", limit)
+    query = (
+        _query("graph", "graph", limit, "type", node_type)
+        if node_type
+        else _query("graph", "graph", limit)
+    )
     _render_query_result("Runtime Graph Query", execute_query(config, query))
 
 
@@ -775,7 +911,9 @@ def runtime_query_graph(
 def runtime_query_replay(limit: int = typer.Option(25, "--limit")) -> None:
     """Query runtime replay artifacts."""
     config = _bootstrap()
-    _render_query_result("Runtime Replay Query", execute_query(config, _query("replay", "replay", limit)))
+    _render_query_result(
+        "Runtime Replay Query", execute_query(config, _query("replay", "replay", limit))
+    )
 
 
 @api_app.command("routes")
@@ -798,7 +936,9 @@ def api_routes() -> None:
             str(route.get("query_backed", True)),
         )
     console.print(table)
-    _render_mapping_table("API Summary", [("routes", str(summary.get("endpoint_count", 0)))])
+    _render_mapping_table(
+        "API Summary", [("routes", str(summary.get("endpoint_count", 0)))]
+    )
 
 
 @api_app.command("explain")
@@ -814,8 +954,14 @@ def api_explain() -> None:
             ("readonly", str(explanation.get("readonly", False))),
             ("query_backed", str(explanation.get("query_backed", False))),
             ("provider_access", str(explanation.get("provider_access", "unknown"))),
-            ("orchestration_access", str(explanation.get("orchestration_access", "unknown"))),
-            ("routes", str(explanation.get("route_summary", {}).get("endpoint_count", 0))),
+            (
+                "orchestration_access",
+                str(explanation.get("orchestration_access", "unknown")),
+            ),
+            (
+                "routes",
+                str(explanation.get("route_summary", {}).get("endpoint_count", 0)),
+            ),
         ],
     )
 
@@ -863,7 +1009,9 @@ def service_stop() -> None:
     """Stop runtime coordination service."""
     config = _bootstrap()
     state = RuntimeServiceManager(config).stop()
-    _render_mapping_table("Service Stop", [("state", state.state), ("updated_at", str(state.updated_at))])
+    _render_mapping_table(
+        "Service Stop", [("state", state.state), ("updated_at", str(state.updated_at))]
+    )
 
 
 @service_app.command("status")
@@ -895,7 +1043,12 @@ def service_sessions() -> None:
     table.add_column("State")
     table.add_column("Lifecycle")
     for item in sessions:
-        table.add_row(item.get("session_id", ""), item.get("owner", ""), item.get("state", ""), item.get("lifecycle", ""))
+        table.add_row(
+            item.get("session_id", ""),
+            item.get("owner", ""),
+            item.get("state", ""),
+            item.get("lifecycle", ""),
+        )
     console.print(table)
 
 
@@ -907,9 +1060,18 @@ def service_explain() -> None:
     _render_mapping_table(
         "Service Explain",
         [
-            ("service_state", str(explanation.get("service", {}).get("state", "unknown"))),
-            ("daemon_support", str(explanation.get("capabilities", {}).get("daemon_support", False))),
-            ("replay_support", str(explanation.get("capabilities", {}).get("replay_support", False))),
+            (
+                "service_state",
+                str(explanation.get("service", {}).get("state", "unknown")),
+            ),
+            (
+                "daemon_support",
+                str(explanation.get("capabilities", {}).get("daemon_support", False)),
+            ),
+            (
+                "replay_support",
+                str(explanation.get("capabilities", {}).get("replay_support", False)),
+            ),
             ("subscriptions", str(len(explanation.get("subscriptions", [])))),
         ],
     )
@@ -926,7 +1088,10 @@ def service_diagnostics() -> None:
             ("session_count", str(diagnostics.get("session_count", 0))),
             ("heartbeat_count", str(diagnostics.get("heartbeat_count", 0))),
             ("replay_events", str(diagnostics.get("replay", {}).get("event_count", 0))),
-            ("sync_state", str(diagnostics.get("synchronization", {}).get("state", "unknown"))),
+            (
+                "sync_state",
+                str(diagnostics.get("synchronization", {}).get("state", "unknown")),
+            ),
         ],
     )
 
@@ -1017,9 +1182,22 @@ def ui_status() -> None:
         "UI Status",
         [
             ("schema_version", str(state.get("schema_version", ""))),
-            ("poll_interval_seconds", str(state.get("refresh_metadata", {}).get("poll_interval_seconds", 0))),
-            ("deterministic_ordering", str(state.get("refresh_metadata", {}).get("deterministic_ordering", False))),
-            ("updated_at", str(state.get("refresh_metadata", {}).get("updated_at", ""))),
+            (
+                "poll_interval_seconds",
+                str(state.get("refresh_metadata", {}).get("poll_interval_seconds", 0)),
+            ),
+            (
+                "deterministic_ordering",
+                str(
+                    state.get("refresh_metadata", {}).get(
+                        "deterministic_ordering", False
+                    )
+                ),
+            ),
+            (
+                "updated_at",
+                str(state.get("refresh_metadata", {}).get("updated_at", "")),
+            ),
         ],
     )
 
@@ -1031,16 +1209,25 @@ def ui_expose() -> None:
     _bootstrap()
     binary = which("cloudflared")
     if binary is None:
-        console.print(f"[bold red]cloudflared not found.[/bold red] {_cloudflared_install_hint()}")
+        console.print(
+            f"[bold red]cloudflared not found.[/bold red] {_cloudflared_install_hint()}"
+        )
         raise typer.Exit(code=1)
 
     ui_result = launch_ui_background()
     if not ui_result.reachable:
-        console.print("[bold red]UI expose failed:[/bold red] local UI not reachable on port 8010.")
+        console.print(
+            "[bold red]UI expose failed:[/bold red] local UI not reachable on port 8010."
+        )
         raise typer.Exit(code=1)
 
     local_url = ui_result.ui_url.rstrip("/")
-    console.print(Panel.fit(f"Local UI:   {local_url}\nPublic UI:  waiting for tunnel...", title="NSDDOS UI Expose"))
+    console.print(
+        Panel.fit(
+            f"Local UI:   {local_url}\nPublic UI:  waiting for tunnel...",
+            title="NSDDOS UI Expose",
+        )
+    )
 
     process = subprocess.Popen(
         [binary, "tunnel", "--url", local_url],
@@ -1190,7 +1377,10 @@ def runtime_bootstrap(preset: str = typer.Option("minimal-lab", "--preset")) -> 
             ("preset", state.preset),
             ("profile", state.profile),
             ("phases", str(len(state.results))),
-            ("warnings", str(sum(1 for item in state.results if item.status == "warn"))),
+            (
+                "warnings",
+                str(sum(1 for item in state.results if item.status == "warn")),
+            ),
         ],
     )
 
@@ -1211,7 +1401,9 @@ def runtime_shutdown(preset: str = typer.Option("minimal-lab", "--preset")) -> N
 
 
 @runtime_app.command("export-pipeline")
-def runtime_export_pipeline(preset: str = typer.Option("minimal-lab", "--preset")) -> None:
+def runtime_export_pipeline(
+    preset: str = typer.Option("minimal-lab", "--preset")
+) -> None:
     """Export canonical execution pipeline."""
     config = _bootstrap()
     artifact = export_execution_graph(config, preset=preset)
@@ -1232,8 +1424,15 @@ def runtime_use_preset(preset: str = typer.Argument(...)) -> None:
         "Runtime Preset",
         [
             ("active", str(state.get("active", "unknown"))),
-            ("expected_topology", str(state.get("preset", {}).get("expected_topology", "unknown"))),
-            ("verification_scope", ", ".join(state.get("preset", {}).get("verification_scope", [])) or "none"),
+            (
+                "expected_topology",
+                str(state.get("preset", {}).get("expected_topology", "unknown")),
+            ),
+            (
+                "verification_scope",
+                ", ".join(state.get("preset", {}).get("verification_scope", []))
+                or "none",
+            ),
         ],
     )
 
@@ -1279,7 +1478,10 @@ def runtime_explain_environment() -> None:
             ("degraded", ", ".join(environment.degraded) or "none"),
             ("unsupported", ", ".join(environment.unsupported) or "none"),
             ("missing_deps", ", ".join(environment.missing_dependencies) or "none"),
-            ("repro_limits", ", ".join(environment.reproducibility_limitations) or "none"),
+            (
+                "repro_limits",
+                ", ".join(environment.reproducibility_limitations) or "none",
+            ),
             ("reproducibility", reproducibility.status),
         ],
     )
@@ -1296,7 +1498,10 @@ def runtime_validate_bootstrap() -> None:
             ("profile", str(result.get("profile", "unknown"))),
             ("status", str(result.get("status", "unknown"))),
             ("bootstrap_ready", str(result.get("bootstrap_ready", False))),
-            ("missing_dependencies", ", ".join(result.get("missing_dependencies", [])) or "none"),
+            (
+                "missing_dependencies",
+                ", ".join(result.get("missing_dependencies", [])) or "none",
+            ),
             ("limitations", ", ".join(result.get("limitations", [])) or "none"),
         ],
     )
@@ -1338,7 +1543,10 @@ def runtime_install_guide() -> None:
     }
     _render_mapping_table(
         "Install Guide",
-        [(profile.name, step) for step in guides.get(profile.name, ["No guide available."])],
+        [
+            (profile.name, step)
+            for step in guides.get(profile.name, ["No guide available."])
+        ],
     )
 
 
@@ -1380,7 +1588,12 @@ def runtime_export_environment() -> None:
         + "\n",
         encoding="utf-8",
     )
-    console.print(Panel.fit(f"json: {json_path}\nmarkdown: {md_path}", title="Runtime Environment Export"))
+    console.print(
+        Panel.fit(
+            f"json: {json_path}\nmarkdown: {md_path}",
+            title="Runtime Environment Export",
+        )
+    )
 
 
 @runtime_app.command("explain")
@@ -1399,7 +1612,9 @@ def runtime_explain() -> None:
                 f"mininet={item.mininet_name} ovs={item.ovs_bridge} dpid={item.controller_dpid} sflow={item.sflow_agent}",
             )
         )
-    _render_mapping_table("Runtime Switch Identity", switch_rows or [("switches", "none")])
+    _render_mapping_table(
+        "Runtime Switch Identity", switch_rows or [("switches", "none")]
+    )
 
     iface_rows = []
     for item in interfaces.interfaces:
@@ -1409,7 +1624,9 @@ def runtime_explain() -> None:
                 f"ovs={item.visible_in_ovs} sflow={item.visible_in_sflow} link={item.mininet_link}",
             )
         )
-    _render_mapping_table("Runtime Interface Visibility", iface_rows or [("interfaces", "none")])
+    _render_mapping_table(
+        "Runtime Interface Visibility", iface_rows or [("interfaces", "none")]
+    )
 
     _render_mapping_table(
         "Runtime Reconciliation",
@@ -1547,7 +1764,9 @@ def runtime_validate_contracts() -> None:
     """Validate domain contract integrity."""
     config = _bootstrap()
     graph = build_runtime_graph(config)
-    contract_errors = validate_contract_payload({"schema_version": "1.0", "contract_version": "17.0"})
+    contract_errors = validate_contract_payload(
+        {"schema_version": "1.0", "contract_version": "17.0"}
+    )
     entity_ids = {str(node.get("id", "")) for node in graph.get("nodes", [])}
     relationship_errors = validate_relationship_integrity(
         [
@@ -1617,7 +1836,15 @@ def runtime_validate_producers() -> None:
     registry = default_producer_registry()
     failures: list[str] = []
     for definition in registry.ordered():
-        output = produce_records(definition.name, [{"id": f"{definition.name}-sample", "type": definition.entity_contract.lower()}])
+        output = produce_records(
+            definition.name,
+            [
+                {
+                    "id": f"{definition.name}-sample",
+                    "type": definition.entity_contract.lower(),
+                }
+            ],
+        )
         if len(output.entities) != 1:
             failures.append(f"{definition.name}:empty")
             continue
@@ -1740,7 +1967,11 @@ def runtime_replay_consistency() -> None:
     replay = replay_execution_history()
     events = replay.get("typed_replay", [])
     statuses = [validate_replay_freshness(item) for item in events]
-    inconsistent = [item for item in statuses if item.get("validity_state") in {"expired", "inconsistent"}]
+    inconsistent = [
+        item
+        for item in statuses
+        if item.get("validity_state") in {"expired", "inconsistent"}
+    ]
     _render_mapping_table(
         "Replay Consistency",
         [
@@ -1768,7 +1999,9 @@ def runtime_freshness_lineage() -> None:
     table.add_column("Child")
     table.add_column("Inherited")
     for parent_state, child_state in cases:
-        table.add_row(parent_state, child_state, propagate_state(parent_state, child_state))
+        table.add_row(
+            parent_state, child_state, propagate_state(parent_state, child_state)
+        )
     console.print(table)
 
 
@@ -1802,7 +2035,10 @@ def runtime_explain_detection() -> None:
             ("anomalies", str(len(detail.get("anomalies", [])))),
             ("features", str(len(detail.get("features", [])))),
             ("baseline_source", str(detail.get("baseline_source", "fallback"))),
-            ("score_weights", json.dumps(detail.get("score_weights", {}), sort_keys=True)),
+            (
+                "score_weights",
+                json.dumps(detail.get("score_weights", {}), sort_keys=True),
+            ),
         ],
     )
 
@@ -1837,8 +2073,18 @@ def runtime_detection_evidence() -> None:
         "Detection Evidence",
         [
             ("evidence_hash", str(evidence.get("evidence_hash", ""))),
-            ("classification_generation", str(evidence.get("classification_generation", ""))),
-            ("provider_source", str(evidence.get("evidence", {}).get("provider_source", evidence.get("provider_source", "")))),
+            (
+                "classification_generation",
+                str(evidence.get("classification_generation", "")),
+            ),
+            (
+                "provider_source",
+                str(
+                    evidence.get("evidence", {}).get(
+                        "provider_source", evidence.get("provider_source", "")
+                    )
+                ),
+            ),
             ("telemetry_timestamp", str(evidence.get("telemetry_timestamp", ""))),
         ],
     )
@@ -1962,7 +2208,12 @@ def runtime_provider_health() -> None:
     health = collect_provider_health(snapshot.provider_health)
     rows = []
     for name, item in sorted(health.items()):
-        rows.append((name, f"{item['state']} reachable={item['reachable']} latency_ms={item['latency_ms']:.2f}"))
+        rows.append(
+            (
+                name,
+                f"{item['state']} reachable={item['reachable']} latency_ms={item['latency_ms']:.2f}",
+            )
+        )
     _render_mapping_table("Provider Health", rows)
 
 
@@ -1975,12 +2226,21 @@ def runtime_provider_discovery() -> None:
         floodlight_switches=tuple(snapshot.topology_state.switches),
         mininet_switches=tuple(snapshot.topology_state.switches),
         mininet_hosts=tuple(snapshot.topology_state.hosts),
-        controller_endpoint=snapshot.topology_state.controllers[0] if snapshot.topology_state.controllers else "",
+        controller_endpoint=(
+            snapshot.topology_state.controllers[0]
+            if snapshot.topology_state.controllers
+            else ""
+        ),
     )
     rows = []
     for item in discovery:
         payload = item.to_dict()
-        rows.append((item.provider, f"switches={len(payload['switches'])} hosts={len(payload['hosts'])} controllers={len(payload['controllers'])}"))
+        rows.append(
+            (
+                item.provider,
+                f"switches={len(payload['switches'])} hosts={len(payload['hosts'])} controllers={len(payload['controllers'])}",
+            )
+        )
     _render_mapping_table("Provider Discovery", rows)
 
 
@@ -1991,7 +2251,12 @@ def runtime_provider_diagnostics() -> None:
     diagnostics = build_provider_diagnostics(collect_live_telemetry(config))
     rows = []
     for item in diagnostics:
-        rows.append((item.provider, f"state={item.health_state} latency_ms={item.latency_ms:.2f} anomalies={','.join(item.anomalies) or 'none'}"))
+        rows.append(
+            (
+                item.provider,
+                f"state={item.health_state} latency_ms={item.latency_ms:.2f} anomalies={','.join(item.anomalies) or 'none'}",
+            )
+        )
     _render_mapping_table("Provider Diagnostics", rows)
 
 
@@ -2069,7 +2334,9 @@ def runtime_simulate_replay() -> None:
 def runtime_simulation_diagnostics() -> None:
     """Show simulation diagnostics."""
     config = _bootstrap()
-    diagnostics = build_simulation_diagnostics(generate_attack_traffic(config, replay_mode=True))
+    diagnostics = build_simulation_diagnostics(
+        generate_attack_traffic(config, replay_mode=True)
+    )
     _render_mapping_table(
         "Simulation Diagnostics",
         [
@@ -2158,10 +2425,19 @@ def runtime_stream_diagnostics() -> None:
     _render_mapping_table(
         "Streaming Diagnostics",
         [
-            ("queue_latency_ms", f"{float(diagnostics.get('queue_latency_ms', 0.0)):.2f}"),
-            ("processing_throughput", f"{float(diagnostics.get('processing_throughput', 0.0)):.2f}"),
+            (
+                "queue_latency_ms",
+                f"{float(diagnostics.get('queue_latency_ms', 0.0)):.2f}",
+            ),
+            (
+                "processing_throughput",
+                f"{float(diagnostics.get('processing_throughput', 0.0)):.2f}",
+            ),
             ("dropped_event_count", str(diagnostics.get("dropped_event_count", 0))),
-            ("buffer_pressure", f"{float(diagnostics.get('buffer_pressure', 0.0)):.2f}"),
+            (
+                "buffer_pressure",
+                f"{float(diagnostics.get('buffer_pressure', 0.0)):.2f}",
+            ),
             ("session_health", str(diagnostics.get("session_health", "unknown"))),
             ("checkpoint_lag", str(diagnostics.get("checkpoint_lag", 0))),
         ],
@@ -2193,7 +2469,12 @@ def runtime_policy_history() -> None:
     payload = latest_history_payload()
     rows = []
     for item in payload.get("entries", []):
-        rows.append((str(item.get("policy_id", "")), f"{item.get('recommended_action', 'alert_only')} escalation={item.get('escalation_level', 0)}"))
+        rows.append(
+            (
+                str(item.get("policy_id", "")),
+                f"{item.get('recommended_action', 'alert_only')} escalation={item.get('escalation_level', 0)}",
+            )
+        )
     _render_mapping_table("Policy History", rows or [("entries", "none")])
 
 
@@ -2206,11 +2487,17 @@ def runtime_policy_diagnostics() -> None:
     _render_mapping_table(
         "Policy Diagnostics",
         [
-            ("decision_latency_ms", f"{float(diagnostics.get('decision_latency_ms', 0.0)):.2f}"),
+            (
+                "decision_latency_ms",
+                f"{float(diagnostics.get('decision_latency_ms', 0.0)):.2f}",
+            ),
             ("conflict_count", str(diagnostics.get("conflict_count", 0))),
             ("escalation_level", str(diagnostics.get("escalation_level", 0))),
             ("rollback_ready", str(diagnostics.get("rollback_ready", False))),
-            ("threshold_drift", f"{float(diagnostics.get('threshold_drift', 0.0)):.4f}"),
+            (
+                "threshold_drift",
+                f"{float(diagnostics.get('threshold_drift', 0.0)):.4f}",
+            ),
         ],
     )
 
@@ -2280,8 +2567,14 @@ def runtime_ml_diagnostics() -> None:
         [
             ("precision", f"{float(metrics.get('precision', 0.0)):.4f}"),
             ("recall", f"{float(metrics.get('recall', 0.0)):.4f}"),
-            ("false_positive_rate", f"{float(metrics.get('false_positive_rate', 0.0)):.4f}"),
-            ("confidence_quality", f"{float(metrics.get('confidence_quality', 0.0)):.4f}"),
+            (
+                "false_positive_rate",
+                f"{float(metrics.get('false_positive_rate', 0.0)):.4f}",
+            ),
+            (
+                "confidence_quality",
+                f"{float(metrics.get('confidence_quality', 0.0)):.4f}",
+            ),
             ("drift_score", f"{float(drift.get('drift_score', 0.0)):.4f}"),
             ("retraining_frequency", str(diagnostics.get("retraining_frequency", 0))),
         ],
@@ -2346,7 +2639,9 @@ def deployment_diagnostics_command() -> None:
     """Show deployment diagnostics."""
     config = _bootstrap()
     evaluation = deployment_health(config)
-    _render_mapping_table("Deployment Diagnostics", diagnostics_to_rows(evaluation.diagnostics))
+    _render_mapping_table(
+        "Deployment Diagnostics", diagnostics_to_rows(evaluation.diagnostics)
+    )
 
 
 @app.command("deployment-rollback")
@@ -2409,7 +2704,10 @@ def distributed_diagnostics_command() -> None:
     """Show distributed diagnostics."""
     config = _bootstrap()
     evaluation = distributed_health(config)
-    _render_mapping_table("Distributed Diagnostics", distributed_diagnostics_to_rows(evaluation.diagnostics))
+    _render_mapping_table(
+        "Distributed Diagnostics",
+        distributed_diagnostics_to_rows(evaluation.diagnostics),
+    )
 
 
 @app.command("distributed-failover")
@@ -2457,7 +2755,10 @@ def dashboard_alerts_command() -> None:
     """Show dashboard alerts."""
     config = _bootstrap()
     alerts = dashboard_alerts(config)
-    rows = [(item["alert_id"], f"{item['level']} {item['alert_type']} {item['message']}") for item in alerts]
+    rows = [
+        (item["alert_id"], f"{item['level']} {item['alert_type']} {item['message']}")
+        for item in alerts
+    ]
     _render_mapping_table("Dashboard Alerts", rows or [("alerts", "none")])
 
 
@@ -2466,7 +2767,10 @@ def dashboard_report_command() -> None:
     """Show dashboard reports."""
     config = _bootstrap()
     reports = dashboard_report(config)
-    rows = [(item["report_id"], f"{item['report_type']} {item['summary']}") for item in reports]
+    rows = [
+        (item["report_id"], f"{item['report_type']} {item['summary']}")
+        for item in reports
+    ]
     _render_mapping_table("Dashboard Reports", rows or [("reports", "none")])
 
 
@@ -2478,10 +2782,22 @@ def dashboard_diagnostics_command() -> None:
     _render_mapping_table(
         "Dashboard Diagnostics",
         [
-            ("dashboard_latency_ms", f"{float(diagnostics.get('dashboard_latency_ms', 0.0)):.2f}"),
-            ("visualization_errors", ",".join(diagnostics.get("visualization_errors", [])) or "none"),
-            ("stale_telemetry_warnings", ",".join(diagnostics.get("stale_telemetry_warnings", [])) or "none"),
-            ("missing_data_warnings", ",".join(diagnostics.get("missing_data_warnings", [])) or "none"),
+            (
+                "dashboard_latency_ms",
+                f"{float(diagnostics.get('dashboard_latency_ms', 0.0)):.2f}",
+            ),
+            (
+                "visualization_errors",
+                ",".join(diagnostics.get("visualization_errors", [])) or "none",
+            ),
+            (
+                "stale_telemetry_warnings",
+                ",".join(diagnostics.get("stale_telemetry_warnings", [])) or "none",
+            ),
+            (
+                "missing_data_warnings",
+                ",".join(diagnostics.get("missing_data_warnings", [])) or "none",
+            ),
         ],
     )
 
@@ -2520,11 +2836,26 @@ def release_diagnostics_command() -> None:
     _render_mapping_table(
         "Release Diagnostics",
         [
-            ("release_latency_ms", f"{float(diagnostics.get('release_latency_ms', 0.0)):.2f}"),
-            ("benchmark_diagnostics", ",".join(diagnostics.get("benchmark_diagnostics", [])) or "none"),
-            ("stress_diagnostics", ",".join(diagnostics.get("stress_diagnostics", [])) or "none"),
-            ("dependency_diagnostics", ",".join(diagnostics.get("dependency_diagnostics", [])) or "none"),
-            ("security_diagnostics", ",".join(diagnostics.get("security_diagnostics", [])) or "none"),
+            (
+                "release_latency_ms",
+                f"{float(diagnostics.get('release_latency_ms', 0.0)):.2f}",
+            ),
+            (
+                "benchmark_diagnostics",
+                ",".join(diagnostics.get("benchmark_diagnostics", [])) or "none",
+            ),
+            (
+                "stress_diagnostics",
+                ",".join(diagnostics.get("stress_diagnostics", [])) or "none",
+            ),
+            (
+                "dependency_diagnostics",
+                ",".join(diagnostics.get("dependency_diagnostics", [])) or "none",
+            ),
+            (
+                "security_diagnostics",
+                ",".join(diagnostics.get("security_diagnostics", [])) or "none",
+            ),
         ],
     )
 
@@ -2537,10 +2868,22 @@ def release_benchmark_command() -> None:
     _render_mapping_table(
         "Release Benchmark",
         [
-            ("detection_throughput", f"{float(benchmark.get('detection_throughput', 0.0)):.4f}"),
-            ("mitigation_throughput", f"{float(benchmark.get('mitigation_throughput', 0.0)):.4f}"),
-            ("streaming_throughput", f"{float(benchmark.get('streaming_throughput', 0.0)):.4f}"),
-            ("cluster_throughput", f"{float(benchmark.get('cluster_throughput', 0.0)):.4f}"),
+            (
+                "detection_throughput",
+                f"{float(benchmark.get('detection_throughput', 0.0)):.4f}",
+            ),
+            (
+                "mitigation_throughput",
+                f"{float(benchmark.get('mitigation_throughput', 0.0)):.4f}",
+            ),
+            (
+                "streaming_throughput",
+                f"{float(benchmark.get('streaming_throughput', 0.0)):.4f}",
+            ),
+            (
+                "cluster_throughput",
+                f"{float(benchmark.get('cluster_throughput', 0.0)):.4f}",
+            ),
             ("benchmark_score", f"{float(benchmark.get('benchmark_score', 0.0)):.4f}"),
         ],
     )
@@ -2559,8 +2902,14 @@ def release_security_audit_command() -> None:
             ("security_score", f"{float(audit.get('security_score', 0.0)):.4f}"),
             ("exposed_secret_count", str(int(audit.get("exposed_secret_count", 0)))),
             ("insecure_config_count", str(int(audit.get("insecure_config_count", 0)))),
-            ("unsafe_dependency_patterns", str(int(audit.get("unsafe_dependency_patterns", 0)))),
-            ("weak_deployment_config_count", str(int(audit.get("weak_deployment_config_count", 0)))),
+            (
+                "unsafe_dependency_patterns",
+                str(int(audit.get("unsafe_dependency_patterns", 0))),
+            ),
+            (
+                "weak_deployment_config_count",
+                str(int(audit.get("weak_deployment_config_count", 0))),
+            ),
             ("findings", ",".join(audit.get("findings", [])) or "none"),
         ],
     )
@@ -2624,7 +2973,9 @@ def demo(
     failed = _render_failed_health(collect_static_health())
     if failed:
         if "runtime_assets" in failed:
-            console.print("[bold yellow]Hint:[/bold yellow] runtime assets missing. Run `nsddos bootstrap download` if repo payloads are not present.")
+            console.print(
+                "[bold yellow]Hint:[/bold yellow] runtime assets missing. Run `nsddos bootstrap download` if repo payloads are not present."
+            )
         raise typer.Exit(code=1)
 
     startup = run_startup_command(console)
@@ -2669,13 +3020,19 @@ def demo(
     )
 
     if not detection.attack_detected:
-        console.print("[bold red]Demo failed:[/bold red] detection engine did not classify live attack.")
+        console.print(
+            "[bold red]Demo failed:[/bold red] detection engine did not classify live attack."
+        )
         raise typer.Exit(code=1)
     if not mitigation.mitigation_required:
-        console.print("[bold red]Demo failed:[/bold red] mitigation policy did not trigger.")
+        console.print(
+            "[bold red]Demo failed:[/bold red] mitigation policy did not trigger."
+        )
         raise typer.Exit(code=1)
     if mitigation.mitigation_status not in {"enforced", "verified"}:
-        console.print(f"[bold red]Demo failed:[/bold red] mitigation ended in `{mitigation.mitigation_status}`.")
+        console.print(
+            f"[bold red]Demo failed:[/bold red] mitigation ended in `{mitigation.mitigation_status}`."
+        )
         raise typer.Exit(code=1)
 
 

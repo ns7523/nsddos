@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from nsddos.runtime.simulation import contract_to_collection_state, contract_to_detection_telemetry
+from nsddos.runtime.simulation import (
+    contract_to_collection_state,
+    contract_to_detection_telemetry,
+)
 
 
 def _config() -> dict:
@@ -69,24 +72,36 @@ def test_connection_exhaustion_generation(tmp_path: Path, monkeypatch) -> None:
 
 
 def test_replay_traffic_generation(tmp_path: Path, monkeypatch) -> None:
-    contract = _evaluate(tmp_path, monkeypatch, attack_type="syn_flood", replay_mode=True)
+    contract = _evaluate(
+        tmp_path, monkeypatch, attack_type="syn_flood", replay_mode=True
+    )
     assert len(contract.replay_records) == len(contract.packet_metadata)
 
 
 def test_target_validation(tmp_path: Path, monkeypatch) -> None:
-    contract = _evaluate(tmp_path, monkeypatch, attack_type="syn_flood", target_kind="host", target_value="10.0.0.9")
+    contract = _evaluate(
+        tmp_path,
+        monkeypatch,
+        attack_type="syn_flood",
+        target_kind="host",
+        target_value="10.0.0.9",
+    )
     assert contract.target_ip == "10.0.0.9"
 
 
 def test_topology_path_generation(tmp_path: Path, monkeypatch) -> None:
-    contract = _evaluate(tmp_path, monkeypatch, attack_type="syn_flood", target_kind="controller")
+    contract = _evaluate(
+        tmp_path, monkeypatch, attack_type="syn_flood", target_kind="controller"
+    )
     assert contract.topology_path[-1] == "controller"
 
 
 def test_deterministic_packet_scheduling(tmp_path: Path, monkeypatch) -> None:
     first = _evaluate(tmp_path, monkeypatch, attack_type="syn_flood", replay_mode=True)
     second = _evaluate(tmp_path, monkeypatch, attack_type="syn_flood", replay_mode=True)
-    assert [item.emit_at_ms for item in first.packet_schedule] == [item.emit_at_ms for item in second.packet_schedule]
+    assert [item.emit_at_ms for item in first.packet_schedule] == [
+        item.emit_at_ms for item in second.packet_schedule
+    ]
 
 
 def test_contract_to_detection_payload(tmp_path: Path, monkeypatch) -> None:
@@ -99,4 +114,6 @@ def test_contract_to_collection_state(tmp_path: Path, monkeypatch) -> None:
     contract = _evaluate(tmp_path, monkeypatch, attack_type="icmp_flood")
     state = contract_to_collection_state(contract)
     assert state["provider_status"]["simulation"]["attack_type"] == "icmp_flood"
-    assert state["telemetry_state"]["active_flow_count"] == len(contract.packet_metadata)
+    assert state["telemetry_state"]["active_flow_count"] == len(
+        contract.packet_metadata
+    )

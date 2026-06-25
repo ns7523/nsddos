@@ -24,8 +24,14 @@ from nsddos.bootstrap.docker_install import (
 )
 from nsddos.bootstrap.executors import CommandExecutionResult, run_system_command
 from nsddos.bootstrap.os_profiles import OSProfile, detect_os_profile
-from nsddos.bootstrap.package_manager import build_install_commands, select_package_manager
-from nsddos.bootstrap.permissions import build_docker_permission_commands, build_runtime_directory_commands
+from nsddos.bootstrap.package_manager import (
+    build_install_commands,
+    select_package_manager,
+)
+from nsddos.bootstrap.permissions import (
+    build_docker_permission_commands,
+    build_runtime_directory_commands,
+)
 from nsddos.bootstrap.questions import confirm_install
 from nsddos.bootstrap.rollback import rollback_commands
 from nsddos.bootstrap.state import DependencyPlan, EnvironmentScan, InstallRequirement
@@ -63,7 +69,9 @@ def commands_for_requirement(
     if requirement.title == "Install Git":
         return build_install_commands(manager, ("git",))
     if requirement.title == "Create Virtual Environment":
-        return (venv_command("Create project virtual environment", sys.executable, ".venv"),)
+        return (
+            venv_command("Create project virtual environment", sys.executable, ".venv"),
+        )
     if requirement.title == "Configure Docker Permissions":
         return build_docker_permission_commands()
     if requirement.title == "Create Runtime Directories":
@@ -76,9 +84,7 @@ def commands_for_requirement(
             ),
         )
     if requirement.title == "Build Containers":
-        return (
-            compose_subprocess_command("Build container images", ("build",)),
-        )
+        return (compose_subprocess_command("Build container images", ("build",)),)
     if requirement.title == "Initialize Runtime":
         return (runtime_init_command("Initialize runtime directories and state"),)
     return ()
@@ -104,7 +110,12 @@ def execute_install_plan(
                 border_style="red",
             )
         )
-        return InstallerRunResult(applied=(), skipped_requirements=(), failed_requirement="unsupported-os", rollback_results=())
+        return InstallerRunResult(
+            applied=(),
+            skipped_requirements=(),
+            failed_requirement="unsupported-os",
+            rollback_results=(),
+        )
 
     applied: list[CommandExecutionResult] = []
     applied_commands: list[SystemCommand] = []
@@ -117,7 +128,13 @@ def execute_install_plan(
         commands = commands_for_requirement(requirement, scan, os_profile)
         if not commands:
             continue
-        approved_value = True if auto_approve_required else confirm_install(console, f"{requirement.title}. Install automatically?")
+        approved_value = (
+            True
+            if auto_approve_required
+            else confirm_install(
+                console, f"{requirement.title}. Install automatically?"
+            )
+        )
         if not approved_value:
             skipped.append(requirement.title)
             continue
@@ -125,7 +142,9 @@ def execute_install_plan(
         progress = Progress(
             SpinnerColumn(style="bright_cyan"),
             TextColumn(f"[bold white]{requirement.title}[/bold white]"),
-            BarColumn(bar_width=24, complete_style="bright_cyan", finished_style="bright_cyan"),
+            BarColumn(
+                bar_width=24, complete_style="bright_cyan", finished_style="bright_cyan"
+            ),
             TextColumn("[bright_cyan]{task.completed}/{task.total}[/bright_cyan]"),
             console=console,
         )

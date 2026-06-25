@@ -2,10 +2,16 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from nsddos.runtime.freshness.consistency import consistency_generation, validate_consistency
+from nsddos.runtime.freshness.consistency import (
+    consistency_generation,
+    validate_consistency,
+)
 from nsddos.runtime.freshness.engine import evaluate_freshness
 from nsddos.runtime.freshness.lineage import propagate_state
-from nsddos.runtime.freshness.validation import filter_expired, validate_freshness_payload
+from nsddos.runtime.freshness.validation import (
+    filter_expired,
+    validate_freshness_payload,
+)
 from nsddos.runtime.query.engine import execute_query
 from nsddos.runtime.query.models import RuntimeQuery
 
@@ -15,8 +21,18 @@ def _iso(delta_seconds: int = 0) -> str:
 
 
 def test_freshness_valid_and_expired_states() -> None:
-    valid = evaluate_freshness("telemetry", {"created_at": _iso(-5), "observed_at": _iso(-5), "synchronized_at": _iso(-1)})
-    expired = evaluate_freshness("telemetry", {"created_at": _iso(-500), "observed_at": _iso(-500), "synchronized_at": _iso(-500)})
+    valid = evaluate_freshness(
+        "telemetry",
+        {"created_at": _iso(-5), "observed_at": _iso(-5), "synchronized_at": _iso(-1)},
+    )
+    expired = evaluate_freshness(
+        "telemetry",
+        {
+            "created_at": _iso(-500),
+            "observed_at": _iso(-500),
+            "synchronized_at": _iso(-500),
+        },
+    )
     assert valid.freshness.validity_state == "valid"
     assert expired.freshness.validity_state == "expired"
 
@@ -27,13 +43,23 @@ def test_stale_inheritance_propagation() -> None:
 
 
 def test_replay_only_state() -> None:
-    replay = evaluate_freshness("replay", {"created_at": _iso(-100), "observed_at": _iso(-100), "synchronized_at": _iso(-50), "replay_only": True})
+    replay = evaluate_freshness(
+        "replay",
+        {
+            "created_at": _iso(-100),
+            "observed_at": _iso(-100),
+            "synchronized_at": _iso(-50),
+            "replay_only": True,
+        },
+    )
     assert replay.freshness.validity_state == "replay_only"
 
 
 def test_consistency_generation_determinism() -> None:
     payload = {"id": "n1", "type": "graph-node"}
-    assert consistency_generation("graph", payload) == consistency_generation("graph", payload)
+    assert consistency_generation("graph", payload) == consistency_generation(
+        "graph", payload
+    )
     check = validate_consistency("graph", payload)
     assert check.valid
 
@@ -71,5 +97,8 @@ def test_query_freshness_filtering_excludes_expired(tmp_path, monkeypatch) -> No
 
 
 def test_filter_expired_items() -> None:
-    items = [{"id": "a", "validity_state": "valid"}, {"id": "b", "validity_state": "expired"}]
+    items = [
+        {"id": "a", "validity_state": "valid"},
+        {"id": "b", "validity_state": "expired"},
+    ]
     assert [item["id"] for item in filter_expired(items)] == ["a"]

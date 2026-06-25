@@ -10,4 +10,3 @@ from nsddos.runtime.models import RuntimeCollectionBundle
 def aggregate_collection(config: dict) -> RuntimeCollectionBundle:
     """Collect + normalize runtime collection state."""
     return normalize_collection(collect_runtime_state(config))
-

@@ -105,10 +105,14 @@ class PolicyLearningState:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "attack_signature_counts": dict(sorted(self.attack_signature_counts.items())),
+            "attack_signature_counts": dict(
+                sorted(self.attack_signature_counts.items())
+            ),
             "source_ip_counts": dict(sorted(self.source_ip_counts.items())),
             "subnet_counts": dict(sorted(self.subnet_counts.items())),
-            "mitigation_success_rate": dict(sorted(self.mitigation_success_rate.items())),
+            "mitigation_success_rate": dict(
+                sorted(self.mitigation_success_rate.items())
+            ),
         }
 
 
@@ -181,14 +185,28 @@ class PolicyEvaluation:
     timestamp: datetime
     source_subnet: str = ""
     priority: PolicyPriority = field(default_factory=lambda: PolicyPriority("LOW", 0))
-    rule: PolicyRule = field(default_factory=lambda: PolicyRule("", "normal", "alert_only", ""))
-    conditions: PolicyConditionResult = field(default_factory=lambda: PolicyConditionResult(0, False, False, False, False, False))
-    threshold_state: PolicyThresholdState = field(default_factory=lambda: PolicyThresholdState(0, 0.0, 0.0, 1.0, 0.0))
-    conflict_resolution: PolicyConflictResolution = field(default_factory=lambda: PolicyConflictResolution(tuple(), "alert_only", ""))
-    diagnostics: PolicyDiagnostics = field(default_factory=lambda: PolicyDiagnostics(0.0, 0, 0, False, 0.0))
+    rule: PolicyRule = field(
+        default_factory=lambda: PolicyRule("", "normal", "alert_only", "")
+    )
+    conditions: PolicyConditionResult = field(
+        default_factory=lambda: PolicyConditionResult(
+            0, False, False, False, False, False
+        )
+    )
+    threshold_state: PolicyThresholdState = field(
+        default_factory=lambda: PolicyThresholdState(0, 0.0, 0.0, 1.0, 0.0)
+    )
+    conflict_resolution: PolicyConflictResolution = field(
+        default_factory=lambda: PolicyConflictResolution(tuple(), "alert_only", "")
+    )
+    diagnostics: PolicyDiagnostics = field(
+        default_factory=lambda: PolicyDiagnostics(0.0, 0, 0, False, 0.0)
+    )
     schema_version: str = SCHEMA_VERSION
     contract_version: str = CONTRACT_VERSION
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
 
     def to_dict(self) -> dict[str, Any]:
         return {

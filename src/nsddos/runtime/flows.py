@@ -87,7 +87,9 @@ def sample_flow_visibility(config: dict[str, Any], interval: float = 2.0) -> Flo
     )
 
 
-def telemetry_freshness(config: dict[str, Any], interval: float = 2.0) -> TelemetryFreshness:
+def telemetry_freshness(
+    config: dict[str, Any], interval: float = 2.0
+) -> TelemetryFreshness:
     """Infer freshness from two flow samples."""
     provider = SFlowProvider(api_url=resolve_sflowrt_api_url(config))
     observed_at = datetime.now(timezone.utc).isoformat()
@@ -102,7 +104,9 @@ def telemetry_freshness(config: dict[str, Any], interval: float = 2.0) -> Teleme
     first = provider.flows()
     time.sleep(interval)
     second = provider.flows()
-    changed = {_flow_signature(flow) for flow in first} != {_flow_signature(flow) for flow in second}
+    changed = {_flow_signature(flow) for flow in first} != {
+        _flow_signature(flow) for flow in second
+    }
     flows = second if second else first
     stale = not changed and not flows
     last_flow_timestamp = observed_at
@@ -140,4 +144,6 @@ def validate_traffic(config: dict[str, Any]) -> VerificationResult:
     except RuntimeError as exc:
         return VerificationResult("traffic_validation", "warn", str(exc), "traffic")
     status = "pass" if result["ok"] else "warn"
-    return VerificationResult("traffic_validation", status, str(result["detail"]), "traffic")
+    return VerificationResult(
+        "traffic_validation", status, str(result["detail"]), "traffic"
+    )

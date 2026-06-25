@@ -27,7 +27,9 @@ def build_timeline(sources: DashboardSourceBundle) -> tuple[TimelineEvent, ...]:
                 event_type="mitigation",
                 severity=str(mitigation.get("risk_level", "LOW")).lower(),
                 detail=str(mitigation.get("mitigation_action", "alert_only")),
-                timestamp=str(mitigation.get("created_at", mitigation.get("timestamp", ""))),
+                timestamp=str(
+                    mitigation.get("created_at", mitigation.get("timestamp", ""))
+                ),
             )
         )
     for index, item in enumerate(sources.policy_history[:10]):
@@ -35,7 +37,9 @@ def build_timeline(sources: DashboardSourceBundle) -> tuple[TimelineEvent, ...]:
             TimelineEvent(
                 event_id=f"event-policy-{index}",
                 event_type="policy_change",
-                severity="warning" if int(item.get("escalation_level", 0)) > 0 else "info",
+                severity=(
+                    "warning" if int(item.get("escalation_level", 0)) > 0 else "info"
+                ),
                 detail=str(item.get("recommended_action", "alert_only")),
                 timestamp=str(item.get("timestamp", "")),
             )
@@ -44,8 +48,16 @@ def build_timeline(sources: DashboardSourceBundle) -> tuple[TimelineEvent, ...]:
         events.append(
             TimelineEvent(
                 event_id="event-ml",
-                event_type="ml_retraining" if sources.ml.get("retraining_required", False) else "ml_inference",
-                severity="warning" if sources.ml.get("retraining_required", False) else "info",
+                event_type=(
+                    "ml_retraining"
+                    if sources.ml.get("retraining_required", False)
+                    else "ml_inference"
+                ),
+                severity=(
+                    "warning"
+                    if sources.ml.get("retraining_required", False)
+                    else "info"
+                ),
                 detail=str(sources.ml.get("model_version", "")),
                 timestamp=str(sources.ml.get("timestamp", "")),
             )

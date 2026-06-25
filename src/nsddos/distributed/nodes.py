@@ -21,7 +21,9 @@ def register_nodes(records: tuple[dict[str, Any], ...]) -> tuple[ClusterNode, ..
         capabilities = tuple(sorted(str(cap) for cap in record.get("capabilities", ())))
         roles = tuple(sorted(str(role) for role in record.get("roles", ())))
         state = str(record.get("state", "healthy"))
-        capability_score = len(capabilities) * 10 + len(roles) * 5 + _HEALTH_WEIGHT.get(state, 0)
+        capability_score = (
+            len(capabilities) * 10 + len(roles) * 5 + _HEALTH_WEIGHT.get(state, 0)
+        )
         nodes.append(
             ClusterNode(
                 node_id=str(record.get("node_id", "")),

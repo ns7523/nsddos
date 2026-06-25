@@ -17,13 +17,21 @@ def build_recovery_state(health: DeploymentHealthState) -> RecoveryState:
     if health.environment_ready:
         return RecoveryState(
             state="recovering",
-            recommended_actions=("restart_docker_daemon", "re-run_health_checks", "confirm_provider_reachability"),
+            recommended_actions=(
+                "restart_docker_daemon",
+                "re-run_health_checks",
+                "confirm_provider_reachability",
+            ),
             can_recover=True,
             reason="environment ready but runtime degraded",
         )
     return RecoveryState(
         state="failed",
-        recommended_actions=("install_docker", "create_missing_compose_file", "configure_required_secrets"),
+        recommended_actions=(
+            "install_docker",
+            "create_missing_compose_file",
+            "configure_required_secrets",
+        ),
         can_recover=False,
         reason="environment prerequisites incomplete",
     )

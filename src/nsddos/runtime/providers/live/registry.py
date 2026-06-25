@@ -9,7 +9,10 @@ from nsddos.providers.floodlight.provider import FloodlightProvider
 from nsddos.providers.mininet.provider import MininetProvider
 from nsddos.providers.ovs.provider import OVSProvider
 from nsddos.providers.sflow.provider import SFlowProvider, resolve_sflowrt_api_url
-from nsddos.runtime.providers.live.connection_pool import ConnectionPolicy, DeterministicConnectionPool
+from nsddos.runtime.providers.live.connection_pool import (
+    ConnectionPolicy,
+    DeterministicConnectionPool,
+)
 
 
 @dataclass(frozen=True)
@@ -39,17 +42,29 @@ def build_live_provider_registry(config: dict[str, Any]) -> LiveProviderRegistry
             retry_count=int(live_config.get("retry_count", 1)),
         )
     )
-    sflow_endpoint = providers.get("sflowrt", {}).get("endpoint", resolve_sflowrt_api_url(config))
-    floodlight_endpoint = providers.get("floodlight", {}).get("endpoint", f"http://127.0.0.1:{lab.get('floodlight_port', 8080)}")
+    sflow_endpoint = providers.get("sflowrt", {}).get(
+        "endpoint", resolve_sflowrt_api_url(config)
+    )
+    floodlight_endpoint = providers.get("floodlight", {}).get(
+        "endpoint", f"http://127.0.0.1:{lab.get('floodlight_port', 8080)}"
+    )
     mininet_host = providers.get("mininet", {}).get("controller_host", "127.0.0.1")
-    mininet_port = int(providers.get("mininet", {}).get("controller_port", lab.get("controller_port", 6653)))
+    mininet_port = int(
+        providers.get("mininet", {}).get(
+            "controller_port", lab.get("controller_port", 6653)
+        )
+    )
     ovs_settings = providers.get("ovs", {})
     return LiveProviderRegistry(
         pool=pool,
         sflowrt=SFlowProvider(api_url=sflow_endpoint),
         ovs=OVSProvider(
-            collector_target=ovs_settings.get("collector_target", lab.get("ovs_sflow_target", "127.0.0.1:6343")),
-            agent_interface=ovs_settings.get("agent_interface", lab.get("ovs_agent_interface", "lo")),
+            collector_target=ovs_settings.get(
+                "collector_target", lab.get("ovs_sflow_target", "127.0.0.1:6343")
+            ),
+            agent_interface=ovs_settings.get(
+                "agent_interface", lab.get("ovs_agent_interface", "lo")
+            ),
             sampling=int(lab.get("ovs_sampling", 10)),
             polling=int(lab.get("ovs_polling", 20)),
         ),

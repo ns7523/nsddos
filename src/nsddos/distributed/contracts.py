@@ -158,8 +158,12 @@ class DistributedDiagnostics:
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
-        payload["node_health_metrics"] = [list(item) for item in self.node_health_metrics]
-        payload["worker_distribution_metrics"] = [list(item) for item in self.worker_distribution_metrics]
+        payload["node_health_metrics"] = [
+            list(item) for item in self.node_health_metrics
+        ]
+        payload["worker_distribution_metrics"] = [
+            list(item) for item in self.worker_distribution_metrics
+        ]
         payload["failover_metrics"] = [list(item) for item in self.failover_metrics]
         return payload
 
@@ -182,12 +186,25 @@ class DistributedRuntimeEvaluation:
     environment: str = "cluster"
     nodes: tuple[ClusterNode, ...] = field(default_factory=tuple)
     leader_state: LeaderState = field(
-        default_factory=lambda: LeaderState(primary_node="", standby_node="", election_timeout_seconds=5, re_election_required=False)
+        default_factory=lambda: LeaderState(
+            primary_node="",
+            standby_node="",
+            election_timeout_seconds=5,
+            re_election_required=False,
+        )
     )
     worker_assignments: tuple[WorkerAssignment, ...] = field(default_factory=tuple)
-    partition_assignments: tuple[PartitionAssignment, ...] = field(default_factory=tuple)
+    partition_assignments: tuple[PartitionAssignment, ...] = field(
+        default_factory=tuple
+    )
     replication_state: ReplicationState = field(
-        default_factory=lambda: ReplicationState(replication_factor=1, replicated_resources=(), target_nodes=(), lag_ms=0.0, state="ready")
+        default_factory=lambda: ReplicationState(
+            replication_factor=1,
+            replicated_resources=(),
+            target_nodes=(),
+            lag_ms=0.0,
+            state="ready",
+        )
     )
     failover_state: FailoverState = field(
         default_factory=lambda: FailoverState(
@@ -199,13 +216,31 @@ class DistributedRuntimeEvaluation:
         )
     )
     checkpoint: DistributedCheckpointState = field(
-        default_factory=lambda: DistributedCheckpointState(checkpoint_id="", state="degraded", node_offsets=(), stream_offsets=(), replication_generation="")
+        default_factory=lambda: DistributedCheckpointState(
+            checkpoint_id="",
+            state="degraded",
+            node_offsets=(),
+            stream_offsets=(),
+            replication_generation="",
+        )
     )
     heartbeat_state: HeartbeatState = field(
-        default_factory=lambda: HeartbeatState(live_nodes=(), degraded_nodes=(), failed_nodes=(), leader_alive=False, worker_liveness=())
+        default_factory=lambda: HeartbeatState(
+            live_nodes=(),
+            degraded_nodes=(),
+            failed_nodes=(),
+            leader_alive=False,
+            worker_liveness=(),
+        )
     )
     rebalance_plan: RebalancePlan = field(
-        default_factory=lambda: RebalancePlan(required=False, moved_workers=(), moved_partitions=(), target_nodes=(), reason="")
+        default_factory=lambda: RebalancePlan(
+            required=False,
+            moved_workers=(),
+            moved_partitions=(),
+            target_nodes=(),
+            reason="",
+        )
     )
     diagnostics: DistributedDiagnostics = field(
         default_factory=lambda: DistributedDiagnostics(
@@ -222,8 +257,12 @@ class DistributedRuntimeEvaluation:
         payload["timestamp"] = self.timestamp.isoformat()
         payload["nodes"] = [item.to_dict() for item in self.nodes]
         payload["leader_state"] = self.leader_state.to_dict()
-        payload["worker_assignments"] = [item.to_dict() for item in self.worker_assignments]
-        payload["partition_assignments"] = [item.to_dict() for item in self.partition_assignments]
+        payload["worker_assignments"] = [
+            item.to_dict() for item in self.worker_assignments
+        ]
+        payload["partition_assignments"] = [
+            item.to_dict() for item in self.partition_assignments
+        ]
         payload["replication_state"] = self.replication_state.to_dict()
         payload["failover_state"] = self.failover_state.to_dict()
         payload["checkpoint"] = self.checkpoint.to_dict()

@@ -6,7 +6,16 @@ from nsddos.runtime.streaming.contracts import StreamEvent, StreamQueueState
 
 
 def order_events(events: tuple[StreamEvent, ...]) -> tuple[StreamEvent, ...]:
-    return tuple(sorted(events, key=lambda item: (item.timestamp.isoformat(), item.sequence_number, item.event_id)))
+    return tuple(
+        sorted(
+            events,
+            key=lambda item: (
+                item.timestamp.isoformat(),
+                item.sequence_number,
+                item.event_id,
+            ),
+        )
+    )
 
 
 def build_queue_state(
@@ -23,7 +32,9 @@ def build_queue_state(
     )
 
 
-def dequeue_batch(queue_state: StreamQueueState, batch_size: int) -> tuple[tuple[StreamEvent, ...], StreamQueueState]:
+def dequeue_batch(
+    queue_state: StreamQueueState, batch_size: int
+) -> tuple[tuple[StreamEvent, ...], StreamQueueState]:
     batch = queue_state.events[:batch_size]
     remaining = queue_state.events[batch_size:]
     return (

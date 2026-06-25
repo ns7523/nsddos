@@ -23,10 +23,18 @@ def analyze_reproducibility(config: dict[str, Any]) -> ReproducibilityAssessment
         deterministic_inputs.append("canonical-linux-profile")
 
     provider_repro = {
-        name: ("reproducible" if status == "supported" else "partial" if status == "partial" else "non_reproducible")
+        name: (
+            "reproducible"
+            if status == "supported"
+            else "partial" if status == "partial" else "non_reproducible"
+        )
         for name, status in environment.provider_support.items()
     }
-    snapshot_portable = profile.name != "linux-native" or environment.status in {"compatible", "degraded", "partially_supported"}
+    snapshot_portable = profile.name != "linux-native" or environment.status in {
+        "compatible",
+        "degraded",
+        "partially_supported",
+    }
     profile_stable = profile.name in {"linux-native", "docker-linux"}
 
     if environment.status == "compatible" and profile_stable:
@@ -39,7 +47,8 @@ def analyze_reproducibility(config: dict[str, Any]) -> ReproducibilityAssessment
     return ReproducibilityAssessment(
         status=status,
         deterministic_inputs=deterministic_inputs,
-        portability_limits=environment.reproducibility_limitations + environment.missing_dependencies,
+        portability_limits=environment.reproducibility_limitations
+        + environment.missing_dependencies,
         provider_reproducibility=provider_repro,
         snapshot_portable=snapshot_portable,
         profile_stable=profile_stable,

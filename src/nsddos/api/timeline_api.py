@@ -7,7 +7,12 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query
 
 from nsddos.api.dependencies import execute_api_query, get_config
-from nsddos.api.schemas import ApiFilter, ApiPagination, ApiQueryRequest, ApiQueryResponse
+from nsddos.api.schemas import (
+    ApiFilter,
+    ApiPagination,
+    ApiQueryRequest,
+    ApiQueryResponse,
+)
 
 router = APIRouter(prefix="/runtime/timeline", tags=["runtime-timeline"])
 

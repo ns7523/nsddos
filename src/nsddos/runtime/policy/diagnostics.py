@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from nsddos.runtime.policy.contracts_models import PolicyDiagnostics, PolicyEvaluation, PolicyHistoryEntry
+from nsddos.runtime.policy.contracts_models import (
+    PolicyDiagnostics,
+    PolicyEvaluation,
+    PolicyHistoryEntry,
+)
 
 
 def build_policy_diagnostics(

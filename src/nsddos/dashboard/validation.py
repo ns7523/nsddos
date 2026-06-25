@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from nsddos.dashboard.contracts import ALERT_LEVELS, DASHBOARD_HEALTH_STATES, DashboardEvaluation
+from nsddos.dashboard.contracts import (
+    ALERT_LEVELS,
+    DASHBOARD_HEALTH_STATES,
+    DashboardEvaluation,
+)
 
 
 def validate_dashboard_evaluation(evaluation: DashboardEvaluation) -> list[str]:
@@ -18,7 +22,10 @@ def validate_dashboard_evaluation(evaluation: DashboardEvaluation) -> list[str]:
         errors.append("invalid_visualization_payload")
     if any(not report.report_id or not report.summary for report in evaluation.reports):
         errors.append("report_corruption")
-    if any("stale" in warning and not warning for warning in evaluation.diagnostics.stale_telemetry_warnings):
+    if any(
+        "stale" in warning and not warning
+        for warning in evaluation.diagnostics.stale_telemetry_warnings
+    ):
         errors.append("stale_dashboard_telemetry")
     if not evaluation.timeline and evaluation.active_attacks:
         errors.append("historical_dashboard_corruption")

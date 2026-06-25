@@ -5,7 +5,9 @@ from __future__ import annotations
 from nsddos.release.contracts import LoadTestResult, ReleaseSourceBundle, ScenarioResult
 
 
-def build_load_test_result(config: dict, sources: ReleaseSourceBundle) -> LoadTestResult:
+def build_load_test_result(
+    config: dict, sources: ReleaseSourceBundle
+) -> LoadTestResult:
     """Build deterministic load test result."""
     release_config = config.get("release", {})
     event_workload = int(release_config.get("load_event_count", 10000))
@@ -15,7 +17,13 @@ def build_load_test_result(config: dict, sources: ReleaseSourceBundle) -> LoadTe
     scenarios = (
         ScenarioResult(
             "load-events",
-            round(min(max(sources.stream_throughput, 0.1) / max(stream_burst / 10.0, 1.0), 1.0), 4),
+            round(
+                min(
+                    max(sources.stream_throughput, 0.1) / max(stream_burst / 10.0, 1.0),
+                    1.0,
+                ),
+                4,
+            ),
             "healthy" if sources.stream_throughput >= 1.0 else "degraded",
             f"event_workload={event_workload}",
         ),
@@ -27,7 +35,9 @@ def build_load_test_result(config: dict, sources: ReleaseSourceBundle) -> LoadTe
         ),
         ScenarioResult(
             "load-stream-pressure",
-            round(min(max(sources.stream_throughput, 0.1) / max(stream_burst, 1), 1.0), 4),
+            round(
+                min(max(sources.stream_throughput, 0.1) / max(stream_burst, 1), 1.0), 4
+            ),
             "healthy" if sources.dashboard_health != "failed" else "degraded",
             f"stream_burst_count={stream_burst}",
         ),
@@ -39,4 +49,6 @@ def build_load_test_result(config: dict, sources: ReleaseSourceBundle) -> LoadTe
         ),
     )
     score = round(sum(item.score for item in scenarios) / len(scenarios), 4)
-    return LoadTestResult(event_workload, api_burst, stream_burst, provider_burst, score, scenarios)
+    return LoadTestResult(
+        event_workload, api_burst, stream_burst, provider_burst, score, scenarios
+    )

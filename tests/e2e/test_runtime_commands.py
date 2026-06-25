@@ -47,7 +47,13 @@ def _ensure_import_path(env: dict[str, str]) -> None:
     env["PYTHONPATH"] = str(PROJECT_ROOT / "src")
 
 
-def _run(args: list[str], *, env: dict[str, str], input_text: str | None = None, timeout: int = 900) -> subprocess.CompletedProcess[str]:
+def _run(
+    args: list[str],
+    *,
+    env: dict[str, str],
+    input_text: str | None = None,
+    timeout: int = 900,
+) -> subprocess.CompletedProcess[str]:
     result = subprocess.run(
         args,
         cwd=PROJECT_ROOT,
@@ -87,7 +93,11 @@ def e2e_env(tmp_path_factory: pytest.TempPathFactory) -> dict[str, str]:
     if not E2E_ENABLED:
         pytest.skip("Set NSDDOS_E2E=1 for real runtime E2E.")
     env = dict(os.environ)
-    home_root = Path(env["NSDDOS_HOME"]) if env.get("NSDDOS_HOME") else tmp_path_factory.mktemp("nsddos-e2e-home") / "home"
+    home_root = (
+        Path(env["NSDDOS_HOME"])
+        if env.get("NSDDOS_HOME")
+        else tmp_path_factory.mktemp("nsddos-e2e-home") / "home"
+    )
     home_root.mkdir(parents=True, exist_ok=True)
     env["NSDDOS_HOME"] = str(home_root)
     env.setdefault("NSDDOS_CONFIG", str(home_root / "config.yaml"))
@@ -109,7 +119,9 @@ def e2e_env(tmp_path_factory: pytest.TempPathFactory) -> dict[str, str]:
         except OSError:
             time.sleep(1)
     else:
-        raise AssertionError("UI health endpoint did not become reachable after nsddos start")
+        raise AssertionError(
+            "UI health endpoint did not become reachable after nsddos start"
+        )
     return env
 
 
@@ -127,13 +139,27 @@ def test_start_creates_session_and_required_containers(e2e_env: dict[str, str]) 
     payload = json.loads(session_path.read_text(encoding="utf-8"))
     assert payload["ui_url"].startswith("http://127.0.0.1:")
     running = set(payload.get("running_containers", ()))
-    assert {"nsddos-labhost", "nsddos-floodlight", "nsddos-sflowrt", "nsddos-detector"} <= running
+    assert {
+        "nsddos-labhost",
+        "nsddos-floodlight",
+        "nsddos-sflowrt",
+        "nsddos-detector",
+    } <= running
 
 
 def test_uvicorn_ui_app_boots_real(e2e_env: dict[str, str]) -> None:
     env = dict(e2e_env)
     process = subprocess.Popen(
-        [_python_executable(env), "-m", "uvicorn", "nsddos.ui.app:app", "--host", "127.0.0.1", "--port", "8011"],
+        [
+            _python_executable(env),
+            "-m",
+            "uvicorn",
+            "nsddos.ui.app:app",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "8011",
+        ],
         cwd=PROJECT_ROOT,
         env=env,
         stdout=subprocess.PIPE,
@@ -145,7 +171,9 @@ def test_uvicorn_ui_app_boots_real(e2e_env: dict[str, str]) -> None:
         while time.monotonic() < deadline:
             if process.poll() is not None:
                 stdout, stderr = process.communicate(timeout=5)
-                raise AssertionError(f"uvicorn exited early\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}")
+                raise AssertionError(
+                    f"uvicorn exited early\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}"
+                )
             try:
                 with urlopen("http://127.0.0.1:8011/ui/healthz", timeout=2) as response:
                     body = response.read().decode("utf-8")
@@ -155,7 +183,9 @@ def test_uvicorn_ui_app_boots_real(e2e_env: dict[str, str]) -> None:
             except OSError:
                 time.sleep(0.5)
         stdout, stderr = process.communicate(timeout=5)
-        raise AssertionError(f"uvicorn did not become ready\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}")
+        raise AssertionError(
+            f"uvicorn did not become ready\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}"
+        )
     finally:
         if process.poll() is None:
             process.terminate()

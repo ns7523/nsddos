@@ -47,12 +47,16 @@ def build_navigation(active_path: str) -> tuple[UiNavItem, ...]:
         ("SYNCHRONIZATION", "/ui/synchronization", "Explorer", ""),
     )
     return tuple(
-        UiNavItem(label=label, path=path, group=group, icon=icon, active=active_path == path)
+        UiNavItem(
+            label=label, path=path, group=group, icon=icon, active=active_path == path
+        )
         for label, path, group, icon in (*primary, *explorer)
     )
 
 
-def render_page(request: Request, page: UiPagePayload, *, landing: bool = False) -> HTMLResponse:
+def render_page(
+    request: Request, page: UiPagePayload, *, landing: bool = False
+) -> HTMLResponse:
     del landing
     ws_path = f"/ui/ws/{page.name}" if page.active_path in PRIMARY_PATHS else ""
     template_name = "lab_console.html" if page.lab_console is not None else "page.html"
@@ -121,58 +125,201 @@ def ui_session(request: Request) -> HTMLResponse:
 
 
 @router.get("/verification", response_class=HTMLResponse)
-def ui_verification(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return render_page(request, builder.explorer("/ui/verification", "Verification", "/runtime/verification", "verification rules and evidence", {"limit": limit, "offset": offset}))
+def ui_verification(
+    request: Request,
+    limit: int = Query(default=25, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> HTMLResponse:
+    return render_page(
+        request,
+        builder.explorer(
+            "/ui/verification",
+            "Verification",
+            "/runtime/verification",
+            "verification rules and evidence",
+            {"limit": limit, "offset": offset},
+        ),
+    )
 
 
 @router.get("/convergence", response_class=HTMLResponse)
-def ui_convergence(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return render_page(request, builder.explorer("/ui/convergence", "Convergence", "/runtime/convergence", "convergence snapshots", {"limit": limit, "offset": offset}))
+def ui_convergence(
+    request: Request,
+    limit: int = Query(default=25, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> HTMLResponse:
+    return render_page(
+        request,
+        builder.explorer(
+            "/ui/convergence",
+            "Convergence",
+            "/runtime/convergence",
+            "convergence snapshots",
+            {"limit": limit, "offset": offset},
+        ),
+    )
 
 
 @router.get("/graph", response_class=HTMLResponse)
-def ui_graph(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return render_page(request, builder.explorer("/ui/graph", "Graph", "/runtime/graph", "runtime graph entities", {"limit": limit, "offset": offset}))
+def ui_graph(
+    request: Request,
+    limit: int = Query(default=25, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> HTMLResponse:
+    return render_page(
+        request,
+        builder.explorer(
+            "/ui/graph",
+            "Graph",
+            "/runtime/graph",
+            "runtime graph entities",
+            {"limit": limit, "offset": offset},
+        ),
+    )
 
 
 @router.get("/timeline", response_class=HTMLResponse)
-def ui_timeline(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return render_page(request, builder.explorer("/ui/timeline", "Timeline", "/runtime/timeline", "time-ordered runtime events", {"limit": limit, "offset": offset}))
+def ui_timeline(
+    request: Request,
+    limit: int = Query(default=25, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> HTMLResponse:
+    return render_page(
+        request,
+        builder.explorer(
+            "/ui/timeline",
+            "Timeline",
+            "/runtime/timeline",
+            "time-ordered runtime events",
+            {"limit": limit, "offset": offset},
+        ),
+    )
 
 
 @router.get("/evidence", response_class=HTMLResponse)
-def ui_evidence(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return render_page(request, builder.explorer("/ui/evidence", "Evidence", "/runtime/evidence", "evidence bundles", {"limit": limit, "offset": offset}))
+def ui_evidence(
+    request: Request,
+    limit: int = Query(default=25, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> HTMLResponse:
+    return render_page(
+        request,
+        builder.explorer(
+            "/ui/evidence",
+            "Evidence",
+            "/runtime/evidence",
+            "evidence bundles",
+            {"limit": limit, "offset": offset},
+        ),
+    )
 
 
 @router.get("/replay", response_class=HTMLResponse)
-def ui_replay(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return render_page(request, builder.explorer("/ui/replay", "Replay", "/runtime/replay", "replay-safe history", {"limit": limit, "offset": offset}))
+def ui_replay(
+    request: Request,
+    limit: int = Query(default=25, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> HTMLResponse:
+    return render_page(
+        request,
+        builder.explorer(
+            "/ui/replay",
+            "Replay",
+            "/runtime/replay",
+            "replay-safe history",
+            {"limit": limit, "offset": offset},
+        ),
+    )
 
 
 @router.get("/sessions", response_class=HTMLResponse)
-def ui_sessions(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return render_page(request, builder.explorer("/ui/sessions", "Sessions", "/runtime/service", "runtime sessions", {"limit": limit, "offset": offset}))
+def ui_sessions(
+    request: Request,
+    limit: int = Query(default=25, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> HTMLResponse:
+    return render_page(
+        request,
+        builder.explorer(
+            "/ui/sessions",
+            "Sessions",
+            "/runtime/service",
+            "runtime sessions",
+            {"limit": limit, "offset": offset},
+        ),
+    )
 
 
 @router.get("/service", response_class=HTMLResponse)
-def ui_service(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return render_page(request, builder.explorer("/ui/service", "Service", "/runtime/service", "service ownership and state", {"limit": limit, "offset": offset}))
+def ui_service(
+    request: Request,
+    limit: int = Query(default=25, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> HTMLResponse:
+    return render_page(
+        request,
+        builder.explorer(
+            "/ui/service",
+            "Service",
+            "/runtime/service",
+            "service ownership and state",
+            {"limit": limit, "offset": offset},
+        ),
+    )
 
 
 @router.get("/diagnostics", response_class=HTMLResponse)
-def ui_diagnostics(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return render_page(request, builder.explorer("/ui/diagnostics", "Diagnostics", "/runtime/service", "service diagnostics", {"limit": limit, "offset": offset}))
+def ui_diagnostics(
+    request: Request,
+    limit: int = Query(default=25, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> HTMLResponse:
+    return render_page(
+        request,
+        builder.explorer(
+            "/ui/diagnostics",
+            "Diagnostics",
+            "/runtime/service",
+            "service diagnostics",
+            {"limit": limit, "offset": offset},
+        ),
+    )
 
 
 @router.get("/drift", response_class=HTMLResponse)
-def ui_drift(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return render_page(request, builder.explorer("/ui/drift", "Drift", "/runtime/drift", "temporal drift analysis", {"limit": limit, "offset": offset}))
+def ui_drift(
+    request: Request,
+    limit: int = Query(default=25, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> HTMLResponse:
+    return render_page(
+        request,
+        builder.explorer(
+            "/ui/drift",
+            "Drift",
+            "/runtime/drift",
+            "temporal drift analysis",
+            {"limit": limit, "offset": offset},
+        ),
+    )
 
 
 @router.get("/synchronization", response_class=HTMLResponse)
-def ui_synchronization(request: Request, limit: int = Query(default=25, ge=1, le=500), offset: int = Query(default=0, ge=0)) -> HTMLResponse:
-    return render_page(request, builder.explorer("/ui/synchronization", "Synchronization", "/runtime/service", "runtime synchronization state", {"limit": limit, "offset": offset}))
+def ui_synchronization(
+    request: Request,
+    limit: int = Query(default=25, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> HTMLResponse:
+    return render_page(
+        request,
+        builder.explorer(
+            "/ui/synchronization",
+            "Synchronization",
+            "/runtime/service",
+            "runtime synchronization state",
+            {"limit": limit, "offset": offset},
+        ),
+    )
 
 
 @router.post("/api/lab/actions/{action}")

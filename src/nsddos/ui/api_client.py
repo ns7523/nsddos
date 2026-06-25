@@ -29,17 +29,26 @@ class UiApiClient:
             response = self._request_with_timeout(path, params or {})
             response.raise_for_status()
             payload = response.json()
-        except Exception as exc:  # pragma: no cover - exercised through UI route fallback behavior
+        except (
+            Exception
+        ) as exc:  # pragma: no cover - exercised through UI route fallback behavior
             duration_ms = (monotonic() - start) * 1000
             record_timing(f"ui.api.{path}", duration_ms)
-            return {"payload": self._fallback_payload(path, exc), "duration_ms": duration_ms}
+            return {
+                "payload": self._fallback_payload(path, exc),
+                "duration_ms": duration_ms,
+            }
         duration_ms = (monotonic() - start) * 1000
         record_timing(f"ui.api.{path}", duration_ms)
         typed_items = []
         for index, item in enumerate(payload.get("items", [])):
             typed_items.append(
                 RuntimeRecord(
-                    record_id=str(item.get("id", deterministic_id("ui-item", f"{path}:{index}:{item}"))),
+                    record_id=str(
+                        item.get(
+                            "id", deterministic_id("ui-item", f"{path}:{index}:{item}")
+                        )
+                    ),
                     record_type=str(item.get("type", path)),
                     payload=item,
                 ).to_dict()
@@ -47,7 +56,9 @@ class UiApiClient:
         payload["items"] = typed_items
         return {"payload": payload, "duration_ms": duration_ms}
 
-    def _request_with_timeout(self, path: str, params: dict[str, Any], timeout_seconds: float = 0.2) -> httpx.Response:
+    def _request_with_timeout(
+        self, path: str, params: dict[str, Any], timeout_seconds: float = 0.2
+    ) -> httpx.Response:
         """Run API request with bounded wall-clock timeout."""
 
         result_queue: Queue[tuple[bool, httpx.Response | Exception]] = Queue(maxsize=1)
@@ -70,7 +81,9 @@ class UiApiClient:
 
     async def _request(self, path: str, params: dict[str, Any]) -> httpx.Response:
         transport = httpx.ASGITransport(app=self._app)
-        async with httpx.AsyncClient(transport=transport, base_url="http://nsddos.local") as client:
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://nsddos.local"
+        ) as client:
             return await client.get(path, params=params)
 
     def _fallback_payload(self, path: str, exc: Exception) -> dict[str, Any]:
@@ -136,8 +149,15 @@ class UiApiClient:
             "/runtime/provider-health": base,
             "/runtime/policy/diagnostics": base,
             "/runtime/service": base,
-            "/dashboard/report": {"reports": [], "detail": detail, "timestamp": timestamp},
-            "/dashboard/diagnostics": {"diagnostics": {"ui_fallback": detail}, "timestamp": timestamp},
+            "/dashboard/report": {
+                "reports": [],
+                "detail": detail,
+                "timestamp": timestamp,
+            },
+            "/dashboard/diagnostics": {
+                "diagnostics": {"ui_fallback": detail},
+                "timestamp": timestamp,
+            },
             "/runtime/verification": base,
             "/runtime/convergence": base,
             "/runtime/graph": base,

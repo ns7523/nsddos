@@ -8,9 +8,13 @@ from typing import Callable
 
 @dataclass
 class FreshnessRegistry:
-    validators: dict[str, Callable[[dict[str, object]], dict[str, object]]] = field(default_factory=dict)
+    validators: dict[str, Callable[[dict[str, object]], dict[str, object]]] = field(
+        default_factory=dict
+    )
 
-    def register(self, scope: str, validator: Callable[[dict[str, object]], dict[str, object]]) -> None:
+    def register(
+        self, scope: str, validator: Callable[[dict[str, object]], dict[str, object]]
+    ) -> None:
         self.validators[scope] = validator
 
     def validate(self, scope: str, payload: dict[str, object]) -> dict[str, object]:
@@ -25,7 +29,9 @@ def default_freshness_registry() -> FreshnessRegistry:
     from nsddos.runtime.freshness.graph import validate_graph_freshness
     from nsddos.runtime.freshness.replay import validate_replay_freshness
     from nsddos.runtime.freshness.sessions import validate_session_freshness
-    from nsddos.runtime.freshness.synchronization import validate_synchronization_freshness
+    from nsddos.runtime.freshness.synchronization import (
+        validate_synchronization_freshness,
+    )
 
     registry = FreshnessRegistry()
     registry.register("graph", validate_graph_freshness)

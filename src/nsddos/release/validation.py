@@ -31,9 +31,14 @@ def validate_release_candidate(evaluation: ReleaseCandidateEvaluation) -> list[s
         errors.append("compliance_failure")
     if evaluation.release_state not in RELEASE_STATES:
         errors.append("release_package_corruption")
-    if not evaluation.package_metadata.bundle_name or not evaluation.package_metadata.archive_name:
+    if (
+        not evaluation.package_metadata.bundle_name
+        or not evaluation.package_metadata.archive_name
+    ):
         errors.append("packaging_failure")
-    if not evaluation.artifacts or any(not item.checksum or not item.signature for item in evaluation.artifacts):
+    if not evaluation.artifacts or any(
+        not item.checksum or not item.signature for item in evaluation.artifacts
+    ):
         errors.append("artifact_corruption")
     if not evaluation.release_notes.title or not evaluation.release_notes.summary:
         errors.append("release_notes_corruption")

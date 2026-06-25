@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from nsddos.runtime.streaming.contracts import ProtocolAggregate, StreamAggregation, StreamEvent, StreamWindowState
+from nsddos.runtime.streaming.contracts import (
+    ProtocolAggregate,
+    StreamAggregation,
+    StreamEvent,
+    StreamWindowState,
+)
 
 
 def aggregate_events(window_state: StreamWindowState) -> StreamAggregation:
@@ -16,7 +21,9 @@ def aggregate_events(window_state: StreamWindowState) -> StreamAggregation:
     packet_total = sum(item.packet_rate for item in events)
     byte_total = sum(item.byte_rate for item in events)
     connection_total = sum(item.connection_rate for item in events)
-    grouped: dict[str, dict[str, float]] = defaultdict(lambda: {"count": 0, "packet_rate": 0.0, "byte_rate": 0.0})
+    grouped: dict[str, dict[str, float]] = defaultdict(
+        lambda: {"count": 0, "packet_rate": 0.0, "byte_rate": 0.0}
+    )
     for item in events:
         grouped[item.protocol]["count"] += 1
         grouped[item.protocol]["packet_rate"] += item.packet_rate

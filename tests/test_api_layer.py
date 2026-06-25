@@ -117,7 +117,11 @@ def test_runtime_query_post_uses_query_engine(tmp_path, monkeypatch):
 
     response = _client().post(
         "/runtime/query",
-        json={"name": "snapshots", "scope": "persistence", "pagination": {"limit": 10, "offset": 0}},
+        json={
+            "name": "snapshots",
+            "scope": "persistence",
+            "pagination": {"limit": 10, "offset": 0},
+        },
     )
 
     assert response.status_code == 200
@@ -136,7 +140,9 @@ def test_snapshot_api_pagination_is_stable(tmp_path, monkeypatch):
     snapshot_dir = tmp_path / "snapshots"
     snapshot_dir.mkdir()
     for index in range(3):
-        atomic_write_json(snapshot_dir / f"snapshot-{index}.json", {"timestamp": str(index)})
+        atomic_write_json(
+            snapshot_dir / f"snapshot-{index}.json", {"timestamp": str(index)}
+        )
     monkeypatch.setattr(snapshots_module, "SNAPSHOT_DIR", snapshot_dir)
     monkeypatch.setattr(engine_module, "QUERY_DIR", tmp_path / "query")
     monkeypatch.setattr(cache_module, "CACHE_DIR", tmp_path / "cache")
@@ -213,8 +219,13 @@ def test_api_response_exposes_runtime_timing_metrics(tmp_path, monkeypatch):
 
     payload = _client().get("/runtime/snapshots").json()
 
-    assert {"query_execution_ms", "selector_ms", "pagination_ms"} <= set(payload["performance"])
-    assert payload["performance"]["query_execution_ms"] >= payload["performance"]["pagination_ms"]
+    assert {"query_execution_ms", "selector_ms", "pagination_ms"} <= set(
+        payload["performance"]
+    )
+    assert (
+        payload["performance"]["query_execution_ms"]
+        >= payload["performance"]["pagination_ms"]
+    )
 
 
 def test_detection_api_returns_typed_response(monkeypatch):
@@ -270,15 +281,15 @@ def test_mitigation_api_returns_typed_response(monkeypatch):
                     "confidence_score": 0.91,
                     "mitigation_status": "dry_run_ready",
                     "execution_result": "controller_payload_generated",
-                        "mitigation_hash": "abc",
-                        "mitigation_generation": "def",
-                        "attack_type": "syn_flood",
-                        "risk_level": "HIGH",
-                        "timestamp": "2100-01-01T00:00:00Z",
-                    }
-                },
-            )(),
-        )
+                    "mitigation_hash": "abc",
+                    "mitigation_generation": "def",
+                    "attack_type": "syn_flood",
+                    "risk_level": "HIGH",
+                    "timestamp": "2100-01-01T00:00:00Z",
+                }
+            },
+        )(),
+    )
 
     response = _client().get("/runtime/mitigation")
 
@@ -341,7 +352,9 @@ def test_distributed_api_returns_typed_response(monkeypatch):
                 "cluster_health": "healthy",
                 "failover_available": True,
                 "checkpoint_state": "ready",
-                "timestamp": type("Ts", (), {"isoformat": lambda self: "2100-01-01T00:00:00+00:00"})(),
+                "timestamp": type(
+                    "Ts", (), {"isoformat": lambda self: "2100-01-01T00:00:00+00:00"}
+                )(),
             },
         )(),
     )
@@ -376,7 +389,9 @@ def test_dashboard_api_returns_typed_response(monkeypatch):
                 "mitigation_events": 1,
                 "policy_events": 4,
                 "dashboard_health": "degraded",
-                "timestamp": type("Ts", (), {"isoformat": lambda self: "2100-01-01T00:00:00+00:00"})(),
+                "timestamp": type(
+                    "Ts", (), {"isoformat": lambda self: "2100-01-01T00:00:00+00:00"}
+                )(),
             },
         )(),
     )
@@ -464,7 +479,9 @@ def test_provider_health_api_is_query_backed(monkeypatch):
             "Snapshot",
             (),
             {
-                "timestamp": type("Ts", (), {"isoformat": lambda self: "2100-01-01T00:00:00+00:00"})(),
+                "timestamp": type(
+                    "Ts", (), {"isoformat": lambda self: "2100-01-01T00:00:00+00:00"}
+                )(),
                 "provider_health": (),
             },
         )(),
@@ -472,7 +489,9 @@ def test_provider_health_api_is_query_backed(monkeypatch):
     monkeypatch.setattr(
         live_query,
         "collect_provider_health",
-        lambda records: {"sflowrt": {"state": "healthy", "reachable": True, "latency_ms": 1.0}},
+        lambda records: {
+            "sflowrt": {"state": "healthy", "reachable": True, "latency_ms": 1.0}
+        },
     )
 
     response = _client().get("/runtime/provider-health")
@@ -491,8 +510,14 @@ def test_provider_discovery_api_is_query_backed(monkeypatch):
             "Snapshot",
             (),
             {
-                "timestamp": type("Ts", (), {"isoformat": lambda self: "2100-01-01T00:00:00+00:00"})(),
-                "topology_state": type("Topo", (), {"switches": ("s1",), "hosts": ("h1",), "controllers": ("c1",)})(),
+                "timestamp": type(
+                    "Ts", (), {"isoformat": lambda self: "2100-01-01T00:00:00+00:00"}
+                )(),
+                "topology_state": type(
+                    "Topo",
+                    (),
+                    {"switches": ("s1",), "hosts": ("h1",), "controllers": ("c1",)},
+                )(),
             },
         )(),
     )
@@ -500,7 +525,18 @@ def test_provider_discovery_api_is_query_backed(monkeypatch):
         live_query,
         "discover_runtime_providers",
         lambda floodlight_switches, mininet_switches, mininet_hosts, controller_endpoint: (
-            type("Discovery", (), {"provider": "mininet", "to_dict": lambda self: {"switches": ["s1"], "hosts": ["h1"], "controllers": ["c1"]}})(),
+            type(
+                "Discovery",
+                (),
+                {
+                    "provider": "mininet",
+                    "to_dict": lambda self: {
+                        "switches": ["s1"],
+                        "hosts": ["h1"],
+                        "controllers": ["c1"],
+                    },
+                },
+            )(),
         ),
     )
 
@@ -556,7 +592,9 @@ def test_simulation_replay_api_is_query_backed(monkeypatch):
                 "target_ip": "10.0.0.1",
                 "replay_records": (1, 2, 3),
                 "duration_seconds": 10,
-                "timestamp": type("Ts", (), {"isoformat": lambda self: "2100-01-01T00:00:00+00:00"})(),
+                "timestamp": type(
+                    "Ts", (), {"isoformat": lambda self: "2100-01-01T00:00:00+00:00"}
+                )(),
             },
         )(),
     )
@@ -578,7 +616,9 @@ def test_simulation_diagnostics_api_is_query_backed(monkeypatch):
             (),
             {
                 "attack_type": "syn_flood",
-                "timestamp": type("Ts", (), {"isoformat": lambda self: "2100-01-01T00:00:00+00:00"})(),
+                "timestamp": type(
+                    "Ts", (), {"isoformat": lambda self: "2100-01-01T00:00:00+00:00"}
+                )(),
             },
         )(),
     )
@@ -588,7 +628,14 @@ def test_simulation_diagnostics_api_is_query_backed(monkeypatch):
         lambda contract: type(
             "Diagnostics",
             (),
-            {"to_dict": lambda self: {"packet_count": 10, "byte_count": 100, "schedule_duration_ms": 50, "replay_drift_detected": False}},
+            {
+                "to_dict": lambda self: {
+                    "packet_count": 10,
+                    "byte_count": 100,
+                    "schedule_duration_ms": 50,
+                    "replay_drift_detected": False,
+                }
+            },
         )(),
     )
 
@@ -934,15 +981,24 @@ def test_snapshot_lookup_lineage_and_compare_are_query_backed(tmp_path, monkeypa
 
     snapshot_dir = tmp_path / "snapshots"
     snapshot_dir.mkdir()
-    atomic_write_json(snapshot_dir / "snapshot-1.json", {"timestamp": "1", "services": []})
-    atomic_write_json(snapshot_dir / "snapshot-2.json", {"timestamp": "2", "services": [{"name": "sflowrt"}]})
+    atomic_write_json(
+        snapshot_dir / "snapshot-1.json", {"timestamp": "1", "services": []}
+    )
+    atomic_write_json(
+        snapshot_dir / "snapshot-2.json",
+        {"timestamp": "2", "services": [{"name": "sflowrt"}]},
+    )
     monkeypatch.setattr(snapshots_module, "SNAPSHOT_DIR", snapshot_dir)
     monkeypatch.setattr(engine_module, "QUERY_DIR", tmp_path / "query")
     monkeypatch.setattr(cache_module, "CACHE_DIR", tmp_path / "cache")
 
     lookup = _client().get("/runtime/snapshots/snapshot-1").json()
     lineage = _client().get("/runtime/snapshots/snapshot-2/lineage").json()
-    comparison = _client().get("/runtime/snapshots/compare?left=snapshot-1&right=snapshot-2").json()
+    comparison = (
+        _client()
+        .get("/runtime/snapshots/compare?left=snapshot-1&right=snapshot-2")
+        .json()
+    )
 
     assert lookup["items"][0]["id"] == "snapshot-1"
     assert lineage["items"][0]["source"] == "snapshot-1"
@@ -965,15 +1021,27 @@ def test_graph_edge_traversal_uses_relationship_filters(monkeypatch, tmp_path):
         lambda config: {
             "nodes": [{"id": "query:snapshots", "type": "runtime_query"}],
             "edges": [
-                {"source": "phase:api_query_bind", "target": "query:snapshots", "type": "api_query_surface"},
-                {"source": "query:snapshots", "target": "query:evidence", "type": "query_dependency"},
+                {
+                    "source": "phase:api_query_bind",
+                    "target": "query:snapshots",
+                    "type": "api_query_surface",
+                },
+                {
+                    "source": "query:snapshots",
+                    "target": "query:evidence",
+                    "type": "query_dependency",
+                },
             ],
         },
     )
 
-    payload = _client().get(
-        "/runtime/graph/traverse?source=query:snapshots&relationship=query_dependency"
-    ).json()
+    payload = (
+        _client()
+        .get(
+            "/runtime/graph/traverse?source=query:snapshots&relationship=query_dependency"
+        )
+        .json()
+    )
 
     assert payload["items"][0]["source"] == "query:snapshots"
     assert payload["items"][0]["target"] == "query:evidence"
@@ -991,11 +1059,19 @@ def test_evidence_and_timeline_filters_are_exposed(tmp_path, monkeypatch):
     (evidence_dir / "run-b").mkdir(parents=True)
     atomic_write_json(
         evidence_dir / "run-a" / "evidence.json",
-        {"schema_version": "1.0", "convergence": {"status": "converged"}, "verification": [{"name": "v"}]},
+        {
+            "schema_version": "1.0",
+            "convergence": {"status": "converged"},
+            "verification": [{"name": "v"}],
+        },
     )
     atomic_write_json(
         evidence_dir / "run-b" / "evidence.json",
-        {"schema_version": "1.0", "convergence": {"status": "diverged"}, "verification": []},
+        {
+            "schema_version": "1.0",
+            "convergence": {"status": "diverged"},
+            "verification": [],
+        },
     )
     monkeypatch.setattr(evidence_module, "EVIDENCE_DIR", evidence_dir)
     monkeypatch.setattr(engine_module, "QUERY_DIR", tmp_path / "query")
@@ -1005,7 +1081,12 @@ def test_evidence_and_timeline_filters_are_exposed(tmp_path, monkeypatch):
         timeline_module,
         "load_transition_history",
         lambda: [
-            {"id": "t1", "timestamp": "1", "status": "converged", "kind": "convergence"},
+            {
+                "id": "t1",
+                "timestamp": "1",
+                "status": "converged",
+                "kind": "convergence",
+            },
             {"id": "t2", "timestamp": "2", "status": "drifted", "kind": "drift"},
         ],
     )

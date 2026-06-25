@@ -6,10 +6,15 @@ from nsddos.runtime.producers import default_producer_registry, produce_records
 
 
 def test_producer_determinism() -> None:
-    items = [{"id": "a", "type": "node", "value": 1}, {"id": "b", "type": "node", "value": 2}]
+    items = [
+        {"id": "a", "type": "node", "value": 1},
+        {"id": "b", "type": "node", "value": 2},
+    ]
     first = produce_records("graph", items)
     second = produce_records("graph", items)
-    assert [entity.record.to_dict() for entity in first.entities] == [entity.record.to_dict() for entity in second.entities]
+    assert [entity.record.to_dict() for entity in first.entities] == [
+        entity.record.to_dict() for entity in second.entities
+    ]
 
 
 def test_immutability_guarantee() -> None:

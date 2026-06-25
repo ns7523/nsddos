@@ -7,10 +7,16 @@ from nsddos.runtime.detection.classifier import classify_attack
 from nsddos.runtime.detection.features import extract_feature_vector
 from nsddos.runtime.detection.models import RiskAssessment
 from nsddos.runtime.detection.signatures import match_signatures
-from nsddos.runtime.mitigation.policies import evaluate_policy as evaluate_mitigation_policy
+from nsddos.runtime.mitigation.policies import (
+    evaluate_policy as evaluate_mitigation_policy,
+)
 from nsddos.runtime.policy.rules import baseline_rule
 from nsddos.runtime.streaming.aggregation import aggregate_events
-from nsddos.runtime.streaming.contracts import StreamEvent, StreamWindow, StreamWindowState
+from nsddos.runtime.streaming.contracts import (
+    StreamEvent,
+    StreamWindow,
+    StreamWindowState,
+)
 
 
 def test_build_attack_script_covers_all_live_types():
@@ -120,7 +126,9 @@ def test_streaming_aggregation_detects_slowloris_pattern():
         sequence_number=1,
         freshness_state="valid",
     )
-    window = StreamWindow("w1", event.timestamp.isoformat(), event.timestamp.isoformat(), (event,))
+    window = StreamWindow(
+        "w1", event.timestamp.isoformat(), event.timestamp.isoformat(), (event,)
+    )
     aggregation = aggregate_events(StreamWindowState("sliding", 10, (window,), 1))
     assert aggregation.attack_pattern == "slowloris"
 
@@ -132,6 +140,8 @@ def test_run_live_attack_suite_selects_requested_attacks(monkeypatch, tmp_path: 
         "_run_attack",
         lambda *args, **kwargs: {"attack_type": args[1], "summary": {"subsystems": {}}},
     )
-    report = attack_engine.run_live_attack_suite({}, attack="http_flood", warmup=1, attack_seconds=1, cooldown=1)
+    report = attack_engine.run_live_attack_suite(
+        {}, attack="http_flood", warmup=1, attack_seconds=1, cooldown=1
+    )
     assert [item["attack_type"] for item in report["scenarios"]] == ["http_flood"]
     assert Path(report["report_path"]).exists()

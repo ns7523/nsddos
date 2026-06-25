@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from nsddos.release.contracts import DependencyAuditResult, ReleaseSourceBundle, SecurityAuditResult
+from nsddos.release.contracts import (
+    DependencyAuditResult,
+    ReleaseSourceBundle,
+    SecurityAuditResult,
+)
 
 
 def build_security_audit_result(
@@ -13,9 +17,13 @@ def build_security_audit_result(
     """Build deterministic security audit result."""
     _ = config
     exposed_secret_count = 0
-    insecure_config_count = 0 if sources.runtime_profile in {"linux-native", "docker-linux"} else 1
+    insecure_config_count = (
+        0 if sources.runtime_profile in {"linux-native", "docker-linux"} else 1
+    )
     unsafe_dependency_patterns = dependency_audit.vulnerable_pattern_count
-    weak_deployment_config_count = 0 if sources.deployment_state != "failed_validation" else 1
+    weak_deployment_config_count = (
+        0 if sources.deployment_state != "failed_validation" else 1
+    )
     deductions = (
         exposed_secret_count * 0.15
         + insecure_config_count * 0.10

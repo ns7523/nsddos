@@ -73,7 +73,10 @@ def _validate_baseline_datapath(
     last_result: dict[str, Any] = {}
 
     for attempt in range(2):
-        connectivity = [mininet.probe_connectivity(source, destination) for source, destination in probes]
+        connectivity = [
+            mininet.probe_connectivity(source, destination)
+            for source, destination in probes
+        ]
         forwarding_programmed = ovs.forwarding_programmed(bridge_name)
         protocol_ready = ovs.bridge_has_protocol(bridge_name, expected_protocol)
         flow_stats_accessible = floodlight.flow_stats_accessible()
@@ -81,11 +84,16 @@ def _validate_baseline_datapath(
         if protocol_ready and not forwarding_programmed:
             fallback_applied = ovs.install_normal_flow(bridge_name)
             if fallback_applied:
-                connectivity = [mininet.probe_connectivity(source, destination) for source, destination in probes]
+                connectivity = [
+                    mininet.probe_connectivity(source, destination)
+                    for source, destination in probes
+                ]
                 forwarding_programmed = ovs.forwarding_programmed(bridge_name)
         forwarding_ready = forwarding_programmed or floodlight.forwarding_programmed()
-        baseline_ok = protocol_ready and forwarding_ready and all(
-            probe.get("reachable", False) for probe in connectivity
+        baseline_ok = (
+            protocol_ready
+            and forwarding_ready
+            and all(probe.get("reachable", False) for probe in connectivity)
         )
         last_result = {
             "attempt": attempt + 1,
@@ -119,7 +127,9 @@ def start_lab_runtime(config: dict[str, Any]) -> Any:
     )
     sflow = SFlowProvider(api_url=resolve_sflowrt_api_url(config))
     ovs = OVSProvider(
-        collector_target=config.get("lab", {}).get("ovs_sflow_target", "127.0.0.1:6343"),
+        collector_target=config.get("lab", {}).get(
+            "ovs_sflow_target", "127.0.0.1:6343"
+        ),
         agent_interface=config.get("lab", {}).get("ovs_agent_interface", "lo"),
         sampling=config.get("lab", {}).get("ovs_sampling", 10),
         polling=config.get("lab", {}).get("ovs_polling", 20),
@@ -136,7 +146,9 @@ def start_lab_runtime(config: dict[str, Any]) -> Any:
     floodlight.start()
     sflow.start()
 
-    emit_runtime_event("provider.floodlight", "started", "Starting Floodlight container.")
+    emit_runtime_event(
+        "provider.floodlight", "started", "Starting Floodlight container."
+    )
     manager.start_services(["floodlight"])
     floodlight_ready = wait_for_http(
         "floodlight",
@@ -144,19 +156,33 @@ def start_lab_runtime(config: dict[str, Any]) -> Any:
         timeout=60,
     )
     if not floodlight_ready.ok:
-        emit_runtime_event("lab.start", "failed", "Floodlight readiness failed.", {"detail": floodlight_ready.detail})
+        emit_runtime_event(
+            "lab.start",
+            "failed",
+            "Floodlight readiness failed.",
+            {"detail": floodlight_ready.detail},
+        )
         raise RuntimeError(floodlight_ready.detail)
 
-    emit_runtime_event("provider.labhost", "started", "Starting Mininet/OVS helper container.")
+    emit_runtime_event(
+        "provider.labhost", "started", "Starting Mininet/OVS helper container."
+    )
     manager.start_services(["labhost"])
 
     ovs.start()
     emit_runtime_event("provider.ovs", "validated", "OVS base readiness validated.")
-    emit_runtime_event("provider.sflowrt", "started", "Starting sFlow-RT and detector containers.")
+    emit_runtime_event(
+        "provider.sflowrt", "started", "Starting sFlow-RT and detector containers."
+    )
     manager.start_services(["sflowrt", "detector"])
     sflow_ready = wait_for_http("sflowrt", resolve_sflowrt_api_url(config), timeout=60)
     if not sflow_ready.ok:
-        emit_runtime_event("lab.start", "failed", "sFlow-RT readiness failed.", {"detail": sflow_ready.detail})
+        emit_runtime_event(
+            "lab.start",
+            "failed",
+            "sFlow-RT readiness failed.",
+            {"detail": sflow_ready.detail},
+        )
         raise RuntimeError(sflow_ready.detail)
 
     detector_ready = wait_for_http(
@@ -165,7 +191,12 @@ def start_lab_runtime(config: dict[str, Any]) -> Any:
         timeout=30,
     )
     if not detector_ready.ok:
-        emit_runtime_event("lab.start", "failed", "Detector readiness failed.", {"detail": detector_ready.detail})
+        emit_runtime_event(
+            "lab.start",
+            "failed",
+            "Detector readiness failed.",
+            {"detail": detector_ready.detail},
+        )
         raise RuntimeError(detector_ready.detail)
 
     if config.get("simulation", {}).get("enabled", True):
@@ -179,7 +210,12 @@ def start_lab_runtime(config: dict[str, Any]) -> Any:
         timeout=60,
     )
     if not topology_ready.ok:
-        emit_runtime_event("lab.start", "failed", "OVS bridge readiness failed.", {"detail": topology_ready.detail})
+        emit_runtime_event(
+            "lab.start",
+            "failed",
+            "OVS bridge readiness failed.",
+            {"detail": topology_ready.detail},
+        )
         raise RuntimeError(topology_ready.detail)
 
     controller_ready = wait_for_check(
@@ -189,24 +225,45 @@ def start_lab_runtime(config: dict[str, Any]) -> Any:
         timeout=60,
     )
     if not controller_ready.ok:
-        emit_runtime_event("lab.start", "failed", "Controller connectivity failed.", {"detail": controller_ready.detail})
+        emit_runtime_event(
+            "lab.start",
+            "failed",
+            "Controller connectivity failed.",
+            {"detail": controller_ready.detail},
+        )
         raise RuntimeError(controller_ready.detail)
 
-    datapath_ready = _validate_baseline_datapath(config, mininet, ovs, floodlight, bridge_name)
+    datapath_ready = _validate_baseline_datapath(
+        config, mininet, ovs, floodlight, bridge_name
+    )
     if not datapath_ready.get("baseline_ok"):
-        emit_runtime_event("lab.start", "failed", "Baseline datapath validation failed.", datapath_ready)
+        emit_runtime_event(
+            "lab.start",
+            "failed",
+            "Baseline datapath validation failed.",
+            datapath_ready,
+        )
         raise RuntimeError(
             "baseline datapath validation failed: "
             f"protocol_ready={datapath_ready.get('protocol_ready')} "
             f"flow_stats_accessible={datapath_ready.get('flow_stats_accessible')} "
             f"forwarding_programmed={datapath_ready.get('forwarding_programmed')}"
         )
-    emit_runtime_event("provider.datapath", "validated", "Baseline datapath validated.", datapath_ready)
+    emit_runtime_event(
+        "provider.datapath", "validated", "Baseline datapath validated.", datapath_ready
+    )
 
     if not ovs.attach_sflow(bridge_name):
-        emit_runtime_event("lab.start", "failed", "sFlow attachment failed.", {"bridge": bridge_name})
+        emit_runtime_event(
+            "lab.start", "failed", "sFlow attachment failed.", {"bridge": bridge_name}
+        )
         raise RuntimeError(f"sFlow attachment failed for bridge {bridge_name}")
-    emit_runtime_event("provider.ovs", "configured", "sFlow attached to OVS bridge.", {"bridge": bridge_name})
+    emit_runtime_event(
+        "provider.ovs",
+        "configured",
+        "sFlow attached to OVS bridge.",
+        {"bridge": bridge_name},
+    )
 
     telemetry_ready = wait_for_check(
         "sflow_topology",
@@ -215,7 +272,12 @@ def start_lab_runtime(config: dict[str, Any]) -> Any:
         timeout=30,
     )
     if not telemetry_ready.ok:
-        emit_runtime_event("lab.start", "failed", "Telemetry validation failed.", {"detail": telemetry_ready.detail})
+        emit_runtime_event(
+            "lab.start",
+            "failed",
+            "Telemetry validation failed.",
+            {"detail": telemetry_ready.detail},
+        )
         raise RuntimeError(telemetry_ready.detail)
 
     telemetry = build_telemetry_state(config)
@@ -230,7 +292,9 @@ def start_lab_runtime(config: dict[str, Any]) -> Any:
     topology = correlate_topology(config)
     reconciliation = reconcile_runtime(config)
     provider_status = collect_provider_status(config)
-    confidence = runtime_confidence_summary(topology, flows, freshness, execute_runtime_verification(config), reconciliation)
+    confidence = runtime_confidence_summary(
+        topology, flows, freshness, execute_runtime_verification(config), reconciliation
+    )
     state = load_runtime_state()
     state.provider_status = provider_status
     state.ovs_state = provider_status["ovs"]
@@ -246,10 +310,14 @@ def start_lab_runtime(config: dict[str, Any]) -> Any:
     state.reconciliation_state = reconciliation.to_dict()
     state.confidence_summary = confidence
     state.topology_metadata = provider_status["mininet"].get("metadata", {})
-    state.controller_connected = bool(provider_status["floodlight"].get("controller_port_open"))
+    state.controller_connected = bool(
+        provider_status["floodlight"].get("controller_port_open")
+    )
     state.last_error = None
     write_runtime_state(state)
-    emit_runtime_event("lab.start", "completed", "Lab runtime started.", {"bridge": bridge_name})
+    emit_runtime_event(
+        "lab.start", "completed", "Lab runtime started.", {"bridge": bridge_name}
+    )
     return state
 
 

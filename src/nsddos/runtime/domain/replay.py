@@ -33,7 +33,13 @@ def reconstruct_replay(events: list[dict]) -> RuntimeReplayCollection:
             status=str(item.get("status", "")),
             message=str(item.get("message", "")),
         )
-        for item in sorted(events, key=lambda row: (str(row.get("timestamp", "")), str(row.get("event_type", ""))))
+        for item in sorted(
+            events,
+            key=lambda row: (
+                str(row.get("timestamp", "")),
+                str(row.get("event_type", "")),
+            ),
+        )
     )
     record_timing("domain.replay.reconstruct", (monotonic() - start) * 1000)
     return RuntimeReplayCollection(events=typed)

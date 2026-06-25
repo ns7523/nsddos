@@ -39,17 +39,40 @@ class RuntimeServiceManager:
         if state.state == "running":
             return state
         lock = acquire_lock(owner, self.lock_token)
-        session = create_session(owner=owner, metadata={"subscriptions": [item.to_dict() for item in default_subscriptions()]})
-        mark_started(state, owner=owner, session_id=session.session_id, lock_owner=lock.owner)
-        sync = synchronize_service(load_runtime_state().to_dict(), {"subscriptions": [item.to_dict() for item in default_subscriptions()]})
+        session = create_session(
+            owner=owner,
+            metadata={
+                "subscriptions": [item.to_dict() for item in default_subscriptions()]
+            },
+        )
+        mark_started(
+            state, owner=owner, session_id=session.session_id, lock_owner=lock.owner
+        )
+        sync = synchronize_service(
+            load_runtime_state().to_dict(),
+            {"subscriptions": [item.to_dict() for item in default_subscriptions()]},
+        )
         state.synchronization = sync
-        state.streaming = {"latest_sequence": 0, "subscriptions": [item.to_dict() for item in default_subscriptions()]}
+        state.streaming = {
+            "latest_sequence": 0,
+            "subscriptions": [item.to_dict() for item in default_subscriptions()],
+        }
         state.performance["service_startup_ms"] = (monotonic() - start) * 1000
         save_service_state(state)
-        event = self.stream.emit("service.lifecycle", "started", "runtime service started", session_id=session.session_id)
+        event = self.stream.emit(
+            "service.lifecycle",
+            "started",
+            "runtime service started",
+            session_id=session.session_id,
+        )
         state.streaming["latest_sequence"] = event.sequence
         save_service_state(state)
-        emit_heartbeat(state, synchronization_state=sync["state"], replay_state="fresh", detail="service-start")
+        emit_heartbeat(
+            state,
+            synchronization_state=sync["state"],
+            replay_state="fresh",
+            detail="service-start",
+        )
         record_timing("service.start", (monotonic() - start) * 1000)
         return state
 
@@ -58,12 +81,22 @@ class RuntimeServiceManager:
         state = load_service_state()
         if state.active_session_id:
             stop_session(state.active_session_id, state="stopped")
-        self.stream.emit("service.lifecycle", "stopped", "runtime service stopped", session_id=state.active_session_id)
+        self.stream.emit(
+            "service.lifecycle",
+            "stopped",
+            "runtime service stopped",
+            session_id=state.active_session_id,
+        )
         release_lock(state.owner, self.lock_token)
         mark_stopped(state)
         state.performance["service_stop_ms"] = (monotonic() - start) * 1000
         save_service_state(state)
-        emit_heartbeat(state, synchronization_state="stopped", replay_state="stopped", detail="service-stop")
+        emit_heartbeat(
+            state,
+            synchronization_state="stopped",
+            replay_state="stopped",
+            detail="service-stop",
+        )
         return state
 
     def status(self) -> dict:
@@ -82,12 +115,25 @@ class RuntimeServiceManager:
     def synchronize(self) -> dict:
         start = monotonic()
         state = load_service_state()
-        sync = synchronize_service(load_runtime_state().to_dict(), {"service_state": state.to_dict()})
+        sync = synchronize_service(
+            load_runtime_state().to_dict(), {"service_state": state.to_dict()}
+        )
         state.synchronization = sync
         state.performance["service_sync_ms"] = (monotonic() - start) * 1000
         save_service_state(state)
-        self.stream.emit("service.sync", "synchronized", "service state synchronized", session_id=state.active_session_id, details=sync)
-        emit_heartbeat(state, synchronization_state=sync["state"], replay_state="fresh", detail="service-sync")
+        self.stream.emit(
+            "service.sync",
+            "synchronized",
+            "service state synchronized",
+            session_id=state.active_session_id,
+            details=sync,
+        )
+        emit_heartbeat(
+            state,
+            synchronization_state=sync["state"],
+            replay_state="fresh",
+            detail="service-sync",
+        )
         return sync
 
     def sessions(self) -> list[dict]:
@@ -103,7 +149,11 @@ class RuntimeServiceManager:
         state = load_service_state()
         session_query = execute_query(
             self.config,
-            RuntimeQuery(name="verification", scope="verification", pagination=RuntimeQueryPagination(limit=10)),
+            RuntimeQuery(
+                name="verification",
+                scope="verification",
+                pagination=RuntimeQueryPagination(limit=10),
+            ),
         )
         return {
             "service": state.to_dict(),
@@ -124,5 +174,11 @@ class RuntimeServiceManager:
         state = load_service_state()
         mark_degraded(state, reason)
         save_service_state(state)
-        self.stream.emit("service.degraded", "degraded", "service degraded", session_id=state.active_session_id, details={"reason": reason})
+        self.stream.emit(
+            "service.degraded",
+            "degraded",
+            "service degraded",
+            session_id=state.active_session_id,
+            details={"reason": reason},
+        )
         return state

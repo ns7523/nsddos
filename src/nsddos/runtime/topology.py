@@ -25,15 +25,35 @@ def correlate_topology(config: dict[str, Any]) -> TopologyCorrelation:
     identity = build_identity_map(config)
     interfaces = correlate_interfaces(config)
 
-    controller_switches = [item.controller_dpid or "" for item in identity.switches if item.controller_dpid]
-    ovs_bridges = [item.ovs_bridge or "" for item in identity.switches if item.ovs_bridge]
-    sflow_interfaces = [item.sflow_name or "" for item in interfaces.interfaces if item.sflow_name]
-    ovs_interfaces = [item.ovs_name or "" for item in interfaces.interfaces if item.ovs_name]
+    controller_switches = [
+        item.controller_dpid or "" for item in identity.switches if item.controller_dpid
+    ]
+    ovs_bridges = [
+        item.ovs_bridge or "" for item in identity.switches if item.ovs_bridge
+    ]
+    sflow_interfaces = [
+        item.sflow_name or "" for item in interfaces.interfaces if item.sflow_name
+    ]
+    ovs_interfaces = [
+        item.ovs_name or "" for item in interfaces.interfaces if item.ovs_name
+    ]
     normalized_switches = [item.canonical_id for item in identity.switches]
 
-    missing_in_controller = [item.mininet_name for item in identity.switches if item.mininet_name and not item.controller_dpid]
-    missing_in_ovs = [item.mininet_name for item in identity.switches if item.mininet_name and not item.ovs_bridge]
-    missing_in_sflow = [item.ovs_name for item in interfaces.interfaces if item.ovs_name and not item.visible_in_sflow]
+    missing_in_controller = [
+        item.mininet_name
+        for item in identity.switches
+        if item.mininet_name and not item.controller_dpid
+    ]
+    missing_in_ovs = [
+        item.mininet_name
+        for item in identity.switches
+        if item.mininet_name and not item.ovs_bridge
+    ]
+    missing_in_sflow = [
+        item.ovs_name
+        for item in interfaces.interfaces
+        if item.ovs_name and not item.visible_in_sflow
+    ]
     provider_agreement = []
     if missing_in_controller:
         provider_agreement.append("controller_missing_switches")

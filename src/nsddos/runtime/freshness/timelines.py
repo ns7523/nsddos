@@ -13,5 +13,7 @@ def normalize_time(value: str | None) -> str:
     return value or now_utc_iso()
 
 
-def lineage(created_at: str, observed_at: str, synchronized_at: str) -> tuple[str, str, str]:
+def lineage(
+    created_at: str, observed_at: str, synchronized_at: str
+) -> tuple[str, str, str]:
     return (created_at, observed_at, synchronized_at)

@@ -23,6 +23,10 @@ def health(config: dict[str, Any] = Depends(get_config)) -> ApiHealthResponse:
         checks=dict(item.get("checks", {})),
         evidence=[
             *result.evidence,
-            ApiEvidenceRef(kind="health", reference="runtime-health", detail="query-backed health checks"),
+            ApiEvidenceRef(
+                kind="health",
+                reference="runtime-health",
+                detail="query-backed health checks",
+            ),
         ],
     )

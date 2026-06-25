@@ -28,17 +28,37 @@ def test_telemetry_freshness_sets_timestamp_when_flows_exist(monkeypatch):
 
 
 def test_disabled_optional_validators_are_pass():
-    context = {"config": {"runtime": {"live": {"enabled": False}, "simulation": {"source_enabled": False}, "streaming": {"enabled": False}}}}
-    assert [item.status for item in validate_live_provider_contracts(context)] == ["pass", "pass"]
-    assert [item.status for item in validate_simulation_contracts(context)] == ["pass", "pass"]
-    assert [item.status for item in validate_streaming_contracts(context)] == ["pass", "pass"]
+    context = {
+        "config": {
+            "runtime": {
+                "live": {"enabled": False},
+                "simulation": {"source_enabled": False},
+                "streaming": {"enabled": False},
+            }
+        }
+    }
+    assert [item.status for item in validate_live_provider_contracts(context)] == [
+        "pass",
+        "pass",
+    ]
+    assert [item.status for item in validate_simulation_contracts(context)] == [
+        "pass",
+        "pass",
+    ]
+    assert [item.status for item in validate_streaming_contracts(context)] == [
+        "pass",
+        "pass",
+    ]
 
 
 def test_secret_contract_requires_real_environment_secrets(monkeypatch, tmp_path):
     from nsddos.deployment import secrets as secrets_module
 
     example = tmp_path / ".env.example"
-    example.write_text("NSDDOS_API_TOKEN=local-dev-token\nNSDDOS_SECRET_KEY=local-dev-secret-key\n", encoding="utf-8")
+    example.write_text(
+        "NSDDOS_API_TOKEN=local-dev-token\nNSDDOS_SECRET_KEY=local-dev-secret-key\n",
+        encoding="utf-8",
+    )
     monkeypatch.delenv("NSDDOS_API_TOKEN", raising=False)
     monkeypatch.delenv("NSDDOS_SECRET_KEY", raising=False)
     contract = secrets_module.build_secret_contract()
@@ -53,7 +73,7 @@ def test_dependency_audit_accepts_bounded_ranges(tmp_path):
         "\n".join(
             [
                 "[project]",
-                'dependencies = [',
+                "dependencies = [",
                 '  "fastapi>=0.115,<1.0",',
                 '  "uvicorn>=0.30,<1.0",',
                 "]",
@@ -110,7 +130,9 @@ def test_release_candidate_local_healthy_mode_is_release_ready(monkeypatch, tmp_
         "detect_runtime_profile",
         lambda: {"name": "docker-linux"},
     )
-    evaluation = packaging_module.generate_release_candidate({"release": {"version": "1.0.0-rc1"}})
+    evaluation = packaging_module.generate_release_candidate(
+        {"release": {"version": "1.0.0-rc1"}}
+    )
     assert evaluation.release_state == "release_ready"
 
 
@@ -123,11 +145,25 @@ def test_distributed_local_node_stays_healthy_on_warning_history(monkeypatch, tm
         json.dumps({"run_id": "warning", "severity": "warning", "results": []}),
         encoding="utf-8",
     )
-    monkeypatch.setattr(discovery_module, "latest_deployment_payload", lambda: {"container_contracts": [{"name": "detector"}]})
-    monkeypatch.setattr(discovery_module, "socket", type("SocketStub", (), {"gethostname": staticmethod(lambda: "localhost")}))
-    monkeypatch.setattr(discovery_module, "replay_verification_runs", lambda limit=1: {"runs": [{"severity": "warning"}]})
+    monkeypatch.setattr(
+        discovery_module,
+        "latest_deployment_payload",
+        lambda: {"container_contracts": [{"name": "detector"}]},
+    )
+    monkeypatch.setattr(
+        discovery_module,
+        "socket",
+        type("SocketStub", (), {"gethostname": staticmethod(lambda: "localhost")}),
+    )
+    monkeypatch.setattr(
+        discovery_module,
+        "replay_verification_runs",
+        lambda limit=1: {"runs": [{"severity": "warning"}]},
+    )
 
-    nodes = discovery_module.discover_candidate_nodes({"distributed": {"local_node_id": "local-node"}})
+    nodes = discovery_module.discover_candidate_nodes(
+        {"distributed": {"local_node_id": "local-node"}}
+    )
 
     assert len(nodes) == 1
     assert nodes[0]["state"] == "healthy"

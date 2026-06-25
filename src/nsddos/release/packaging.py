@@ -15,7 +15,11 @@ from nsddos.release.artifacts import artifacts_payload, build_artifacts
 from nsddos.release.benchmark import build_benchmark_result
 from nsddos.release.chaos import build_chaos_result
 from nsddos.release.compliance import build_compliance_result
-from nsddos.release.contracts import PackageMetadata, ReleaseCandidateEvaluation, ReleaseSourceBundle
+from nsddos.release.contracts import (
+    PackageMetadata,
+    ReleaseCandidateEvaluation,
+    ReleaseSourceBundle,
+)
 from nsddos.release.dependencies import audit_dependencies
 from nsddos.release.diagnostics import build_release_diagnostics
 from nsddos.release.fault_injection import build_fault_injection_result
@@ -40,9 +44,15 @@ def _load_sources(project_root: Path = PROJECT_ROOT) -> ReleaseSourceBundle:
     dashboard = latest_dashboard_evaluation()
     verification_runs = replay_verification_runs(limit=1).get("runs", [])
     latest_run = verification_runs[-1] if verification_runs else {}
-    verification_results = tuple(item for item in latest_run.get("results", []) if isinstance(item, dict))
+    verification_results = tuple(
+        item for item in latest_run.get("results", []) if isinstance(item, dict)
+    )
     profile = detect_runtime_profile()
-    profile_name = profile.get("name", "unknown") if isinstance(profile, dict) else getattr(profile, "name", "unknown")
+    profile_name = (
+        profile.get("name", "unknown")
+        if isinstance(profile, dict)
+        else getattr(profile, "name", "unknown")
+    )
     pyproject_path = project_root / "pyproject.toml"
     dependency_lines: list[str] = []
     optional_lines: list[str] = []
@@ -87,13 +97,30 @@ def _load_sources(project_root: Path = PROJECT_ROOT) -> ReleaseSourceBundle:
         policy_events=int(dashboard.get("policy_events", 0)),
         mitigation_events=int(dashboard.get("mitigation_events", 0)),
         deployment_state=str(deployment.get("deployment_state", "degraded_dry_run")),
-        service_health=str(deployment.get("service_health", deployment.get("health", {}).get("service_health", "degraded"))),
-        rollback_available=bool(deployment.get("rollback_available", deployment.get("rollback_state", {}).get("rollback_available", False))),
-        missing_secret_count=int(
-            deployment.get("diagnostics", {}).get("missing_secret_count", len(deployment.get("secret_contract", {}).get("missing_keys", [])))
+        service_health=str(
+            deployment.get(
+                "service_health",
+                deployment.get("health", {}).get("service_health", "degraded"),
+            )
         ),
-        warning_count=sum(1 for item in verification_results if item.get("status") == "warn"),
-        failure_count=sum(1 for item in verification_results if item.get("status") == "fail"),
+        rollback_available=bool(
+            deployment.get(
+                "rollback_available",
+                deployment.get("rollback_state", {}).get("rollback_available", False),
+            )
+        ),
+        missing_secret_count=int(
+            deployment.get("diagnostics", {}).get(
+                "missing_secret_count",
+                len(deployment.get("secret_contract", {}).get("missing_keys", [])),
+            )
+        ),
+        warning_count=sum(
+            1 for item in verification_results if item.get("status") == "warn"
+        ),
+        failure_count=sum(
+            1 for item in verification_results if item.get("status") == "fail"
+        ),
         runtime_profile=str(profile_name),
         provider_burst_supported=bool(dashboard),
         package_dependencies=tuple(dependency_lines),
@@ -103,11 +130,15 @@ def _load_sources(project_root: Path = PROJECT_ROOT) -> ReleaseSourceBundle:
 
 
 def _release_id(release_version: str, environment: str, timestamp: datetime) -> str:
-    digest = hashlib.sha256(f"{release_version}:{environment}:{timestamp.isoformat()}".encode("utf-8")).hexdigest()[:16]
+    digest = hashlib.sha256(
+        f"{release_version}:{environment}:{timestamp.isoformat()}".encode("utf-8")
+    ).hexdigest()[:16]
     return f"release:{digest}"
 
 
-def _package_metadata(release_id: str, config: dict, sources: ReleaseSourceBundle) -> PackageMetadata:
+def _package_metadata(
+    release_id: str, config: dict, sources: ReleaseSourceBundle
+) -> PackageMetadata:
     release_version = str(config.get("release", {}).get("version", "1.0.0-rc1"))
     prefix = str(config.get("release", {}).get("artifact_prefix", "nsddos-release"))
     bundle_name = f"{prefix}-{release_version}"
@@ -155,17 +186,45 @@ def _persist(evaluation: ReleaseCandidateEvaluation) -> None:
     payload = evaluation.to_dict()
     stamp = evaluation.timestamp.strftime("%Y%m%dT%H%M%S%fZ")
     with locked_persistence_scope(RELEASE_DIR) as lock_scope:
-        atomic_write_json(RELEASE_DIR / f"release-{stamp}.json", payload, lock_scope=lock_scope)
+        atomic_write_json(
+            RELEASE_DIR / f"release-{stamp}.json", payload, lock_scope=lock_scope
+        )
         atomic_write_json(RELEASE_DIR / "latest.json", payload, lock_scope=lock_scope)
-        atomic_write_json(RELEASE_DIR / "benchmark.json", evaluation.benchmark.to_dict(), lock_scope=lock_scope)
-        atomic_write_json(RELEASE_DIR / "artifacts.json", artifacts_payload(evaluation), lock_scope=lock_scope)
-        atomic_write_json(RELEASE_DIR / "package.json", evaluation.package_metadata.to_dict(), lock_scope=lock_scope)
-        atomic_write_json(RELEASE_DIR / "release_notes.json", evaluation.release_notes.to_dict(), lock_scope=lock_scope)
-        atomic_write_json(RELEASE_DIR / "diagnostics.json", evaluation.diagnostics.to_dict(), lock_scope=lock_scope)
-        atomic_write_json(RELEASE_DIR / "security_audit.json", evaluation.security_audit.to_dict(), lock_scope=lock_scope)
+        atomic_write_json(
+            RELEASE_DIR / "benchmark.json",
+            evaluation.benchmark.to_dict(),
+            lock_scope=lock_scope,
+        )
+        atomic_write_json(
+            RELEASE_DIR / "artifacts.json",
+            artifacts_payload(evaluation),
+            lock_scope=lock_scope,
+        )
+        atomic_write_json(
+            RELEASE_DIR / "package.json",
+            evaluation.package_metadata.to_dict(),
+            lock_scope=lock_scope,
+        )
+        atomic_write_json(
+            RELEASE_DIR / "release_notes.json",
+            evaluation.release_notes.to_dict(),
+            lock_scope=lock_scope,
+        )
+        atomic_write_json(
+            RELEASE_DIR / "diagnostics.json",
+            evaluation.diagnostics.to_dict(),
+            lock_scope=lock_scope,
+        )
+        atomic_write_json(
+            RELEASE_DIR / "security_audit.json",
+            evaluation.security_audit.to_dict(),
+            lock_scope=lock_scope,
+        )
 
 
-def generate_release_candidate(config: dict, environment: str = "prod") -> ReleaseCandidateEvaluation:
+def generate_release_candidate(
+    config: dict, environment: str = "prod"
+) -> ReleaseCandidateEvaluation:
     """Generate deterministic release candidate evaluation."""
     started = perf_counter()
     timestamp = datetime.now(timezone.utc)
@@ -270,20 +329,28 @@ def generate_release_candidate(config: dict, environment: str = "prod") -> Relea
 
 def release_benchmark(config: dict, environment: str = "prod") -> dict:
     """Return latest benchmark payload."""
-    return generate_release_candidate(config, environment=environment).benchmark.to_dict()
+    return generate_release_candidate(
+        config, environment=environment
+    ).benchmark.to_dict()
 
 
 def release_security_audit(config: dict, environment: str = "prod") -> dict:
     """Return latest security-audit payload."""
-    return generate_release_candidate(config, environment=environment).security_audit.to_dict()
+    return generate_release_candidate(
+        config, environment=environment
+    ).security_audit.to_dict()
 
 
 def release_diagnostics(config: dict, environment: str = "prod") -> dict:
     """Return latest release diagnostics payload."""
-    return generate_release_candidate(config, environment=environment).diagnostics.to_dict()
+    return generate_release_candidate(
+        config, environment=environment
+    ).diagnostics.to_dict()
 
 
-def latest_or_generate_release_candidate(config: dict, environment: str = "prod") -> dict:
+def latest_or_generate_release_candidate(
+    config: dict, environment: str = "prod"
+) -> dict:
     """Return latest release payload or generate one."""
     latest = latest_release_candidate()
     if latest and latest.get("environment") == environment:

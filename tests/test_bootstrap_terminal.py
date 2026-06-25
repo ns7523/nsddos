@@ -18,7 +18,9 @@ def test_detect_environment_reports_typed_snapshot(monkeypatch) -> None:
     """Environment detection should return typed fields."""
 
     monkeypatch.setattr("nsddos.bootstrap.environment.platform.system", lambda: "Linux")
-    monkeypatch.setattr("nsddos.bootstrap.environment.platform.python_version", lambda: "3.11.9")
+    monkeypatch.setattr(
+        "nsddos.bootstrap.environment.platform.python_version", lambda: "3.11.9"
+    )
     monkeypatch.setattr(
         "nsddos.bootstrap.environment.shutil.which",
         lambda name: f"/usr/bin/{name}" if name in {"docker", "git"} else None,
@@ -46,8 +48,12 @@ def test_detect_environment_reports_typed_snapshot(monkeypatch) -> None:
 def test_detect_environment_distinguishes_missing_docker(monkeypatch) -> None:
     """Docker install and daemon state should be separate."""
 
-    monkeypatch.setattr("nsddos.bootstrap.environment.platform.system", lambda: "Darwin")
-    monkeypatch.setattr("nsddos.bootstrap.environment.platform.python_version", lambda: "3.12.0")
+    monkeypatch.setattr(
+        "nsddos.bootstrap.environment.platform.system", lambda: "Darwin"
+    )
+    monkeypatch.setattr(
+        "nsddos.bootstrap.environment.platform.python_version", lambda: "3.12.0"
+    )
     monkeypatch.setattr(
         "nsddos.bootstrap.environment.shutil.which",
         lambda name: "/usr/bin/git" if name == "git" else None,

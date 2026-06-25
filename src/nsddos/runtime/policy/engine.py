@@ -13,11 +13,21 @@ from nsddos.runtime.detection.models import DetectionEvaluation
 from nsddos.runtime.domain.identifiers import deterministic_id
 from nsddos.runtime.ml import evaluate_ml_detection
 from nsddos.runtime.ml.models import MLDetectionEvaluation
-from nsddos.runtime.persistence import atomic_write_json, locked_persistence_scope, read_json_checked
+from nsddos.runtime.persistence import (
+    atomic_write_json,
+    locked_persistence_scope,
+    read_json_checked,
+)
 from nsddos.runtime.policy.adaptive import adaptive_action
 from nsddos.runtime.policy.conditions import evaluate_conditions
 from nsddos.runtime.policy.conflicts import resolve_conflicts
-from nsddos.runtime.policy.contracts_models import PolicyEvaluation, PolicyHistoryEntry, PolicyLearningState, PolicyRollbackState, PolicyThresholdState
+from nsddos.runtime.policy.contracts_models import (
+    PolicyEvaluation,
+    PolicyHistoryEntry,
+    PolicyLearningState,
+    PolicyRollbackState,
+    PolicyThresholdState,
+)
 from nsddos.runtime.policy.diagnostics import build_policy_diagnostics
 from nsddos.runtime.policy.evaluation import build_policy_evaluation
 from nsddos.runtime.policy.history import load_history, save_history
@@ -26,7 +36,11 @@ from nsddos.runtime.policy.priorities import priority_for_action
 from nsddos.runtime.policy.rollback import save_rollback_state
 from nsddos.runtime.policy.rules import baseline_rule
 from nsddos.runtime.policy.thresholds import calculate_thresholds
-from nsddos.runtime.policy.validation import validate_policy_evaluation, validate_policy_history, validate_policy_rollback
+from nsddos.runtime.policy.validation import (
+    validate_policy_evaluation,
+    validate_policy_history,
+    validate_policy_rollback,
+)
 
 POLICY_DIR = RUNTIME_DIR / "policy"
 
@@ -37,14 +51,20 @@ def _derive_source_ip(telemetry: dict[str, Any]) -> str:
     for flow in flows:
         if not isinstance(flow, dict):
             continue
-        source = str(flow.get("source_ip") or flow.get("source") or flow.get("src_ip") or "")
+        source = str(
+            flow.get("source_ip") or flow.get("source") or flow.get("src_ip") or ""
+        )
         if not source:
             continue
         try:
             ipaddress.ip_address(source)
         except ValueError:
             continue
-        score = float(flow.get("packets", 0.0)) + float(flow.get("bytes", 0.0)) / 1000.0 + float(flow.get("connections", 0.0))
+        score = (
+            float(flow.get("packets", 0.0))
+            + float(flow.get("bytes", 0.0)) / 1000.0
+            + float(flow.get("connections", 0.0))
+        )
         scored[source] = scored.get(source, 0.0) + score
     if not scored:
         return ""
@@ -68,7 +88,9 @@ def _persist_evaluation(evaluation: PolicyEvaluation, *, lock_scope=None) -> Non
     POLICY_DIR.mkdir(parents=True, exist_ok=True)
     payload = evaluation.to_dict()
     stamp = evaluation.timestamp.strftime("%Y%m%dT%H%M%S%fZ")
-    atomic_write_json(POLICY_DIR / f"policy-{stamp}.json", payload, lock_scope=lock_scope)
+    atomic_write_json(
+        POLICY_DIR / f"policy-{stamp}.json", payload, lock_scope=lock_scope
+    )
     atomic_write_json(POLICY_DIR / "latest.json", payload, lock_scope=lock_scope)
 
 
@@ -87,9 +109,20 @@ def evaluate_dynamic_policy(
     reference_at: str | None = None,
 ) -> PolicyEvaluation:
     start = monotonic()
-    detection_evaluation = detection or evaluate_detection(config, telemetry=telemetry, reference_at=reference_at)
-    ml_evaluation = ml or evaluate_ml_detection(config, detection=detection_evaluation, telemetry=telemetry, reference_at=reference_at)
-    payload = telemetry or {"flows": [], "freshness_state": {"stale": False}, "replay_mode": False}
+    detection_evaluation = detection or evaluate_detection(
+        config, telemetry=telemetry, reference_at=reference_at
+    )
+    ml_evaluation = ml or evaluate_ml_detection(
+        config,
+        detection=detection_evaluation,
+        telemetry=telemetry,
+        reference_at=reference_at,
+    )
+    payload = telemetry or {
+        "flows": [],
+        "freshness_state": {"stale": False},
+        "replay_mode": False,
+    }
     source_ip = _derive_source_ip(payload)
     source_subnet = _derive_subnet(source_ip)
     with locked_persistence_scope(POLICY_DIR) as policy_lock:
@@ -143,10 +176,16 @@ def evaluate_dynamic_policy(
             for item in (
                 rule.recommended_action,
                 adaptive_recommendation,
-                "alert_only"
-                if ml_evaluation.false_positive_score >= config.get("runtime", {}).get("ml", {}).get("false_positive_threshold", 0.20)
-                and ml_evaluation.inference.classification_state in {"benign", "suspicious"}
-                else "",
+                (
+                    "alert_only"
+                    if ml_evaluation.false_positive_score
+                    >= config.get("runtime", {})
+                    .get("ml", {})
+                    .get("false_positive_threshold", 0.20)
+                    and ml_evaluation.inference.classification_state
+                    in {"benign", "suspicious"}
+                    else ""
+                ),
                 "alert_only" if freshness_degraded or replay_mode else "",
             )
             if item
@@ -163,7 +202,11 @@ def evaluate_dynamic_policy(
             decision_latency_ms=(monotonic() - start) * 1000,
             conflict_count=max(0, len(conflict_resolution.candidates) - 1),
         )
-        timestamp = datetime.fromisoformat((reference_at or detection_evaluation.telemetry_timestamp).replace("Z", "+00:00"))
+        timestamp = datetime.fromisoformat(
+            (reference_at or detection_evaluation.telemetry_timestamp).replace(
+                "Z", "+00:00"
+            )
+        )
         evaluation = build_policy_evaluation(
             attack_type=detection_evaluation.attack_type,
             source_ip=source_ip,
@@ -198,7 +241,10 @@ def evaluate_dynamic_policy(
         next_learning = PolicyLearningState(
             attack_signature_counts={
                 **learning_state.attack_signature_counts,
-                evaluation.attack_type: learning_state.attack_signature_counts.get(evaluation.attack_type, 0) + 1,
+                evaluation.attack_type: learning_state.attack_signature_counts.get(
+                    evaluation.attack_type, 0
+                )
+                + 1,
             },
             source_ip_counts={
                 **learning_state.source_ip_counts,
@@ -210,7 +256,9 @@ def evaluate_dynamic_policy(
             },
             mitigation_success_rate={
                 **learning_state.mitigation_success_rate,
-                evaluation.attack_type: learning_state.mitigation_success_rate.get(evaluation.attack_type, 1.0),
+                evaluation.attack_type: learning_state.mitigation_success_rate.get(
+                    evaluation.attack_type, 1.0
+                ),
             },
         )
         save_learning_state(next_learning, lock_scope=policy_lock)
@@ -225,8 +273,12 @@ def rollback_dynamic_policy(config: dict[str, Any]) -> PolicyRollbackState:
             state = PolicyRollbackState(
                 rollback_id=deterministic_id("policy-rollback", "noop"),
                 restored_policy_id=history[-1].policy_id if history else "",
-                restored_action=history[-1].recommended_action if history else "alert_only",
-                restored_escalation_level=history[-1].escalation_level if history else 0,
+                restored_action=(
+                    history[-1].recommended_action if history else "alert_only"
+                ),
+                restored_escalation_level=(
+                    history[-1].escalation_level if history else 0
+                ),
                 restored_threshold_score=0.0,
                 timestamp=datetime.now(timezone.utc).isoformat(),
                 restored=False,
@@ -238,7 +290,10 @@ def rollback_dynamic_policy(config: dict[str, Any]) -> PolicyRollbackState:
         latest_payload = latest_policy_evaluation()
         threshold_score = float(latest_payload.get("threshold_score", 0.0))
         state = PolicyRollbackState(
-            rollback_id=deterministic_id("policy-rollback", f"{restored_entry.policy_id}:{restored_entry.timestamp}"),
+            rollback_id=deterministic_id(
+                "policy-rollback",
+                f"{restored_entry.policy_id}:{restored_entry.timestamp}",
+            ),
             restored_policy_id=restored_entry.policy_id,
             restored_action=restored_entry.recommended_action,
             restored_escalation_level=restored_entry.escalation_level,

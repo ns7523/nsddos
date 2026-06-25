@@ -9,10 +9,19 @@ from typer.testing import CliRunner
 
 from nsddos.bootstrap.assets_models import RuntimeAssetStatus
 from nsddos.bootstrap.planner import build_dependency_plan
-from nsddos.bootstrap.profiles import DOCKER_RUNTIME_ONLY, FULL_SDN_LAB_MODE, get_profile_by_choice
+from nsddos.bootstrap.profiles import (
+    DOCKER_RUNTIME_ONLY,
+    FULL_SDN_LAB_MODE,
+    get_profile_by_choice,
+)
 from nsddos.bootstrap.questions import ask_deployment_profile
 from nsddos.bootstrap.setup import collect_environment_scan
-from nsddos.bootstrap.state import DependencyPlan, EnvironmentScan, SetupState, ToolStatus
+from nsddos.bootstrap.state import (
+    DependencyPlan,
+    EnvironmentScan,
+    SetupState,
+    ToolStatus,
+)
 from nsddos.bootstrap.terminal import create_console
 from nsddos.bootstrap.wizard import render_setup_wizard
 from nsddos.cli import app
@@ -20,14 +29,19 @@ from nsddos.cli import app
 
 def test_collect_environment_scan_detects_extended_fields(monkeypatch) -> None:
     monkeypatch.setattr("nsddos.bootstrap.setup.platform.system", lambda: "Linux")
-    monkeypatch.setattr("nsddos.bootstrap.setup.platform.python_version", lambda: "3.11.10")
+    monkeypatch.setattr(
+        "nsddos.bootstrap.setup.platform.python_version", lambda: "3.11.10"
+    )
     monkeypatch.setattr(
         "nsddos.bootstrap.environment.shutil.which",
         lambda name: f"/usr/bin/{name}" if name in {"docker", "git"} else None,
     )
     monkeypatch.setattr("nsddos.bootstrap.environment.sys.prefix", "/tmp/venv")
     monkeypatch.setattr("nsddos.bootstrap.environment.sys.base_prefix", "/usr")
-    monkeypatch.setattr("nsddos.bootstrap.environment.os.sysconf", lambda name: 4096 if name == "SC_PAGE_SIZE" else 1024)
+    monkeypatch.setattr(
+        "nsddos.bootstrap.environment.os.sysconf",
+        lambda name: 4096 if name == "SC_PAGE_SIZE" else 1024,
+    )
     monkeypatch.setattr(
         "nsddos.bootstrap.environment.shutil.disk_usage",
         lambda path: (100, 40, 60),
@@ -40,7 +54,9 @@ def test_collect_environment_scan_detects_extended_fields(monkeypatch) -> None:
             version="0.9.0b2",
             root=Path("/tmp/runtime-assets"),
             compose_file=Path("/tmp/runtime-assets/docker-compose.yml"),
-            floodlight_jar=Path("/tmp/runtime-assets/external/floodlight/floodlight.jar"),
+            floodlight_jar=Path(
+                "/tmp/runtime-assets/external/floodlight/floodlight.jar"
+            ),
             sflowrt_jar=Path("/tmp/runtime-assets/external/sflowrt/lib/sflowrt.jar"),
             detail="package templates only; runtime payload download required",
         ),
@@ -75,15 +91,24 @@ def test_collect_environment_scan_detects_extended_fields(monkeypatch) -> None:
 
 def test_collect_environment_scan_reports_legacy_compose_detail(monkeypatch) -> None:
     monkeypatch.setattr("nsddos.bootstrap.setup.platform.system", lambda: "Linux")
-    monkeypatch.setattr("nsddos.bootstrap.setup.platform.python_version", lambda: "3.11.10")
+    monkeypatch.setattr(
+        "nsddos.bootstrap.setup.platform.python_version", lambda: "3.11.10"
+    )
     monkeypatch.setattr(
         "nsddos.bootstrap.environment.shutil.which",
-        lambda name: f"/usr/bin/{name}" if name in {"docker", "git", "docker-compose"} else None,
+        lambda name: (
+            f"/usr/bin/{name}" if name in {"docker", "git", "docker-compose"} else None
+        ),
     )
     monkeypatch.setattr("nsddos.bootstrap.environment.sys.prefix", "/tmp/venv")
     monkeypatch.setattr("nsddos.bootstrap.environment.sys.base_prefix", "/usr")
-    monkeypatch.setattr("nsddos.bootstrap.environment.os.sysconf", lambda name: 4096 if name == "SC_PAGE_SIZE" else 1024)
-    monkeypatch.setattr("nsddos.bootstrap.environment.shutil.disk_usage", lambda path: (100, 40, 60))
+    monkeypatch.setattr(
+        "nsddos.bootstrap.environment.os.sysconf",
+        lambda name: 4096 if name == "SC_PAGE_SIZE" else 1024,
+    )
+    monkeypatch.setattr(
+        "nsddos.bootstrap.environment.shutil.disk_usage", lambda path: (100, 40, 60)
+    )
     monkeypatch.setattr(
         "nsddos.bootstrap.setup.detect_runtime_asset_status",
         lambda: RuntimeAssetStatus(
@@ -92,7 +117,9 @@ def test_collect_environment_scan_reports_legacy_compose_detail(monkeypatch) -> 
             version="0.9.0b2",
             root=Path("/tmp/runtime-assets"),
             compose_file=Path("/tmp/runtime-assets/docker-compose.yml"),
-            floodlight_jar=Path("/tmp/runtime-assets/external/floodlight/floodlight.jar"),
+            floodlight_jar=Path(
+                "/tmp/runtime-assets/external/floodlight/floodlight.jar"
+            ),
             sflowrt_jar=Path("/tmp/runtime-assets/external/sflowrt/lib/sflowrt.jar"),
             detail="repository runtime payloads available",
         ),
@@ -119,7 +146,9 @@ def test_get_profile_by_choice_returns_profile() -> None:
 
 
 def test_ask_deployment_profile_uses_prompt(monkeypatch) -> None:
-    monkeypatch.setattr("nsddos.bootstrap.questions.IntPrompt.ask", lambda *args, **kwargs: 4)
+    monkeypatch.setattr(
+        "nsddos.bootstrap.questions.IntPrompt.ask", lambda *args, **kwargs: 4
+    )
     profile = ask_deployment_profile(create_console(record=True))
     assert profile == FULL_SDN_LAB_MODE
 
@@ -176,8 +205,13 @@ def test_render_setup_wizard_returns_setup_state(monkeypatch) -> None:
         runtime_assets_source="repo",
         runtime_assets_detail="repository runtime payloads available",
     )
-    monkeypatch.setattr("nsddos.bootstrap.wizard.collect_environment_scan", lambda: scan)
-    monkeypatch.setattr("nsddos.bootstrap.wizard.ask_deployment_profile", lambda console: DOCKER_RUNTIME_ONLY)
+    monkeypatch.setattr(
+        "nsddos.bootstrap.wizard.collect_environment_scan", lambda: scan
+    )
+    monkeypatch.setattr(
+        "nsddos.bootstrap.wizard.ask_deployment_profile",
+        lambda console: DOCKER_RUNTIME_ONLY,
+    )
     monkeypatch.setattr(
         "nsddos.bootstrap.wizard.execute_install_plan",
         lambda console, plan, scan: type(

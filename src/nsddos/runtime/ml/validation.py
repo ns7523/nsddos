@@ -2,8 +2,17 @@
 
 from __future__ import annotations
 
-from nsddos.runtime.ml.contracts import ML_CLASSIFICATION_STATES, ML_MODEL_FAMILIES, ML_PREDICTED_ATTACK_TYPES
-from nsddos.runtime.ml.models import MLDetectionEvaluation, MLDatasetSnapshot, MLFeatureVector, MLTrainingState
+from nsddos.runtime.ml.contracts import (
+    ML_CLASSIFICATION_STATES,
+    ML_MODEL_FAMILIES,
+    ML_PREDICTED_ATTACK_TYPES,
+)
+from nsddos.runtime.ml.models import (
+    MLDetectionEvaluation,
+    MLDatasetSnapshot,
+    MLFeatureVector,
+    MLTrainingState,
+)
 
 
 def validate_feature_vector(features: MLFeatureVector) -> list[str]:

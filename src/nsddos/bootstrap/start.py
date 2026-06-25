@@ -90,7 +90,11 @@ def _status_line(state: StartupDisplayState) -> Text:
         if index:
             text.append("  ")
         text.append(f"{label}: ", style=f"bold {theme.SUCCESS}")
-        color = theme.DANGER if value in {"OFFLINE", "CRITICAL"} else theme.WARNING if value in {"BOOTING", "ELEVATED"} else theme.SUCCESS
+        color = (
+            theme.DANGER
+            if value in {"OFFLINE", "CRITICAL"}
+            else theme.WARNING if value in {"BOOTING", "ELEVATED"} else theme.SUCCESS
+        )
         text.append(value, style=f"bold {color}")
     return text
 
@@ -183,7 +187,9 @@ def run_startup_command(console: Console | None = None) -> StartupResult:
     def _on_status(step: str, status: str, detail: str) -> None:
         state.active_step = step
         state.current_detail = detail
-        label = dict((key, short) for key, short, _detail in STARTUP_STEPS).get(step, step.upper())
+        label = dict((key, short) for key, short, _detail in STARTUP_STEPS).get(
+            step, step.upper()
+        )
         if status == "ok":
             state.completed.add(step)
             _append_line(state, label, f"ONLINE {detail}")
@@ -194,7 +200,13 @@ def run_startup_command(console: Console | None = None) -> StartupResult:
             _append_line(state, label, f"BOOTING {detail}")
 
     if active_console.is_terminal and not active_console.record:
-        with Live(_startup_renderable(state), console=active_console, refresh_per_second=12, transient=False) as live:
+        with Live(
+            _startup_renderable(state),
+            console=active_console,
+            refresh_per_second=12,
+            transient=False,
+        ) as live:
+
             def _live_status(step: str, status: str, detail: str) -> None:
                 _on_status(step, status, detail)
                 live.update(_startup_renderable(state))
@@ -206,7 +218,9 @@ def run_startup_command(console: Console | None = None) -> StartupResult:
                 _append_line(state, "SYSTEM", f"ONLINE ui available at {result.ui_url}")
             else:
                 state.failed_checks = result.failed_checks
-                _append_line(state, "SYSTEM", f"FAILED checks={','.join(result.failed_checks)}")
+                _append_line(
+                    state, "SYSTEM", f"FAILED checks={','.join(result.failed_checks)}"
+                )
             live.update(_startup_renderable(state))
             return result
 

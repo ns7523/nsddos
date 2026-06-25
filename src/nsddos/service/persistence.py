@@ -40,7 +40,9 @@ def load_sessions() -> list[RuntimeSession]:
 
 def save_sessions(sessions: list[RuntimeSession]) -> Path:
     ensure_service_dirs()
-    return atomic_write_json(SESSIONS_PATH, {"sessions": [item.to_dict() for item in sessions]})
+    return atomic_write_json(
+        SESSIONS_PATH, {"sessions": [item.to_dict() for item in sessions]}
+    )
 
 
 def save_heartbeat(payload: dict[str, Any]) -> Path:

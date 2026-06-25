@@ -22,7 +22,12 @@ from nsddos.runtime.models import (
     SCHEMA_VERSION,
     TopologyCorrelation,
 )
-from nsddos.runtime.persistence import PersistenceError, atomic_write_json, read_json_checked, recover_json
+from nsddos.runtime.persistence import (
+    PersistenceError,
+    atomic_write_json,
+    read_json_checked,
+    recover_json,
+)
 from nsddos.runtime.providers_registry import build_provider_registry
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
@@ -67,11 +72,15 @@ def _assert_json_tree_is_valid(root: Path) -> None:
     assert list(root.rglob("*.tmp")) == []
 
 
-def _run_cli_stress(home: Path, commands: list[list[str]]) -> list[subprocess.CompletedProcess[str]]:
+def _run_cli_stress(
+    home: Path, commands: list[list[str]]
+) -> list[subprocess.CompletedProcess[str]]:
     env = os.environ.copy()
     env["NSDDOS_HOME"] = str(home)
     existing_pythonpath = env.get("PYTHONPATH")
-    env["PYTHONPATH"] = str(SRC_DIR) if not existing_pythonpath else f"{SRC_DIR}:{existing_pythonpath}"
+    env["PYTHONPATH"] = (
+        str(SRC_DIR) if not existing_pythonpath else f"{SRC_DIR}:{existing_pythonpath}"
+    )
     processes = [
         subprocess.Popen(
             [sys.executable, "-m", "nsddos", *command],
@@ -158,7 +167,9 @@ def test_atomic_write_json_is_safe_under_100_parallel_processes(tmp_path):
     assert list(tmp_path.rglob("*.tmp")) == []
 
 
-def test_locked_update_json_prevents_dropped_entries_under_100_parallel_processes(tmp_path):
+def test_locked_update_json_prevents_dropped_entries_under_100_parallel_processes(
+    tmp_path,
+):
     path = tmp_path / "history.json"
     ctx = multiprocessing.get_context("spawn")
     processes = [
@@ -275,14 +286,18 @@ def test_topology_correlation_reports_provider_mismatch(monkeypatch):
     )
     fake_interfaces = SimpleNamespace(
         interfaces=[
-            SimpleNamespace(ovs_name="s1-eth1", sflow_name=None, visible_in_sflow=False),
+            SimpleNamespace(
+                ovs_name="s1-eth1", sflow_name=None, visible_in_sflow=False
+            ),
         ],
         orphan_interfaces=[],
     )
 
     monkeypatch.setattr(topology, "MininetProvider", FakeMininet)
     monkeypatch.setattr(topology, "build_identity_map", lambda config: fake_identity)
-    monkeypatch.setattr(topology, "correlate_interfaces", lambda config: fake_interfaces)
+    monkeypatch.setattr(
+        topology, "correlate_interfaces", lambda config: fake_interfaces
+    )
 
     result = topology.correlate_topology({"lab": {}})
 
@@ -292,7 +307,11 @@ def test_topology_correlation_reports_provider_mismatch(monkeypatch):
 
 
 def test_reconciliation_collects_missing_stale_and_orphan_entities(monkeypatch):
-    monkeypatch.setattr(reconcile, "load_runtime_state", lambda: RuntimeState(stack_running=True, topology_state="stopped"))
+    monkeypatch.setattr(
+        reconcile,
+        "load_runtime_state",
+        lambda: RuntimeState(stack_running=True, topology_state="stopped"),
+    )
     monkeypatch.setattr(
         reconcile,
         "normalize_controller_topology",
@@ -306,17 +325,23 @@ def test_reconciliation_collects_missing_stale_and_orphan_entities(monkeypatch):
     monkeypatch.setattr(
         reconcile,
         "correlate_interfaces",
-        lambda config: InterfaceCorrelation(missing_interfaces=["iface:s1-eth1"], orphan_interfaces=["eth9"]),
+        lambda config: InterfaceCorrelation(
+            missing_interfaces=["iface:s1-eth1"], orphan_interfaces=["eth9"]
+        ),
     )
     monkeypatch.setattr(
         reconcile,
         "correlate_openflow_ports",
-        lambda config: OpenFlowCorrelation(missing_ports=["of:1"], stale_ports=["of:2"], orphan_ports=["of:3"]),
+        lambda config: OpenFlowCorrelation(
+            missing_ports=["of:1"], stale_ports=["of:2"], orphan_ports=["of:3"]
+        ),
     )
     monkeypatch.setattr(
         reconcile,
         "correlate_paths",
-        lambda config: PathCorrelation(missing_paths=["path:s1-h1"], orphan_paths=["path:ghost"]),
+        lambda config: PathCorrelation(
+            missing_paths=["path:s1-h1"], orphan_paths=["path:ghost"]
+        ),
     )
     monkeypatch.setattr(
         reconcile,
@@ -331,20 +356,30 @@ def test_reconciliation_collects_missing_stale_and_orphan_entities(monkeypatch):
 
     result = reconcile.reconcile_runtime({})
 
-    assert "runtime_state:stack_running_without_topology" in result.inconsistent_entities
+    assert (
+        "runtime_state:stack_running_without_topology" in result.inconsistent_entities
+    )
     assert "switch:s1" in result.missing_entities
     assert "sflow:s1-eth1" in result.stale_entities
     assert "port:of:3" in result.orphan_entities
 
 
 def test_convergence_distinguishes_partial_from_diverged(monkeypatch):
-    monkeypatch.setattr(convergence, "normalize_controller_topology", lambda config: ControllerTopology(stale_entities=[]))
+    monkeypatch.setattr(
+        convergence,
+        "normalize_controller_topology",
+        lambda config: ControllerTopology(stale_entities=[]),
+    )
     monkeypatch.setattr(
         convergence,
         "correlate_topology",
-        lambda config: TopologyCorrelation(consistent=True, missing_in_sflow=["s1-eth1"]),
+        lambda config: TopologyCorrelation(
+            consistent=True, missing_in_sflow=["s1-eth1"]
+        ),
     )
-    monkeypatch.setattr(convergence, "correlate_openflow_ports", lambda config: OpenFlowCorrelation())
+    monkeypatch.setattr(
+        convergence, "correlate_openflow_ports", lambda config: OpenFlowCorrelation()
+    )
     monkeypatch.setattr(
         convergence,
         "correlate_paths",

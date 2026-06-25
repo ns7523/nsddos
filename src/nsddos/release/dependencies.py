@@ -8,7 +8,9 @@ from nsddos.constants import PROJECT_ROOT
 from nsddos.release.contracts import DependencyAuditResult
 
 
-def _parse_dependency_lines(pyproject_path: Path) -> tuple[tuple[str, ...], tuple[str, ...]]:
+def _parse_dependency_lines(
+    pyproject_path: Path,
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
     lines = pyproject_path.read_text(encoding="utf-8").splitlines()
     deps: list[str] = []
     optional: list[str] = []
@@ -42,8 +44,12 @@ def audit_dependencies(project_root: Path = PROJECT_ROOT) -> DependencyAuditResu
     package_count = len(dependencies)
     pinned_count = sum(1 for item in dependencies if "==" in item)
     bounded_count = sum(1 for item in dependencies if "<" in item and ">=" in item)
-    conflict_count = len(dependencies) - len(set(item.split(">=")[0].split("==")[0].split("<")[0] for item in dependencies))
-    vulnerable_pattern_count = sum(1 for item in dependencies if item.endswith(">=0") or item.endswith("*"))
+    conflict_count = len(dependencies) - len(
+        set(item.split(">=")[0].split("==")[0].split("<")[0] for item in dependencies)
+    )
+    vulnerable_pattern_count = sum(
+        1 for item in dependencies if item.endswith(">=0") or item.endswith("*")
+    )
     findings: list[str] = []
     if not package_count:
         findings.append("missing_runtime_dependencies")
@@ -55,9 +61,19 @@ def audit_dependencies(project_root: Path = PROJECT_ROOT) -> DependencyAuditResu
         findings.append("dependency_conflicts_detected")
     if vulnerable_pattern_count:
         findings.append("unsafe_dependency_patterns")
-    if package_count and conflict_count == 0 and vulnerable_pattern_count == 0 and bounded_count == package_count:
+    if (
+        package_count
+        and conflict_count == 0
+        and vulnerable_pattern_count == 0
+        and bounded_count == package_count
+    ):
         health = "healthy"
-    elif package_count and conflict_count == 0 and vulnerable_pattern_count == 0 and bounded_count > 0:
+    elif (
+        package_count
+        and conflict_count == 0
+        and vulnerable_pattern_count == 0
+        and bounded_count > 0
+    ):
         health = "healthy"
     elif package_count:
         health = "degraded"

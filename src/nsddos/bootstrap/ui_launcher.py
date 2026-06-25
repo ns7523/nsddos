@@ -57,7 +57,9 @@ def ui_is_modern(url: str) -> bool:
     return all(marker in html for marker in UI_MODERN_MARKERS)
 
 
-def replace_listener_on_port(port: int, *, exclude_pid: int | None = None) -> tuple[int, ...]:
+def replace_listener_on_port(
+    port: int, *, exclude_pid: int | None = None
+) -> tuple[int, ...]:
     """Terminate existing listener processes on given port."""
 
     result = subprocess.run(

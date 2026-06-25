@@ -15,14 +15,23 @@ from nsddos.runtime.detection.models import DetectionEvaluation
 from nsddos.runtime.mitigation.actions import build_action
 from nsddos.runtime.mitigation.controller import build_controller_payload
 from nsddos.runtime.mitigation.evidence import build_mitigation_evidence
-from nsddos.runtime.mitigation.models import MitigationEvaluation, MitigationPolicyDecision
+from nsddos.runtime.mitigation.models import (
+    MitigationEvaluation,
+    MitigationPolicyDecision,
+)
 from nsddos.runtime.mitigation.policies import evaluate_policy
 from nsddos.runtime.mitigation.strategies import select_strategy
 from nsddos.runtime.mitigation.validation import validate_mitigation_evaluation
 from nsddos.runtime.policy import evaluate_dynamic_policy
 from nsddos.runtime.policy.contracts_models import PolicyEvaluation
-from nsddos.runtime.providers.live.telemetry import collect_live_telemetry, snapshot_to_detection_telemetry
-from nsddos.runtime.simulation import contract_to_detection_telemetry, generate_attack_traffic
+from nsddos.runtime.providers.live.telemetry import (
+    collect_live_telemetry,
+    snapshot_to_detection_telemetry,
+)
+from nsddos.runtime.simulation import (
+    contract_to_detection_telemetry,
+    generate_attack_traffic,
+)
 from nsddos.runtime.persistence import atomic_write_json, read_json_checked
 
 MITIGATION_DIR = RUNTIME_DIR / "mitigation"
@@ -32,7 +41,9 @@ def _provider_url(config: dict[str, Any]) -> str:
     return resolve_sflowrt_api_url(config)
 
 
-def _default_telemetry(config: dict[str, Any], reference_at: str | None = None) -> dict[str, Any]:
+def _default_telemetry(
+    config: dict[str, Any], reference_at: str | None = None
+) -> dict[str, Any]:
     if config.get("runtime", {}).get("live", {}).get("enabled", False):
         snapshot = collect_live_telemetry(config)
         return snapshot_to_detection_telemetry(snapshot)
@@ -41,12 +52,17 @@ def _default_telemetry(config: dict[str, Any], reference_at: str | None = None) 
         return contract_to_detection_telemetry(contract)
     bundle = collect_runtime_bundle(config)
     collector_reachable = bool(bundle.telemetry_state.get("collector_reachable", False))
-    provider = SFlowProvider(api_url=_provider_url(config)) if collector_reachable else None
+    provider = (
+        SFlowProvider(api_url=_provider_url(config)) if collector_reachable else None
+    )
     flows = provider.flows() if provider is not None else []
     return {
         "provider_source": "sflowrt" if collector_reachable else "runtime-collection",
         "timestamp": reference_at or datetime.now(timezone.utc).isoformat(),
-        "sample_window_seconds": bundle.freshness_state.get("sample_interval_seconds", 1.0) or 1.0,
+        "sample_window_seconds": bundle.freshness_state.get(
+            "sample_interval_seconds", 1.0
+        )
+        or 1.0,
         "flows": flows,
         "flow_state": bundle.flow_state,
         "telemetry_state": bundle.telemetry_state,
@@ -134,10 +150,17 @@ def evaluate_mitigation(
     reference_at: str | None = None,
 ) -> MitigationEvaluation:
     payload = telemetry or _default_telemetry(config, reference_at=reference_at)
-    detection_evaluation = detection or evaluate_detection(config, telemetry=payload, reference_at=reference_at)
+    detection_evaluation = detection or evaluate_detection(
+        config, telemetry=payload, reference_at=reference_at
+    )
     target_ip = _select_target_ip(payload)
     try:
-        dynamic_policy = policy or evaluate_dynamic_policy(config, detection=detection_evaluation, telemetry=payload, reference_at=reference_at)
+        dynamic_policy = policy or evaluate_dynamic_policy(
+            config,
+            detection=detection_evaluation,
+            telemetry=payload,
+            reference_at=reference_at,
+        )
     except Exception:
         dynamic_policy = None
     policy_decision = (
@@ -150,7 +173,9 @@ def evaluate_mitigation(
         if dynamic_policy is not None
         else evaluate_policy(detection_evaluation)
     )
-    provider_reachable = bool(payload.get("telemetry_state", {}).get("collector_reachable", False))
+    provider_reachable = bool(
+        payload.get("telemetry_state", {}).get("collector_reachable", False)
+    )
     freshness_stale = bool(payload.get("freshness_state", {}).get("stale", False))
     replay_mode = bool(payload.get("replay_mode", False))
     strategy = select_strategy(
@@ -162,7 +187,9 @@ def evaluate_mitigation(
     )
     action = build_action(strategy.action_type, target_ip, policy_decision.reason)
     controller_payload = build_controller_payload(action)
-    timestamp_text = str(payload.get("timestamp", detection_evaluation.telemetry_timestamp))
+    timestamp_text = str(
+        payload.get("timestamp", detection_evaluation.telemetry_timestamp)
+    )
     evidence = build_mitigation_evidence(
         action=action,
         policy=policy_decision,
@@ -180,8 +207,14 @@ def evaluate_mitigation(
         target_ip=action.target_ip,
         target_subnet=action.target_subnet,
         confidence_score=detection_evaluation.confidence_score,
-        mitigation_status="planned" if strategy.action_type == "alert_only" else "dry_run_ready",
-        execution_result="alert_only" if strategy.action_type == "alert_only" else "controller_payload_generated",
+        mitigation_status=(
+            "planned" if strategy.action_type == "alert_only" else "dry_run_ready"
+        ),
+        execution_result=(
+            "alert_only"
+            if strategy.action_type == "alert_only"
+            else "controller_payload_generated"
+        ),
         mitigation_generation=evidence.mitigation_generation,
         mitigation_hash=evidence.mitigation_hash,
         timestamp=_parse_timestamp(timestamp_text),

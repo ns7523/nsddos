@@ -42,5 +42,9 @@ def explain_runtime_replay() -> ApiExplainResponse:
     return ApiExplainResponse(
         subject="runtime-replay",
         detail={"query_system": explain_query_system(), "replay_safe": True},
-        evidence=[ApiEvidenceRef(kind="replay", reference="query-engine", detail="replay-safe ordering")],
+        evidence=[
+            ApiEvidenceRef(
+                kind="replay", reference="query-engine", detail="replay-safe ordering"
+            )
+        ],
     )

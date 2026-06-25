@@ -11,4 +11,3 @@ def normalize_collection(bundle: RuntimeCollectionBundle) -> RuntimeCollectionBu
     bundle.provider_status = dict(bundle.provider_status)
     bundle.timings = dict(bundle.timings)
     return bundle
-

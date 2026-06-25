@@ -47,9 +47,7 @@ COMPOSE_FILE = Path(
 
 FLOODLIGHT_JAR = REPOSITORY_ROOT / "external" / "floodlight" / "floodlight.jar"
 SFLOWRT_JAR = REPOSITORY_ROOT / "external" / "sflowrt" / "lib" / "sflowrt.jar"
-MININET_BIN = Path(
-    os.getenv("NSDDOS_MININET_BIN", "mn")
-).expanduser()
+MININET_BIN = Path(os.getenv("NSDDOS_MININET_BIN", "mn")).expanduser()
 OVS_VSCTL_BIN = Path(os.getenv("NSDDOS_OVS_VSCTL_BIN", "ovs-vsctl")).expanduser()
 OVS_OFCTL_BIN = Path(os.getenv("NSDDOS_OVS_OFCTL_BIN", "ovs-ofctl")).expanduser()
 

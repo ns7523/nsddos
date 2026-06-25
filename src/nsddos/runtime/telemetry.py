@@ -26,7 +26,10 @@ from nsddos.runtime.models import (
 from nsddos.runtime.pipeline import build_execution_plan
 from nsddos.runtime.collection_layer import collect_runtime_bundle
 from nsddos.runtime.analysis_layer import aggregate_runtime
-from nsddos.runtime.providers_registry import build_provider_registry, collect_provider_status_from_registry
+from nsddos.runtime.providers_registry import (
+    build_provider_registry,
+    collect_provider_status_from_registry,
+)
 from nsddos.runtime.replay import replay_execution_history
 from nsddos.runtime.transitions import analyze_snapshot_transitions
 from nsddos.providers.sflow.provider import resolve_sflowrt_api_url
@@ -48,7 +51,9 @@ def _stack_running() -> bool:
 
 def _result(name: str, status: str, detail: str, category: str) -> VerificationResult:
     """Short helper for verification results."""
-    return VerificationResult(name=name, status=status, detail=detail, category=category)
+    return VerificationResult(
+        name=name, status=status, detail=detail, category=category
+    )
 
 
 def collect_provider_status(config: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -61,7 +66,9 @@ def build_telemetry_state(config: dict[str, Any]) -> TelemetryState:
     return TelemetryState(**collect_runtime_bundle(config).telemetry_state)
 
 
-def runtime_aggregation(config: dict[str, Any], persist_collection: bool = False) -> RuntimeAggregationResult:
+def runtime_aggregation(
+    config: dict[str, Any], persist_collection: bool = False
+) -> RuntimeAggregationResult:
     """Collect + analyze runtime without tuple aggregation."""
     collection = collect_runtime_bundle(config, persist=persist_collection)
     return aggregate_runtime(config, collection)
@@ -74,7 +81,9 @@ def verify_runtime(config: dict[str, Any]) -> list[VerificationResult]:
     return execute_runtime_verification(config)
 
 
-def doctor_runtime(config: dict[str, Any], deep: bool = False) -> list[VerificationResult]:
+def doctor_runtime(
+    config: dict[str, Any], deep: bool = False
+) -> list[VerificationResult]:
     """Collect environment diagnostics."""
     from nsddos.runtime.capabilities import detect_runtime_capabilities
     from nsddos.runtime.environment import validate_runtime_environment
@@ -92,15 +101,50 @@ def doctor_runtime(config: dict[str, Any], deep: bool = False) -> list[Verificat
     checks = [
         _result("python", "pass", sys.version.split()[0], "env"),
         _result("config_path", "pass", str(CONFIG_PATH), "env"),
-        _result("compose_path", "pass" if compose_file.exists() else "fail", str(compose_file), "env"),
+        _result(
+            "compose_path",
+            "pass" if compose_file.exists() else "fail",
+            str(compose_file),
+            "env",
+        ),
         _result("runtime_home", "pass", str(APP_DIR), "env"),
-        _result("docker_cli", "pass" if docker.is_docker_installed() else "fail", "docker CLI", "env"),
-        _result("docker_daemon", "pass" if docker.is_daemon_running() else "warn", "docker daemon", "env"),
+        _result(
+            "docker_cli",
+            "pass" if docker.is_docker_installed() else "fail",
+            "docker CLI",
+            "env",
+        ),
+        _result(
+            "docker_daemon",
+            "pass" if docker.is_daemon_running() else "warn",
+            "docker daemon",
+            "env",
+        ),
         _result("runtime_profile", "pass", profile.get("name", "unknown"), "env"),
-        _result("runtime_environment", "pass" if environment.get("status") == "compatible" else "warn", environment.get("detail", ""), "env"),
-        _result("reproducibility", "pass" if reproducibility.get("status") == "reproducible" else "warn", reproducibility.get("detail", ""), "env"),
-        _result("dependency_graph", "pass" if dependency_validation().get("valid") else "fail", json.dumps(dependency_validation(), sort_keys=True), "pipeline"),
-        _result("runtime_dirs", "pass", ", ".join(str(path) for path in ensure_runtime_directories()), "env"),
+        _result(
+            "runtime_environment",
+            "pass" if environment.get("status") == "compatible" else "warn",
+            environment.get("detail", ""),
+            "env",
+        ),
+        _result(
+            "reproducibility",
+            "pass" if reproducibility.get("status") == "reproducible" else "warn",
+            reproducibility.get("detail", ""),
+            "env",
+        ),
+        _result(
+            "dependency_graph",
+            "pass" if dependency_validation().get("valid") else "fail",
+            json.dumps(dependency_validation(), sort_keys=True),
+            "pipeline",
+        ),
+        _result(
+            "runtime_dirs",
+            "pass",
+            ", ".join(str(path) for path in ensure_runtime_directories()),
+            "env",
+        ),
         _result(
             "runtime_state",
             "pass",
@@ -123,8 +167,16 @@ def doctor_runtime(config: dict[str, Any], deep: bool = False) -> list[Verificat
             text=True,
             check=False,
         )
-        java_detail = (java.stderr or java.stdout).splitlines()[0] if java.returncode == 0 else "java missing"
-        checks.append(_result("java", "pass" if java.returncode == 0 else "fail", java_detail, "env"))
+        java_detail = (
+            (java.stderr or java.stdout).splitlines()[0]
+            if java.returncode == 0
+            else "java missing"
+        )
+        checks.append(
+            _result(
+                "java", "pass" if java.returncode == 0 else "fail", java_detail, "env"
+            )
+        )
     except OSError:
         checks.append(_result("java", "fail", "java missing", "env"))
 
@@ -132,7 +184,13 @@ def doctor_runtime(config: dict[str, Any], deep: bool = False) -> list[Verificat
         checks.append(
             _result(
                 f"{name}_provider",
-                "pass" if status.get("ready") or status.get("installed") or status.get("artifact_exists") else "warn",
+                (
+                    "pass"
+                    if status.get("ready")
+                    or status.get("installed")
+                    or status.get("artifact_exists")
+                    else "warn"
+                ),
                 json.dumps(status, sort_keys=True),
                 "provider",
             )
@@ -183,7 +241,11 @@ def doctor_runtime(config: dict[str, Any], deep: bool = False) -> list[Verificat
             [
                 _result(
                     "deep_flow_visibility",
-                    "pass" if flows.get("telemetry_present") else ("warn" if not running else "fail"),
+                    (
+                        "pass"
+                        if flows.get("telemetry_present")
+                        else ("warn" if not running else "fail")
+                    ),
                     flows.get("detail", ""),
                     "deep",
                 ),
@@ -195,71 +257,104 @@ def doctor_runtime(config: dict[str, Any], deep: bool = False) -> list[Verificat
                 ),
                 _result(
                     "deep_topology_consistency",
-                    "pass" if topology.get("consistent") else ("warn" if not running else "fail"),
+                    (
+                        "pass"
+                        if topology.get("consistent")
+                        else ("warn" if not running else "fail")
+                    ),
                     topology.get("detail", ""),
                     "deep",
                 ),
                 _result(
                     "deep_bridge_interface_correlation",
-                    "pass" if not topology.get("missing_in_sflow") else ("warn" if not running else "fail"),
+                    (
+                        "pass"
+                        if not topology.get("missing_in_sflow")
+                        else ("warn" if not running else "fail")
+                    ),
                     f"missing_in_sflow={topology.get('missing_in_sflow', [])}",
                     "deep",
                 ),
                 _result(
                     "deep_provider_agreement",
-                    "pass" if confidence.get("provider_agreement") == "aligned" else ("warn" if not running else "fail"),
+                    (
+                        "pass"
+                        if confidence.get("provider_agreement") == "aligned"
+                        else ("warn" if not running else "fail")
+                    ),
                     json.dumps(confidence, sort_keys=True),
                     "deep",
                 ),
                 _result(
                     "deep_identity_consistency",
-                    "pass" if not identity.get("conflicts") else ("warn" if not running else "fail"),
+                    (
+                        "pass"
+                        if not identity.get("conflicts")
+                        else ("warn" if not running else "fail")
+                    ),
                     json.dumps(identity, sort_keys=True),
                     "deep",
                 ),
                 _result(
                     "deep_runtime_reconciliation",
-                    "pass"
-                    if not reconciliation.get("missing_entities") and not reconciliation.get("inconsistent_entities")
-                    else ("warn" if not running else "fail"),
+                    (
+                        "pass"
+                        if not reconciliation.get("missing_entities")
+                        and not reconciliation.get("inconsistent_entities")
+                        else ("warn" if not running else "fail")
+                    ),
                     json.dumps(reconciliation, sort_keys=True),
                     "deep",
                 ),
                 _result(
                     "deep_runtime_drift",
-                    "pass"
-                    if all(item.get("severity") == "low" for item in drift)
-                    else ("warn" if not running else "fail"),
+                    (
+                        "pass"
+                        if all(item.get("severity") == "low" for item in drift)
+                        else ("warn" if not running else "fail")
+                    ),
                     json.dumps(drift, sort_keys=True),
                     "deep",
                 ),
                 _result(
                     "deep_openflow_reconciliation",
-                    "pass"
-                    if not openflow.get("missing_ports") and not openflow.get("duplicate_ports")
-                    else ("warn" if not running else "fail"),
+                    (
+                        "pass"
+                        if not openflow.get("missing_ports")
+                        and not openflow.get("duplicate_ports")
+                        else ("warn" if not running else "fail")
+                    ),
                     json.dumps(openflow, sort_keys=True),
                     "deep",
                 ),
                 _result(
                     "deep_path_validation",
-                    "pass"
-                    if not paths.get("missing_paths") and not paths.get("inconsistent_paths")
-                    else ("warn" if not running else "fail"),
+                    (
+                        "pass"
+                        if not paths.get("missing_paths")
+                        and not paths.get("inconsistent_paths")
+                        else ("warn" if not running else "fail")
+                    ),
                     json.dumps(paths, sort_keys=True),
                     "deep",
                 ),
                 _result(
                     "deep_controller_normalization",
-                    "pass" if controller.get("switches") or not running else ("warn" if not running else "fail"),
+                    (
+                        "pass"
+                        if controller.get("switches") or not running
+                        else ("warn" if not running else "fail")
+                    ),
                     json.dumps(controller, sort_keys=True),
                     "deep",
                 ),
                 _result(
                     "deep_convergence_validation",
-                    "pass"
-                    if convergence.get("status") == "converged"
-                    else ("warn" if not running else "fail"),
+                    (
+                        "pass"
+                        if convergence.get("status") == "converged"
+                        else ("warn" if not running else "fail")
+                    ),
                     json.dumps(convergence, sort_keys=True),
                     "deep",
                 ),
@@ -271,13 +366,22 @@ def doctor_runtime(config: dict[str, Any], deep: bool = False) -> list[Verificat
                 ),
                 _result(
                     "deep_bootstrap_validation",
-                    "pass" if validate_bootstrap(config).get("bootstrap_ready") else "warn",
+                    (
+                        "pass"
+                        if validate_bootstrap(config).get("bootstrap_ready")
+                        else "warn"
+                    ),
                     json.dumps(validate_bootstrap(config), sort_keys=True),
                     "deep",
                 ),
                 _result(
                     "deep_stability_analysis",
-                    "pass" if temporal.get("stability", {}).get("classification") == "stable" else ("warn" if not running else "fail"),
+                    (
+                        "pass"
+                        if temporal.get("stability", {}).get("classification")
+                        == "stable"
+                        else ("warn" if not running else "fail")
+                    ),
                     json.dumps(temporal.get("stability", {}), sort_keys=True),
                     "deep",
                 ),
@@ -301,7 +405,11 @@ def build_runtime_snapshot(config: dict[str, Any]) -> dict[str, Any]:
     analysis = aggregation.analysis
     verification = [result.to_dict() for result in verify_runtime(config)]
     graph = build_runtime_graph(config)
-    active_preset = runtime_state.preset_state.get("active", "minimal-lab") if runtime_state.preset_state else "minimal-lab"
+    active_preset = (
+        runtime_state.preset_state.get("active", "minimal-lab")
+        if runtime_state.preset_state
+        else "minimal-lab"
+    )
     execution_plan = build_execution_plan(config, preset=active_preset)
     execution_graph = build_execution_graph(config, preset=active_preset)
     execution_replay = replay_execution_history()
