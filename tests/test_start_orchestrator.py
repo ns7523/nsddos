@@ -38,6 +38,9 @@ def _scan(**overrides) -> EnvironmentScan:
         "available_memory_bytes": 16 * 1024**3,
         "available_disk_bytes": 40 * 1024**3,
         "missing_runtime_directories": (),
+        "runtime_assets_ready": True,
+        "runtime_assets_source": "repo",
+        "runtime_assets_detail": "repository runtime payloads available",
     }
     payload.update(overrides)
     return EnvironmentScan(**payload)
@@ -113,6 +116,7 @@ def test_ensure_startup_prerequisites_uses_installer_subset(monkeypatch) -> None
             "Start Docker Daemon",
             "Configure Docker Permissions",
             "Create Runtime Directories",
+            "Download Runtime Assets",
         ),
     }
 

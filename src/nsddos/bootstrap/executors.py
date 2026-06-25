@@ -8,8 +8,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from nsddos.bootstrap.commands import SystemCommand
+from nsddos.bootstrap.assets import download_runtime_assets
 from nsddos.config import ensure_default_config, ensure_runtime_directories, ensure_runtime_state
-from nsddos.constants import COMPOSE_FILE
+from nsddos.constants import get_compose_file
 from nsddos.compose import resolve_compose_command
 
 
@@ -33,7 +34,7 @@ def run_system_command(command: SystemCommand) -> CommandExecutionResult:
             return CommandExecutionResult(command, False, 1, "", "Compose backend unavailable")
         try:
             completed = subprocess.run(
-                (*backend, "-f", str(COMPOSE_FILE), *command.compose_args),
+                (*backend, "-f", str(get_compose_file()), *command.compose_args),
                 capture_output=True,
                 text=True,
                 check=False,
@@ -90,4 +91,10 @@ def run_system_command(command: SystemCommand) -> CommandExecutionResult:
         ensure_default_config()
         ensure_runtime_state()
         return CommandExecutionResult(command, True, 0, "runtime initialized", "")
+    if command.kind == "asset-download":
+        try:
+            result = download_runtime_assets(version=command.runtime_version, force=command.force)
+        except Exception as exc:
+            return CommandExecutionResult(command, False, 1, "", str(exc))
+        return CommandExecutionResult(command, True, 0, result.detail, "")
     return CommandExecutionResult(command, False, 1, "", f"Unsupported command kind: {command.kind}")

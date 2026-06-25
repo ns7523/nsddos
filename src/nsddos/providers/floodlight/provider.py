@@ -12,7 +12,7 @@ from urllib.request import Request, urlopen
 from nsddos.constants import (
     DEFAULT_FLOODLIGHT_OF_PORT,
     DEFAULT_FLOODLIGHT_PORT,
-    FLOODLIGHT_JAR,
+    get_floodlight_jar,
 )
 from nsddos.providers.base import BaseProvider
 
@@ -23,11 +23,11 @@ class FloodlightProvider(BaseProvider):
     def __init__(
         self,
         api_url: str | None = None,
-        artifact_path: Path = FLOODLIGHT_JAR,
+        artifact_path: Path | None = None,
         controller_host: str = "127.0.0.1",
         controller_port: int = DEFAULT_FLOODLIGHT_OF_PORT,
     ) -> None:
-        self.artifact_path = artifact_path
+        self.artifact_path = artifact_path or get_floodlight_jar()
         self.api_url = api_url or f"http://127.0.0.1:{DEFAULT_FLOODLIGHT_PORT}"
         self.controller_host = controller_host
         self.controller_port = controller_port

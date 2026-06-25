@@ -1,0 +1,94 @@
+services:
+  labhost:
+    build:
+      context: .
+      dockerfile: docker/labhost.Dockerfile
+    container_name: nsddos-labhost
+    privileged: true
+    restart: unless-stopped
+    networks:
+      - nsddos-lab
+    healthcheck:
+      test: ["CMD-SHELL", "ovs-vsctl show >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  floodlight:
+    build:
+      context: .
+      dockerfile: docker/floodlight.Dockerfile
+    container_name: nsddos-floodlight
+    working_dir: /opt/floodlight
+    ports:
+      - "8080:8080"
+      - "6653:6653"
+    environment:
+      NSDDOS_SERVICE: floodlight
+      FLOODLIGHT_HOME: /var/lib/nsddos/floodlight
+    restart: unless-stopped
+    networks:
+      - nsddos-lab
+    volumes:
+      - floodlight-data:/var/lib/nsddos/floodlight
+    healthcheck:
+      test: ["CMD-SHELL", "tr '\\0' ' ' </proc/1/cmdline | grep -q '[f]loodlight.jar'"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
+  sflowrt:
+    build:
+      context: .
+      dockerfile: docker/sflowrt.Dockerfile
+    container_name: nsddos-sflowrt
+    working_dir: /opt/nsddos
+    ports:
+      - "8008:8008"
+      - "6343:6343/udp"
+    environment:
+      NSDDOS_SERVICE: sflowrt
+      SFLOWRT_HOME: /var/lib/nsddos/sflowrt
+    restart: unless-stopped
+    networks:
+      - nsddos-lab
+    volumes:
+      - sflowrt-data:/var/lib/nsddos/sflowrt
+    healthcheck:
+      test: ["CMD-SHELL", "tr '\\0' ' ' </proc/1/cmdline | grep -q '[s]flowrt.jar'"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
+  detector:
+    image: python:3.11-slim
+    container_name: nsddos-detector
+    command: ["python", "-m", "http.server", "9000", "--bind", "0.0.0.0", "--directory", "/var/lib/nsddos/detector"]
+    ports:
+      - "9000:9000"
+    environment:
+      NSDDOS_SERVICE: detector
+      DETECTOR_HOME: /var/lib/nsddos/detector
+    restart: unless-stopped
+    networks:
+      - nsddos-lab
+    volumes:
+      - detector-data:/var/lib/nsddos/detector
+    healthcheck:
+      test: ["CMD-SHELL", "tr '\\0' ' ' </proc/1/cmdline | grep -q 'http.server 9000'"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 5s
+
+networks:
+  nsddos-lab:
+    driver: bridge
+
+volumes:
+  floodlight-data:
+  sflowrt-data:
+  detector-data:

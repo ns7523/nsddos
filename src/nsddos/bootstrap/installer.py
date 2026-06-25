@@ -9,8 +9,10 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 
+from nsddos.bootstrap.assets import runtime_asset_version
 from nsddos.bootstrap.commands import (
     SystemCommand,
+    asset_download_command,
     compose_subprocess_command,
     runtime_init_command,
     venv_command,
@@ -66,6 +68,13 @@ def commands_for_requirement(
         return build_docker_permission_commands()
     if requirement.title == "Create Runtime Directories":
         return build_runtime_directory_commands(scan.missing_runtime_directories)
+    if requirement.title == "Download Runtime Assets":
+        return (
+            asset_download_command(
+                "Download runtime payload bundle",
+                version=runtime_asset_version(),
+            ),
+        )
     if requirement.title == "Build Containers":
         return (
             compose_subprocess_command("Build container images", ("build",)),

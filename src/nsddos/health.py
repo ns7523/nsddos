@@ -6,9 +6,10 @@ from pathlib import Path
 from shutil import which
 import subprocess
 
+from nsddos.bootstrap.assets import detect_runtime_asset_status
 from nsddos.bootstrap.startup_profiles import DEFAULT_STARTUP_PROFILE
 from nsddos.config import ensure_runtime_directories, load_config, load_runtime_state
-from nsddos.constants import COMPOSE_FILE, FLOODLIGHT_JAR, MININET_BIN, SFLOWRT_JAR
+from nsddos.constants import MININET_BIN, get_compose_file, get_floodlight_jar, get_sflowrt_jar
 from nsddos.docker_manager import DockerManager
 from nsddos.providers.docker_helper import LAB_HELPER_CONTAINER, helper_exec, helper_running
 from nsddos.providers.floodlight.provider import FloodlightProvider
@@ -38,7 +39,7 @@ def check_docker_daemon() -> bool:
 
 def check_compose_file() -> bool:
     """Check Docker Compose file availability."""
-    return COMPOSE_FILE.exists()
+    return get_compose_file().exists()
 
 
 def check_runtime_directories() -> list[Path]:
@@ -122,9 +123,13 @@ def collect_static_health() -> list[HealthResult]:
     """Collect non-runtime-dependent checks."""
     helper_mininet_ok, helper_mininet_detail = _helper_mininet_binary()
     helper_ovs_ok, helper_ovs_detail = _helper_ovs_ready()
+    asset_status = detect_runtime_asset_status()
+    compose_file = get_compose_file()
+    floodlight_jar = get_floodlight_jar()
+    sflowrt_jar = get_sflowrt_jar()
     return [
         HealthResult("docker", check_docker_installed(), "docker CLI available", "static"),
-        HealthResult("compose", check_compose_file(), str(COMPOSE_FILE), "static"),
+        HealthResult("compose", check_compose_file(), str(compose_file), "static"),
         HealthResult("config", check_config_valid(), "config schema loaded", "static"),
         HealthResult(
             "runtime_dirs",
@@ -134,16 +139,17 @@ def collect_static_health() -> list[HealthResult]:
         ),
         HealthResult(
             "floodlight_artifact",
-            FLOODLIGHT_JAR.exists(),
-            str(FLOODLIGHT_JAR),
+            floodlight_jar.exists(),
+            str(floodlight_jar),
             "static",
         ),
         HealthResult(
             "sflowrt_artifact",
-            SFLOWRT_JAR.exists(),
-            str(SFLOWRT_JAR),
+            sflowrt_jar.exists(),
+            str(sflowrt_jar),
             "static",
         ),
+        HealthResult("runtime_assets", asset_status.ready, asset_status.detail, "static"),
         HealthResult(
             "mininet_binary",
             MININET_BIN.exists() or which("mn") is not None or helper_mininet_ok,

@@ -6,7 +6,7 @@ import subprocess
 from pathlib import Path
 
 from nsddos.bootstrap.state import ComposeBackend, StartupServiceStatus
-from nsddos.constants import COMPOSE_FILE
+from nsddos.constants import get_compose_file
 from nsddos.compose import compose_backend_name, resolve_compose_command
 from nsddos.docker_manager import DockerManager
 
@@ -23,17 +23,18 @@ def detect_compose_backend() -> ComposeBackend | None:
 def compose_command(
     backend: ComposeBackend,
     args: tuple[str, ...],
-    compose_file: Path = COMPOSE_FILE,
+    compose_file: Path | None = None,
 ) -> tuple[str, ...]:
     """Build full compose command."""
 
-    return (*backend.command, "-f", str(compose_file), *args)
+    target = compose_file or get_compose_file()
+    return (*backend.command, "-f", str(target), *args)
 
 
 def run_compose_command(
     backend: ComposeBackend,
     args: tuple[str, ...],
-    compose_file: Path = COMPOSE_FILE,
+    compose_file: Path | None = None,
 ) -> subprocess.CompletedProcess[str]:
     """Run compose command."""
 
@@ -48,11 +49,11 @@ def run_compose_command(
 
 def list_stack_services(
     backend: ComposeBackend,
-    compose_file: Path = COMPOSE_FILE,
+    compose_file: Path | None = None,
 ) -> tuple[StartupServiceStatus, ...]:
     """List compose services."""
     _ = backend
-    services = DockerManager(compose_file=compose_file).get_service_states()
+    services = DockerManager(compose_file=compose_file or get_compose_file()).get_service_states()
     return tuple(
         StartupServiceStatus(
             service_name=service.name,
@@ -90,7 +91,7 @@ def start_stack(
     backend: ComposeBackend,
     *,
     rebuild: bool,
-    compose_file: Path = COMPOSE_FILE,
+    compose_file: Path | None = None,
 ) -> subprocess.CompletedProcess[str]:
     """Start compose stack."""
 

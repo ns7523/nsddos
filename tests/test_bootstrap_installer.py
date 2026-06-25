@@ -29,6 +29,9 @@ def _scan(**overrides) -> EnvironmentScan:
         "available_memory_bytes": 16 * 1024**3,
         "available_disk_bytes": 40 * 1024**3,
         "missing_runtime_directories": (),
+        "runtime_assets_ready": True,
+        "runtime_assets_source": "repo",
+        "runtime_assets_detail": "repository runtime payloads available",
     }
     payload.update(overrides)
     return EnvironmentScan(**payload)
@@ -67,6 +70,19 @@ def test_build_containers_requirement_uses_compose_command_kind() -> None:
     assert len(commands) == 1
     assert commands[0].kind == "compose"
     assert commands[0].compose_args == ("build",)
+
+
+def test_download_runtime_assets_requirement_uses_asset_command() -> None:
+    requirement = InstallRequirement("H", "Download Runtime Assets", "Download assets.")
+
+    commands = commands_for_requirement(
+        requirement,
+        _scan(runtime_assets_ready=False),
+        OSProfile(family="Linux", distribution="ubuntu", package_manager="apt", supported=True, homebrew_installed=False),
+    )
+
+    assert len(commands) == 1
+    assert commands[0].kind == "asset-download"
 
 
 def test_run_system_command_uses_v2_compose_backend(monkeypatch) -> None:

@@ -13,15 +13,15 @@ from loguru import logger
 
 from nsddos.config import build_runtime_state, load_runtime_state, write_runtime_state
 from nsddos.compose import resolve_compose_command
-from nsddos.constants import COMPOSE_FILE
+from nsddos.constants import get_compose_file
 from nsddos.runtime.models import ServiceState
 
 
 class DockerManager:
     """Minimal Docker Compose runtime manager."""
 
-    def __init__(self, compose_file: Path = COMPOSE_FILE) -> None:
-        self.compose_file = compose_file
+    def __init__(self, compose_file: Path | None = None) -> None:
+        self.compose_file = compose_file or get_compose_file()
 
     @staticmethod
     def is_docker_installed() -> bool:

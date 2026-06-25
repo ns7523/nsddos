@@ -8,6 +8,11 @@ APP_NAME = "nsddos"
 APP_HOME_ENV = "NSDDOS_HOME"
 APP_CONFIG_ENV = "NSDDOS_CONFIG"
 APP_COMPOSE_ENV = "NSDDOS_COMPOSE_FILE"
+APP_ASSET_ROOT_ENV = "NSDDOS_ASSET_ROOT"
+APP_RUNTIME_VERSION_ENV = "NSDDOS_RUNTIME_VERSION"
+RUNTIME_ASSET_RELEASE_REPO = "ns7523/nsddos"
+RUNTIME_ASSET_BUNDLE_PATTERN = "nsddos-runtime-{version}.tar.gz"
+RUNTIME_ASSET_MANIFEST_PATTERN = "nsddos-runtime-{version}.manifest.json"
 
 try:
     APP_VERSION = version(APP_NAME)
@@ -34,6 +39,7 @@ SNAPSHOT_DIR = RUNTIME_DIR / "snapshots"
 CONFIG_PATH = Path(os.getenv(APP_CONFIG_ENV, APP_DIR / "config.yaml")).expanduser()
 STATE_PATH = RUNTIME_DIR / "state.json"
 EVENTS_PATH = RUNTIME_DIR / "events.log"
+ASSET_CACHE_DIR = Path.home() / ".nsddos" / "cache"
 COMPOSE_FILE = Path(
     os.getenv(APP_COMPOSE_ENV, PROJECT_ROOT / "docker-compose.yml")
 ).expanduser()
@@ -60,3 +66,33 @@ RUNTIME_DIRECTORIES = (
     RUNTIME_DIR,
     SNAPSHOT_DIR,
 )
+
+
+def get_runtime_asset_version() -> str:
+    """Return effective runtime asset version."""
+
+    return os.getenv(APP_RUNTIME_VERSION_ENV, APP_VERSION).strip() or APP_VERSION
+
+
+def get_compose_file() -> Path:
+    """Return effective compose file path."""
+
+    from nsddos.bootstrap.assets import compose_file_path
+
+    return compose_file_path()
+
+
+def get_floodlight_jar() -> Path:
+    """Return effective Floodlight jar path."""
+
+    from nsddos.bootstrap.assets import floodlight_jar_path
+
+    return floodlight_jar_path()
+
+
+def get_sflowrt_jar() -> Path:
+    """Return effective sFlow-RT jar path."""
+
+    from nsddos.bootstrap.assets import sflowrt_jar_path
+
+    return sflowrt_jar_path()

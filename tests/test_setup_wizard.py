@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import subprocess
+from pathlib import Path
 
 from typer.testing import CliRunner
 
+from nsddos.bootstrap.assets_models import RuntimeAssetStatus
 from nsddos.bootstrap.planner import build_dependency_plan
 from nsddos.bootstrap.profiles import DOCKER_RUNTIME_ONLY, FULL_SDN_LAB_MODE, get_profile_by_choice
 from nsddos.bootstrap.questions import ask_deployment_profile
@@ -29,6 +31,19 @@ def test_collect_environment_scan_detects_extended_fields(monkeypatch) -> None:
     monkeypatch.setattr(
         "nsddos.bootstrap.environment.shutil.disk_usage",
         lambda path: (100, 40, 60),
+    )
+    monkeypatch.setattr(
+        "nsddos.bootstrap.setup.detect_runtime_asset_status",
+        lambda: RuntimeAssetStatus(
+            ready=False,
+            source="package",
+            version="0.9.0b2",
+            root=Path("/tmp/runtime-assets"),
+            compose_file=Path("/tmp/runtime-assets/docker-compose.yml"),
+            floodlight_jar=Path("/tmp/runtime-assets/external/floodlight/floodlight.jar"),
+            sflowrt_jar=Path("/tmp/runtime-assets/external/sflowrt/lib/sflowrt.jar"),
+            detail="package templates only; runtime payload download required",
+        ),
     )
 
     def fake_run(command, **kwargs):
@@ -54,6 +69,8 @@ def test_collect_environment_scan_detects_extended_fields(monkeypatch) -> None:
     assert scan.available_memory_bytes == 4096 * 1024
     assert scan.available_disk_bytes == 60
     assert isinstance(scan.missing_runtime_directories, tuple)
+    assert scan.runtime_assets_ready is False
+    assert scan.runtime_assets_source == "package"
 
 
 def test_collect_environment_scan_reports_legacy_compose_detail(monkeypatch) -> None:
@@ -67,6 +84,19 @@ def test_collect_environment_scan_reports_legacy_compose_detail(monkeypatch) -> 
     monkeypatch.setattr("nsddos.bootstrap.environment.sys.base_prefix", "/usr")
     monkeypatch.setattr("nsddos.bootstrap.environment.os.sysconf", lambda name: 4096 if name == "SC_PAGE_SIZE" else 1024)
     monkeypatch.setattr("nsddos.bootstrap.environment.shutil.disk_usage", lambda path: (100, 40, 60))
+    monkeypatch.setattr(
+        "nsddos.bootstrap.setup.detect_runtime_asset_status",
+        lambda: RuntimeAssetStatus(
+            ready=True,
+            source="repo",
+            version="0.9.0b2",
+            root=Path("/tmp/runtime-assets"),
+            compose_file=Path("/tmp/runtime-assets/docker-compose.yml"),
+            floodlight_jar=Path("/tmp/runtime-assets/external/floodlight/floodlight.jar"),
+            sflowrt_jar=Path("/tmp/runtime-assets/external/sflowrt/lib/sflowrt.jar"),
+            detail="repository runtime payloads available",
+        ),
+    )
 
     def fake_run(command, **kwargs):
         if command == ["docker", "info"]:
@@ -108,6 +138,9 @@ def test_dependency_planning_orders_missing_requirements() -> None:
         available_memory_bytes=4 * 1024**3,
         available_disk_bytes=10 * 1024**3,
         missing_runtime_directories=("/tmp/runtime",),
+        runtime_assets_ready=False,
+        runtime_assets_source="package",
+        runtime_assets_detail="package templates only; runtime payload download required",
     )
 
     plan = build_dependency_plan(scan, FULL_SDN_LAB_MODE)
@@ -119,6 +152,7 @@ def test_dependency_planning_orders_missing_requirements() -> None:
     assert "Create Virtual Environment" in titles
     assert "Configure Docker Permissions" in titles
     assert "Create Runtime Directories" in titles
+    assert "Download Runtime Assets" in titles
     assert "Prepare Linux Host" in titles
     assert "Build Containers" in titles
     assert "Initialize Runtime" in titles
@@ -138,6 +172,9 @@ def test_render_setup_wizard_returns_setup_state(monkeypatch) -> None:
         available_memory_bytes=16 * 1024**3,
         available_disk_bytes=40 * 1024**3,
         missing_runtime_directories=(),
+        runtime_assets_ready=True,
+        runtime_assets_source="repo",
+        runtime_assets_detail="repository runtime payloads available",
     )
     monkeypatch.setattr("nsddos.bootstrap.wizard.collect_environment_scan", lambda: scan)
     monkeypatch.setattr("nsddos.bootstrap.wizard.ask_deployment_profile", lambda console: DOCKER_RUNTIME_ONLY)

@@ -17,6 +17,8 @@ class SystemCommand:
     rollback_argv: tuple[str, ...] = ()
     reversible: bool = False
     compose_args: tuple[str, ...] = ()
+    runtime_version: str | None = None
+    force: bool = False
 
 
 def subprocess_command(
@@ -64,3 +66,14 @@ def compose_subprocess_command(description: str, args: tuple[str, ...]) -> Syste
     """Build compose-backed command resolved at execution time."""
 
     return SystemCommand(kind="compose", description=description, compose_args=args)
+
+
+def asset_download_command(description: str, version: str | None = None, force: bool = False) -> SystemCommand:
+    """Build runtime asset download command."""
+
+    return SystemCommand(
+        kind="asset-download",
+        description=description,
+        runtime_version=version,
+        force=force,
+    )

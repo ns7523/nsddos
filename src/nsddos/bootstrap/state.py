@@ -51,6 +51,9 @@ class EnvironmentScan:
     available_memory_bytes: int
     available_disk_bytes: int
     missing_runtime_directories: tuple[str, ...]
+    runtime_assets_ready: bool
+    runtime_assets_source: str
+    runtime_assets_detail: str
 
 
 @dataclass(frozen=True)

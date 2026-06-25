@@ -55,6 +55,10 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]
 nsddos = [
+  "bootstrap/templates/runtime/**/*.Dockerfile",
+  "bootstrap/templates/runtime/**/*.py",
+  "bootstrap/templates/runtime/**/*.sh",
+  "bootstrap/templates/runtime/**/*.yml",
   "ui/templates/**/*.html",
   "ui/static/**/*.css",
   "ui/static/**/*.js",

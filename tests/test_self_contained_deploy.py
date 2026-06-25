@@ -88,6 +88,10 @@ def test_pyproject_limits_packaged_assets_to_in_package_ui_files() -> None:
     package_data = setuptools_cfg["package-data"]["nsddos"]
 
     assert setuptools_cfg["include-package-data"] is True
+    assert "bootstrap/templates/runtime/**/*.Dockerfile" in package_data
+    assert "bootstrap/templates/runtime/**/*.py" in package_data
+    assert "bootstrap/templates/runtime/**/*.sh" in package_data
+    assert "bootstrap/templates/runtime/**/*.yml" in package_data
     assert "ui/templates/**/*.html" in package_data
     assert "ui/static/**/*.css" in package_data
     assert "ui/static/**/*.js" in package_data

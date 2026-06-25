@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import platform
 
+from nsddos.bootstrap.assets import detect_runtime_asset_status
 from nsddos.bootstrap.environment import (
     _detect_available_disk_bytes,
     _detect_available_memory_bytes,
@@ -22,6 +23,7 @@ def collect_environment_scan() -> EnvironmentScan:
 
     os_name = platform.system() or "Unknown"
     docker = _detect_tool("docker")
+    asset_status = detect_runtime_asset_status()
     return EnvironmentScan(
         os_name=os_name,
         os_family=_os_family(os_name),
@@ -35,4 +37,7 @@ def collect_environment_scan() -> EnvironmentScan:
         available_memory_bytes=_detect_available_memory_bytes(),
         available_disk_bytes=_detect_available_disk_bytes(),
         missing_runtime_directories=detect_missing_runtime_directories(),
+        runtime_assets_ready=asset_status.ready,
+        runtime_assets_source=asset_status.source,
+        runtime_assets_detail=asset_status.detail,
     )

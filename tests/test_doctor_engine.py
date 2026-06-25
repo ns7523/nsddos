@@ -42,6 +42,9 @@ def _scan(**overrides) -> EnvironmentScan:
         "available_memory_bytes": 16 * 1024**3,
         "available_disk_bytes": 40 * 1024**3,
         "missing_runtime_directories": (),
+        "runtime_assets_ready": True,
+        "runtime_assets_source": "repo",
+        "runtime_assets_detail": "repository runtime payloads available",
     }
     payload.update(overrides)
     return EnvironmentScan(**payload)
@@ -217,7 +220,18 @@ def test_execute_repairs_routes_actions(monkeypatch) -> None:
     applied = execute_repairs(create_console(record=True), plan)
 
     assert applied == tuple(item.title for item in plan)
-    assert ("installer", ("Install Docker", "Install Docker Compose", "Start Docker Daemon", "Configure Docker Permissions", "Create Runtime Directories", "Install Git")) in calls
+    assert (
+        "installer",
+        (
+            "Install Docker",
+            "Install Docker Compose",
+            "Start Docker Daemon",
+            "Configure Docker Permissions",
+            "Create Runtime Directories",
+            "Download Runtime Assets",
+            "Install Git",
+        ),
+    ) in calls
     assert ("installer", ("Create Virtual Environment",)) in calls
     assert ("installer", ("Install Git",)) in calls
 

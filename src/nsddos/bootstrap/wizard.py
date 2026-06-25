@@ -73,6 +73,11 @@ def _scan_table(scan: EnvironmentScan) -> Table:
         status_text("OK" if not scan.missing_runtime_directories else "WARN"),
         "Ready" if not scan.missing_runtime_directories else f"Missing {len(scan.missing_runtime_directories)}",
     )
+    table.add_row(
+        "Runtime Assets",
+        status_text("OK" if scan.runtime_assets_ready else "WARN"),
+        scan.runtime_assets_detail,
+    )
     return table
 
 

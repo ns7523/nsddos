@@ -11,7 +11,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from nsddos.config import ensure_runtime_directories, load_runtime_state
-from nsddos.constants import APP_DIR, COMPOSE_FILE, CONFIG_PATH, SNAPSHOT_DIR
+from nsddos.constants import APP_DIR, CONFIG_PATH, SNAPSHOT_DIR, get_compose_file
 from nsddos.docker_manager import DockerManager
 from nsddos.runtime.dependencies import dependency_validation
 from nsddos.runtime.environment import validate_bootstrap
@@ -82,6 +82,7 @@ def doctor_runtime(config: dict[str, Any], deep: bool = False) -> list[Verificat
     from nsddos.runtime.reproducibility import analyze_reproducibility
 
     provider_status = collect_provider_status(config)
+    compose_file = get_compose_file()
     profile = detect_runtime_profile().to_dict()
     capabilities = detect_runtime_capabilities().to_dict()
     environment = validate_runtime_environment(config).to_dict()
@@ -91,7 +92,7 @@ def doctor_runtime(config: dict[str, Any], deep: bool = False) -> list[Verificat
     checks = [
         _result("python", "pass", sys.version.split()[0], "env"),
         _result("config_path", "pass", str(CONFIG_PATH), "env"),
-        _result("compose_path", "pass" if COMPOSE_FILE.exists() else "fail", str(COMPOSE_FILE), "env"),
+        _result("compose_path", "pass" if compose_file.exists() else "fail", str(compose_file), "env"),
         _result("runtime_home", "pass", str(APP_DIR), "env"),
         _result("docker_cli", "pass" if docker.is_docker_installed() else "fail", "docker CLI", "env"),
         _result("docker_daemon", "pass" if docker.is_daemon_running() else "warn", "docker daemon", "env"),

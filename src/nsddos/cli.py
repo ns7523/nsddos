@@ -15,6 +15,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from nsddos.bootstrap import render_welcome_screen, run_doctor_command, run_reset_command, run_setup_wizard, run_startup_command
+from nsddos.bootstrap.assets import download_runtime_assets
 from nsddos.bootstrap.doctor import ensure_doctor_success
 from nsddos.bootstrap.reset import ensure_reset_success
 from nsddos.bootstrap.ui_launcher import replace_listener_on_port
@@ -108,11 +109,13 @@ runtime_app = typer.Typer(help="Inspect runtime evidence and timeline.")
 api_app = typer.Typer(help="Manage read-only runtime API.")
 service_app = typer.Typer(help="Manage persistent runtime service.")
 ui_app = typer.Typer(help="Manage operational observability UI.")
+bootstrap_app = typer.Typer(help="Manage runtime asset bootstrap.")
 app.add_typer(lab_app, name="lab")
 app.add_typer(runtime_app, name="runtime")
 app.add_typer(api_app, name="api")
 app.add_typer(service_app, name="service")
 app.add_typer(ui_app, name="ui")
+app.add_typer(bootstrap_app, name="bootstrap")
 console = Console()
 
 
@@ -2517,6 +2520,19 @@ def welcome() -> None:
 def setup() -> None:
     """Run interactive setup wizard."""
     run_setup_wizard()
+
+
+@bootstrap_app.command("download")
+def bootstrap_download(
+    version: str | None = typer.Option(None, "--version"),
+    force: bool = typer.Option(False, "--force"),
+) -> None:
+    """Download and verify runtime asset bundle."""
+    try:
+        download_runtime_assets(version=version, force=force, console=console)
+    except Exception as exc:
+        console.print(f"[bold red]Runtime asset download failed:[/bold red] {exc}")
+        raise typer.Exit(code=1) from exc
 
 
 def main() -> None:

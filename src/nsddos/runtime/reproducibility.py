@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from nsddos.constants import COMPOSE_FILE
+from nsddos.constants import get_compose_file
 from nsddos.runtime.environment import validate_runtime_environment
 from nsddos.runtime.models import ReproducibilityAssessment
 from nsddos.runtime.profiles import detect_runtime_profile
@@ -14,9 +14,10 @@ def analyze_reproducibility(config: dict[str, Any]) -> ReproducibilityAssessment
     """Deterministically assess reproducibility quality."""
     profile = detect_runtime_profile()
     environment = validate_runtime_environment(config)
+    compose_file = get_compose_file()
 
     deterministic_inputs = ["yaml-config", "src-layout", "typed-runtime-state"]
-    if COMPOSE_FILE.exists():
+    if compose_file.exists():
         deterministic_inputs.append("compose-file")
     if profile.name in {"linux-native", "docker-linux"}:
         deterministic_inputs.append("canonical-linux-profile")
@@ -44,4 +45,3 @@ def analyze_reproducibility(config: dict[str, Any]) -> ReproducibilityAssessment
         profile_stable=profile_stable,
         detail=f"profile={profile.name} environment={environment.status}",
     )
-

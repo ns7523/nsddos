@@ -55,4 +55,5 @@ REQUIRED_STARTUP_REQUIREMENTS = (
     "Start Docker Daemon",
     "Configure Docker Permissions",
     "Create Runtime Directories",
+    "Download Runtime Assets",
 )

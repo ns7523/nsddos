@@ -41,11 +41,15 @@ def build_install_requirements(
         requirements.append(
             InstallRequirement("G", "Create Runtime Directories", "Create required NSDDOS runtime directories.")
         )
+    if not scan.runtime_assets_ready:
+        requirements.append(
+            InstallRequirement("H", "Download Runtime Assets", "Download and verify required runtime payloads.")
+        )
     requirements.extend(advisory)
     requirements.append(
-        InstallRequirement("H", "Build Containers", "Prepare container images after prerequisites are satisfied.")
+        InstallRequirement("I", "Build Containers", "Prepare container images after prerequisites are satisfied.")
     )
     requirements.append(
-        InstallRequirement("I", "Initialize Runtime", "Initialize runtime state and configuration.")
+        InstallRequirement("J", "Initialize Runtime", "Initialize runtime state and configuration.")
     )
     return tuple(requirements)

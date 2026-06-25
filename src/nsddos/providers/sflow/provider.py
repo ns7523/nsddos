@@ -9,7 +9,7 @@ from urllib.error import URLError
 from urllib.request import urlopen
 
 from nsddos.providers.base import BaseProvider
-from nsddos.constants import DEFAULT_SFLOWRT_PORT, SFLOWRT_JAR
+from nsddos.constants import DEFAULT_SFLOWRT_PORT, get_sflowrt_jar
 
 
 class SFlowProvider(BaseProvider):
@@ -18,9 +18,9 @@ class SFlowProvider(BaseProvider):
     def __init__(
         self,
         api_url: str | None = None,
-        artifact_path: Path = SFLOWRT_JAR,
+        artifact_path: Path | None = None,
     ) -> None:
-        self.artifact_path = artifact_path
+        self.artifact_path = artifact_path or get_sflowrt_jar()
         self.api_url = api_url or f"http://127.0.0.1:{DEFAULT_SFLOWRT_PORT}"
 
     def artifact_exists(self) -> bool:
