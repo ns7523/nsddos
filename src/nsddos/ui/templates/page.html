@@ -1,61 +1,126 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="grid{% if page.name == 'overview' %} overview-grid{% endif %}">
+<section class="dashboard-grid page-{{ page.name }}">
+  {% if page.stats %}
+  <section class="panel metric-strip">
+    <div class="panel-header">
+      <div>
+        <div class="panel-kicker">LIVE METRICS</div>
+        <div class="panel-title">Runtime Telemetry</div>
+      </div>
+    </div>
+    <div class="metric-grid">
+      {% for card in page.stats %}
+      <article class="metric-card {{ card.tone }}">
+        <div class="metric-label">{{ card.label }}</div>
+        <div class="metric-value">{{ card.value }}</div>
+        <div class="metric-detail">{{ card.detail }}</div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if page.statuses %}
+  <section class="panel status-panel">
+    <div class="panel-header">
+      <div>
+        <div class="panel-kicker">HEALTH MATRIX</div>
+        <div class="panel-title">SERVICE STATUS MATRIX</div>
+      </div>
+    </div>
+    <div class="status-tile-grid">
+      {% for tile in page.statuses %}
+      <article class="status-tile {{ tile.state }}">
+        <div class="status-tile-label">{{ tile.label }}</div>
+        <div class="status-tile-value">{{ tile.value }}</div>
+        <div class="status-tile-detail">{{ tile.detail }}</div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if page.actions %}
+  <section class="panel action-panel" id="pageActions">
+    <div class="panel-header">
+      <div>
+        <div class="panel-kicker">OPERATOR ACTIONS</div>
+        <div class="panel-title">Attack Simulator Rail</div>
+      </div>
+    </div>
+    <div class="action-grid">
+      {% for action in page.actions %}
+      <button type="button" class="action-button {{ action.kind }}" data-action="{{ action.action }}">
+        <span>{{ action.label }}</span>
+        <small>{{ action.detail }}</small>
+      </button>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
   {% if page.topology %}
   <section class="panel topology-panel" id="topologyPanel">
-    <div class="panel-title">{{ page.topology.title }}</div>
-    <svg
-      class="topology-svg"
-      viewBox="0 0 1000 620"
-      aria-label="{{ page.topology.title }}"
+    <div class="panel-header">
+      <div>
+        <div class="panel-kicker">LIVE TOPOLOGY</div>
+        <div class="panel-title">{{ page.topology.title }}</div>
+      </div>
+    </div>
+    <div
+      class="topology-canvas"
+      id="topologyCanvas"
       data-topology="true"
-    >
-      {% for edge in page.topology.edges %}
-      {% set source = (page.topology.nodes | selectattr("node_id", "equalto", edge.source) | first) %}
-      {% set target = (page.topology.nodes | selectattr("node_id", "equalto", edge.target) | first) %}
-      <line
-        x1="{{ source.x }}"
-        y1="{{ source.y }}"
-        x2="{{ target.x }}"
-        y2="{{ target.y }}"
-        class="topology-edge {{ edge.state|lower }}{% if edge.pulse %} pulse{% endif %}"
-        data-edge-id="{{ edge.edge_id }}"
-      />
-      {% endfor %}
-      {% for node in page.topology.nodes %}
-      <g class="topology-node {{ node.state|lower }}" data-node-id="{{ node.node_id }}" transform="translate({{ node.x }},{{ node.y }})">
-        <rect x="-88" y="-20" width="176" height="40"></rect>
-        <text text-anchor="middle" dominant-baseline="middle">{{ node.label }}</text>
-      </g>
-      {% endfor %}
-    </svg>
+      data-topology-payload='{{ page.topology.to_dict()|tojson }}'
+    ></div>
   </section>
   {% endif %}
 
   {% if page.traffic_chart %}
   <section class="panel chart-panel">
-    <div class="panel-title">{{ page.traffic_chart.title }}</div>
-    <svg class="chart-svg" id="chart-{{ page.traffic_chart.chart_id }}" data-chart='{{ page.traffic_chart.to_dict()|tojson }}'></svg>
+    <div class="panel-header">
+      <div>
+        <div class="panel-kicker">REALTIME CHART</div>
+        <div class="panel-title">{{ page.traffic_chart.title }}</div>
+      </div>
+    </div>
+    <canvas class="chart-canvas" id="chart-{{ page.traffic_chart.chart_id }}" data-chart='{{ page.traffic_chart.to_dict()|tojson }}'></canvas>
   </section>
   {% endif %}
 
   {% if page.attack_chart %}
   <section class="panel chart-panel">
-    <div class="panel-title">{{ page.attack_chart.title }}</div>
-    <svg class="chart-svg" id="chart-{{ page.attack_chart.chart_id }}" data-chart='{{ page.attack_chart.to_dict()|tojson }}'></svg>
+    <div class="panel-header">
+      <div>
+        <div class="panel-kicker">ATTACK ANALYTICS</div>
+        <div class="panel-title">{{ page.attack_chart.title }}</div>
+      </div>
+    </div>
+    <canvas class="chart-canvas" id="chart-{{ page.attack_chart.chart_id }}" data-chart='{{ page.attack_chart.to_dict()|tojson }}'></canvas>
   </section>
   {% endif %}
 
   {% for chart in page.charts %}
   <section class="panel chart-panel">
-    <div class="panel-title">{{ chart.title }}</div>
-    <svg class="chart-svg" id="chart-{{ chart.chart_id }}" data-chart='{{ chart.to_dict()|tojson }}'></svg>
+    <div class="panel-header">
+      <div>
+        <div class="panel-kicker">ANALYTICS</div>
+        <div class="panel-title">{{ chart.title }}</div>
+      </div>
+    </div>
+    <canvas class="chart-canvas" id="chart-{{ chart.chart_id }}" data-chart='{{ chart.to_dict()|tojson }}'></canvas>
   </section>
   {% endfor %}
 
   {% if page.feed %}
   <section class="panel feed-panel" id="feedPanel">
-    <div class="panel-title">{{ page.feed.title }}</div>
+    <div class="panel-header">
+      <div>
+        <div class="panel-kicker">EVENT STREAM</div>
+        <div class="panel-title">{{ page.feed.title }}</div>
+      </div>
+    </div>
     <div class="event-feed">
       {% for entry in page.feed.entries %}
       <div class="feed-row {{ entry.level|lower }}">
@@ -71,8 +136,20 @@
 
   {% if page.services %}
   <section class="panel services-panel" id="servicesPanel">
-    <div class="panel-title">SERVICE STATUS</div>
+    <div class="panel-header">
+      <div>
+        <div class="panel-kicker">SERVICE MATRIX</div>
+        <div class="panel-title">Container Runtime Health</div>
+      </div>
+    </div>
     <table class="terminal-table">
+      <thead>
+        <tr>
+          <th>SERVICE</th>
+          <th>STATE</th>
+          <th>DETAIL</th>
+        </tr>
+      </thead>
       <tbody>
         {% for service in page.services %}
         <tr class="{{ service.status|lower }}">
@@ -88,7 +165,12 @@
 
   {% if page.cta %}
   <section class="panel cta-panel" id="pageCta">
-    <div class="panel-title">{{ page.cta.title }}</div>
+    <div class="panel-header">
+      <div>
+        <div class="panel-kicker">CLI HANDOFF</div>
+        <div class="panel-title">{{ page.cta.title }}</div>
+      </div>
+    </div>
     <div class="cta-command">{{ page.cta.command }}</div>
     <div class="cta-detail">{{ page.cta.detail }}</div>
   </section>
@@ -96,7 +178,12 @@
 
   {% for table in page.tables %}
   <section class="panel data-panel">
-    <div class="panel-title">{{ table.title }}</div>
+    <div class="panel-header">
+      <div>
+        <div class="panel-kicker">DATA PANEL</div>
+        <div class="panel-title">{{ table.title }}</div>
+      </div>
+    </div>
     {% if table.rows %}
     <table class="terminal-table">
       <thead>

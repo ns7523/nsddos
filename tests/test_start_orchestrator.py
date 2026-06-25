@@ -300,5 +300,6 @@ def test_run_startup_command_renders_boot_monitor_without_panel_matrix(monkeypat
     assert "BOOT LOG" in output
     assert "SERVICE BRING-UP" in output
     assert "NSDDOS" in output
-    assert "Runtime Phase Matrix" not in output
-    assert "Command Center" not in output
+    assert "COMMAND CENTER STARTUP MATRIX" in output
+    assert "ENV" in output
+    assert "UI" in output

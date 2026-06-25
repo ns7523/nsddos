@@ -1,110 +1,124 @@
 (function () {
-  const NS = "http://www.w3.org/2000/svg";
+  const palette = {
+    green: "#7cff6b",
+    cyan: "#61f2ff",
+    amber: "#ffcb68",
+    red: "#ff6f78",
+    muted: "#7cb9c4",
+    ink: "#07131c",
+  };
 
-  function svgNode(tag, attrs) {
-    const node = document.createElementNS(NS, tag);
-    Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
-    return node;
+  function pickColors(count) {
+    const base = [palette.cyan, palette.green, palette.amber, palette.red, "#98abff", "#b68fff"];
+    return Array.from({ length: count }, (_value, index) => base[index % base.length]);
   }
 
-  function clear(node) {
-    while (node.firstChild) {
-      node.removeChild(node.firstChild);
+  function clear(canvas, context) {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = palette.ink;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  function resize(canvas) {
+    const width = canvas.clientWidth || 640;
+    const height = canvas.clientHeight || 320;
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
     }
   }
 
-  function renderLine(svg, chart) {
-    const width = 620;
-    const height = 220;
-    const left = 42;
-    const top = 16;
-    const innerWidth = width - left - 16;
-    const innerHeight = height - top - 28;
-    const max = Math.max(...chart.points.map((point) => Number(point.value) || 0), 1);
-
-    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-    svg.appendChild(svgNode("line", { x1: left, y1: top + innerHeight, x2: width - 10, y2: top + innerHeight, class: "chart-axis" }));
-    svg.appendChild(svgNode("line", { x1: left, y1: top, x2: left, y2: top + innerHeight, class: "chart-axis" }));
-
-    const points = chart.points.map((point, index) => {
-      const x = left + (chart.points.length === 1 ? innerWidth / 2 : (innerWidth / Math.max(chart.points.length - 1, 1)) * index);
-      const y = top + innerHeight - ((Number(point.value) || 0) / max) * (innerHeight - 12);
-      return { x, y, label: point.label, value: point.value };
-    });
-
-    svg.appendChild(svgNode("polyline", {
-      points: points.map((point) => `${point.x},${point.y}`).join(" "),
-      class: "chart-line",
-    }));
-
-    points.forEach((point) => {
-      svg.appendChild(svgNode("circle", { cx: point.x, cy: point.y, r: 3, class: "chart-dot" }));
-      const label = svgNode("text", { x: point.x, y: height - 6, "text-anchor": "middle", class: "chart-label" });
-      label.textContent = point.label;
-      svg.appendChild(label);
-    });
-
-    const value = svgNode("text", { x: left, y: 12, class: "chart-value" });
-    value.textContent = `${Math.round(max)} ${chart.unit}`;
-    svg.appendChild(value);
+  function drawAxes(context, width, height) {
+    context.strokeStyle = "rgba(97, 242, 255, 0.16)";
+    context.lineWidth = 1;
+    context.beginPath();
+    context.moveTo(48, 18);
+    context.lineTo(48, height - 34);
+    context.lineTo(width - 16, height - 34);
+    context.stroke();
   }
 
-  function renderBar(svg, chart) {
-    const width = 620;
-    const height = 220;
-    const left = 24;
-    const top = 16;
-    const bottom = 40;
-    const innerHeight = height - top - bottom;
-    const max = Math.max(...chart.points.map((point) => Number(point.value) || 0), 1);
-    const barWidth = Math.max((width - left * 2) / Math.max(chart.points.length, 1) - 18, 22);
+  function drawLine(canvas, context, chart) {
+    const points = chart.points || [];
+    const max = Math.max(...points.map((point) => Number(point.value) || 0), 1);
+    const width = canvas.width;
+    const height = canvas.height;
+    const innerWidth = width - 72;
+    const innerHeight = height - 74;
+    const step = points.length > 1 ? innerWidth / Math.max(points.length - 1, 1) : innerWidth / 2;
+    drawAxes(context, width, height);
+    context.strokeStyle = palette.cyan;
+    context.lineWidth = 2.5;
+    context.beginPath();
+    points.forEach((point, index) => {
+      const x = 48 + index * step;
+      const y = height - 34 - ((Number(point.value) || 0) / max) * innerHeight;
+      if (index === 0) {
+        context.moveTo(x, y);
+      } else {
+        context.lineTo(x, y);
+      }
+    });
+    context.stroke();
+    points.forEach((point, index) => {
+      const x = 48 + index * step;
+      const y = height - 34 - ((Number(point.value) || 0) / max) * innerHeight;
+      context.fillStyle = palette.green;
+      context.beginPath();
+      context.arc(x, y, 4, 0, Math.PI * 2);
+      context.fill();
+      context.fillStyle = palette.muted;
+      context.font = "11px 'JetBrains Mono'";
+      context.fillText(String(point.label).slice(0, 10), Math.max(16, x - 14), height - 12);
+    });
+  }
 
-    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-    svg.appendChild(svgNode("line", { x1: left, y1: top + innerHeight, x2: width - left, y2: top + innerHeight, class: "chart-axis" }));
-
-    chart.points.forEach((point, index) => {
+  function drawBars(canvas, context, chart) {
+    const points = chart.points || [];
+    const max = Math.max(...points.map((point) => Number(point.value) || 0), 1);
+    const width = canvas.width;
+    const height = canvas.height;
+    const innerHeight = height - 78;
+    const barWidth = Math.max(24, (width - 72) / Math.max(points.length, 1) - 12);
+    drawAxes(context, width, height);
+    pickColors(points.length).forEach((color, index) => {
+      const point = points[index];
       const value = Number(point.value) || 0;
-      const x = left + index * (barWidth + 18);
-      const barHeight = (value / max) * (innerHeight - 12);
-      const y = top + innerHeight - barHeight;
-      svg.appendChild(svgNode("rect", { x, y, width: barWidth, height: Math.max(barHeight, 1), class: "chart-bar" }));
-
-      const label = svgNode("text", { x: x + barWidth / 2, y: height - 18, "text-anchor": "middle", class: "chart-label" });
-      label.textContent = point.label;
-      svg.appendChild(label);
-
-      const amount = svgNode("text", { x: x + barWidth / 2, y: y - 6, "text-anchor": "middle", class: "chart-value" });
-      amount.textContent = String(Math.round(value * 100) / 100);
-      svg.appendChild(amount);
+      const barHeight = (value / max) * innerHeight;
+      const x = 56 + index * (barWidth + 12);
+      const y = height - 34 - barHeight;
+      context.fillStyle = color;
+      context.fillRect(x, y, barWidth, Math.max(barHeight, 1));
+      context.fillStyle = palette.muted;
+      context.font = "11px 'JetBrains Mono'";
+      context.fillText(String(point.label).slice(0, 10), x, height - 12);
     });
   }
 
-  function renderChart(svg, chart) {
-    clear(svg);
-    const frame = svgNode("g", { class: "chart-frame" });
-    svg.appendChild(frame);
-    if ((chart.chart_type || "").toLowerCase() === "line") {
-      renderLine(svg, chart);
+  function drawChart(canvas, chart) {
+    const context = canvas.getContext("2d");
+    if (!context) {
       return;
     }
-    renderBar(svg, chart);
+    resize(canvas);
+    clear(canvas, context);
+    if ((chart.chart_type || "").toLowerCase() === "line") {
+      drawLine(canvas, context, chart);
+      return;
+    }
+    drawBars(canvas, context, chart);
   }
 
   function renderCharts(page) {
     const charts = [];
-    if (page.traffic_chart) {
-      charts.push(page.traffic_chart);
-    }
-    if (page.attack_chart) {
-      charts.push(page.attack_chart);
-    }
+    if (page.traffic_chart) charts.push(page.traffic_chart);
+    if (page.attack_chart) charts.push(page.attack_chart);
     (page.charts || []).forEach((chart) => charts.push(chart));
     charts.forEach((chart) => {
-      const svg = document.getElementById(`chart-${chart.chart_id}`);
-      if (!svg) {
-        return;
+      const canvas = document.getElementById(`chart-${chart.chart_id}`);
+      if (canvas) {
+        drawChart(canvas, chart);
       }
-      renderChart(svg, chart);
     });
   }
 

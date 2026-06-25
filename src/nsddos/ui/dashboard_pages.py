@@ -13,6 +13,7 @@ from nsddos.service.diagnostics import collect_service_diagnostics
 from nsddos.ui.api_client import UiApiClient
 from nsddos.ui.lab_console import LAB_HOSTS, control_manager
 from nsddos.ui.models import (
+    UiActionControl,
     UiChartModel,
     UiChartPoint,
     UiCommandCta,
@@ -25,11 +26,13 @@ from nsddos.ui.models import (
     UiLabNode,
     UiLabTelemetryItem,
     UiLabTerminalTab,
+    UiMetricCard,
     UiPagePayload,
     UiPageSnapshot,
     UiServiceRow,
     UiStatusBarSnapshot,
     UiStatusField,
+    UiStatusTile,
     UiTableColumn,
     UiTableRow,
     UiTableSection,
@@ -66,6 +69,7 @@ EXPLORER_PATHS = (
 ATTACK_ORDER = (
     ("syn_flood", "SYN Flood"),
     ("udp_flood", "UDP Flood"),
+    ("icmp_flood", "ICMP Flood"),
     ("http_flood", "HTTP Flood"),
     ("slowloris", "Slowloris"),
 )
@@ -314,6 +318,48 @@ def _service_rows(bundle: dict[str, Any]) -> tuple[UiServiceRow, ...]:
     return tuple(UiServiceRow(name=name, status="ONLINE" if bool(okish) else "OFFLINE", detail=detail) for name, okish, detail in services)
 
 
+def _status_tiles(bundle: dict[str, Any]) -> tuple[UiStatusTile, ...]:
+    detection = bundle["detection"]
+    mitigation = bundle["mitigation"]
+    live = bundle["live"]
+    dashboard = bundle["dashboard"]
+    topology_state = "ONLINE" if bundle["health"].get("checks", {}).get("mininet") else "DEGRADED"
+    attack_state = "ACTIVE" if int(_safe_float(dashboard.get("active_attacks", 0), 0.0)) else "QUIET"
+    mitigation_state = "ENGAGED" if mitigation.get("mitigation_required") else "MONITOR"
+    return (
+        UiStatusTile("SYSTEM STATE", _system_status(bundle["health"].get("checks", {})), _field_state(_system_status(bundle["health"].get("checks", {}))), "container stack posture"),
+        UiStatusTile("THREAT LEVEL", _safe_text(detection.get("risk_level", "LOW")).upper(), _field_state(_safe_text(detection.get("risk_level", "LOW")).upper()), "live classifier severity"),
+        UiStatusTile("ATTACK STATUS", attack_state, "bad" if attack_state == "ACTIVE" else "good", _safe_text(detection.get("attack_type", "normal")).replace("_", " ").upper()),
+        UiStatusTile("TOPOLOGY", topology_state, _field_state(topology_state), "fabric + service graph"),
+        UiStatusTile("MITIGATION", mitigation_state, "warn" if mitigation_state == "ENGAGED" else "neutral", _safe_text(mitigation.get("execution_result", "standby")).upper()),
+        UiStatusTile("STREAM", _safe_text(live.get("provider_source", "unknown")).upper(), "good", f"{_fmt_packets(live.get('packet_rate', 0.0))} pps"),
+    )
+
+
+def _metric_cards(bundle: dict[str, Any]) -> tuple[UiMetricCard, ...]:
+    dashboard = bundle["dashboard"]
+    live = bundle["live"]
+    ml = bundle["ml"]
+    detection = bundle["detection"]
+    return (
+        UiMetricCard("PACKETS / SEC", _fmt_packets(live.get("packet_rate", dashboard.get("metrics", {}).get("packet_throughput", 0.0))), "live ingress rate", "good"),
+        UiMetricCard("BANDWIDTH", _fmt_bandwidth(live.get("byte_rate", dashboard.get("metrics", {}).get("byte_throughput", 0.0))), "telemetry throughput", "good"),
+        UiMetricCard("FLOWS / SEC", _fmt_int(live.get("active_flows", 0)), "active flow count", "neutral"),
+        UiMetricCard("ANOMALY SCORE", _fmt_ratio(ml.get("anomaly_score", 0.0)), "ml anomaly channel", "warn" if _safe_float(ml.get("anomaly_score", 0.0)) >= 0.5 else "good"),
+        UiMetricCard("CONFIDENCE", _fmt_ratio(detection.get("confidence", 0.0)), _safe_text(detection.get("attack_type", "normal")).replace("_", " ").upper(), "bad" if bool(dashboard.get("active_attacks", 0)) else "good"),
+        UiMetricCard("ATTACK RATE", _fmt_int(dashboard.get("active_attacks", 0)), "active attack sessions", "bad" if int(_safe_float(dashboard.get("active_attacks", 0), 0.0)) else "good"),
+    )
+
+
+def _attack_controls() -> tuple[UiActionControl, ...]:
+    return (
+        UiActionControl("Launch SYN Flood", "run-syn-flood", "attack", "tcp flood against live lab target"),
+        UiActionControl("Launch UDP Flood", "run-udp-flood", "attack", "udp saturation attack"),
+        UiActionControl("Launch ICMP Flood", "run-icmp-flood", "attack", "icmp flood via existing runtime helper"),
+        UiActionControl("Stop Attack", "stop-attack", "control", "halt active live attack suite"),
+    )
+
+
 def _topology(bundle: dict[str, Any]) -> UiTopologyMap:
     checks = bundle["health"].get("checks", {})
     service_states = {
@@ -390,9 +436,12 @@ class UiPageBuilder:
         return UiPagePayload(
             name="overview",
             title="OVERVIEW",
-            description="LIVE RUNTIME TELEMETRY",
+            eyebrow="MISSION CONTROL",
+            description="SYSTEM STATE / THREAT LEVEL / SERVICE MATRIX / LIVE TOPOLOGY",
             active_path="/ui",
             status_bar=_status_bar(bundle),
+            stats=_metric_cards(bundle),
+            statuses=_status_tiles(bundle),
             traffic_chart=_build_traffic_chart(bundle["dashboard"], bundle["live"]),
             attack_chart=_build_attack_chart(bundle["dashboard"]),
             topology=_topology(bundle),
@@ -424,10 +473,14 @@ class UiPageBuilder:
         )
         return UiPagePayload(
             name="infrastructure",
-            title="INFRASTRUCTURE",
-            description="SERVICE AND HOST STATE",
+            title="LIVE TOPOLOGY",
+            eyebrow="FABRIC VIEW",
+            description="LIVE LINK GRAPH / CONTAINER SERVICES / PROVIDER STATE",
             active_path="/ui/infrastructure",
             status_bar=_status_bar(bundle),
+            stats=_metric_cards(bundle)[:3],
+            statuses=_status_tiles(bundle)[:4],
+            topology=_topology(bundle),
             services=_service_rows(bundle),
             tables=(
                 _table("PROVIDER HEALTH", ("SERVICE", "STATE", "DETAIL"), provider_rows),
@@ -448,10 +501,18 @@ class UiPageBuilder:
         detection = bundle["detection"]
         return UiPagePayload(
             name="detection",
-            title="DETECTION",
-            description="CLASSIFICATION AND ANOMALY SIGNALS",
+            title="DETECTION ENGINE",
+            eyebrow="ML / ANALYTICS",
+            description="ACTIVE MODEL / ANOMALY SCORE / CONFIDENCE / FEATURE VECTOR / LATENCY",
             active_path="/ui/detection",
             status_bar=_status_bar(bundle),
+            stats=(
+                UiMetricCard("ACTIVE MODEL", _safe_text(ml.get("predicted_attack_type", "normal")).replace("_", " ").upper(), "current ml verdict", "neutral"),
+                UiMetricCard("ANOMALY SCORE", _fmt_ratio(ml.get("anomaly_score", 0.0)), "feature anomaly signal", "warn"),
+                UiMetricCard("CONFIDENCE", _fmt_ratio(ml.get("confidence_score", ml.get("confidence", 0.0))), "model confidence", "good"),
+                UiMetricCard("LATENCY", f"{_fmt_ratio(bundle['diagnostics'].get('diagnostics', {}).get('dashboard_latency_ms', 0.0))} ms", "dashboard inference latency", "neutral"),
+            ),
+            statuses=_status_tiles(bundle)[:4],
             attack_chart=_build_attack_chart(bundle["dashboard"]),
             charts=(
                 UiChartModel(
@@ -475,6 +536,8 @@ class UiPageBuilder:
                         ("RISK LEVEL", _safe_text(detection.get("risk_level", "low")).upper()),
                         ("PREDICTED", _safe_text(ml.get("predicted_attack_type", "normal")).upper()),
                         ("ANOMALY", _fmt_ratio(ml.get("anomaly_score", 0.0))),
+                        ("FEATURE VECTOR", f"SYN={_fmt_ratio(ml.get('syn_rate', 0.0))} UDP={_fmt_ratio(ml.get('udp_rate', 0.0))} ICMP={_fmt_ratio(ml.get('icmp_rate', 0.0))}"),
+                        ("LATENCY", f"{_fmt_ratio(bundle['diagnostics'].get('diagnostics', {}).get('dashboard_latency_ms', 0.0))} ms"),
                     ),
                 ),
             ),
@@ -491,10 +554,18 @@ class UiPageBuilder:
         timeline = tuple((entry.timestamp, entry.level, entry.message) for entry in _merged_feed({"mitigation_history": bundle["history"].get("mitigation_history", [])}, limit=12))
         return UiPagePayload(
             name="mitigation",
-            title="MITIGATION",
-            description="BLOCKING AND POLICY EXECUTION",
+            title="MITIGATION PANEL",
+            eyebrow="POLICY ENFORCEMENT",
+            description="BLOCKED FLOWS / MITIGATION ACTIONS / RULE INSERTION / ACTIVE PROTECTIONS",
             active_path="/ui/mitigation",
             status_bar=_status_bar(bundle),
+            stats=(
+                UiMetricCard("BLOCKED FLOWS", _fmt_int(len(blocked)), "tracked blocked flow sources", "bad" if blocked else "good"),
+                UiMetricCard("ACTION", _safe_text(mitigation.get("mitigation_action", "alert_only")).replace("_", " ").upper(), "current active policy", "warn"),
+                UiMetricCard("TARGET", _safe_text(mitigation.get("target_ip", "none")).upper(), "current mitigated target", "neutral"),
+                UiMetricCard("PROTECTIONS", "ACTIVE" if mitigation.get("mitigation_required") else "MONITOR", "protection posture", "warn" if mitigation.get("mitigation_required") else "good"),
+            ),
+            statuses=_status_tiles(bundle)[:5],
             charts=(
                 UiChartModel(
                     chart_id="blocked-ips",
@@ -512,6 +583,8 @@ class UiPageBuilder:
                         ("ACTION", _safe_text(mitigation.get("mitigation_action", "alert_only")).replace("_", " ").upper()),
                         ("TARGET", _safe_text(mitigation.get("target_ip", "none")).upper()),
                         ("RESULT", _safe_text(mitigation.get("execution_result", "pending")).upper()),
+                        ("FLOW RULES", _fmt_int(len(blocked))),
+                        ("PROTECTIONS", "ACTIVE" if mitigation.get("mitigation_required") else "MONITOR"),
                     ),
                 ),
                 _table("POLICY TIMELINE", ("TIME", "LEVEL", "DETAIL"), timeline, "NO MITIGATION EVENTS"),
@@ -525,10 +598,19 @@ class UiPageBuilder:
         dashboard = bundle["dashboard"]
         return UiPagePayload(
             name="live-traffic",
-            title="LIVE TRAFFIC",
-            description="PACKET FLOW AND SOURCE DISTRIBUTIONS",
+            title="LIVE TRAFFIC PANEL",
+            eyebrow="TELEMETRY",
+            description="PACKETS / SEC / BANDWIDTH / FLOWS / PACKET DROPS / ATTACK RATE",
             active_path="/ui/live-traffic",
             status_bar=_status_bar(bundle),
+            stats=(
+                UiMetricCard("PACKETS / SEC", _fmt_packets(bundle["live"].get("packet_rate", 0.0)), "current ingress rate", "good"),
+                UiMetricCard("BANDWIDTH", _fmt_bandwidth(bundle["live"].get("byte_rate", 0.0)), "current bandwidth", "good"),
+                UiMetricCard("FLOWS / SEC", _fmt_int(bundle["live"].get("active_flows", 0)), "active flows", "neutral"),
+                UiMetricCard("PACKET DROPS", _fmt_int(max(int(_safe_float(dashboard.get("active_alerts", 0), 0.0)) - int(_safe_float(dashboard.get("active_attacks", 0), 0.0)), 0)), "derived drop proxy", "warn"),
+                UiMetricCard("ATTACK RATE", _fmt_int(dashboard.get("active_attacks", 0)), "concurrent attacks", "bad" if int(_safe_float(dashboard.get("active_attacks", 0), 0.0)) else "good"),
+            ),
+            statuses=_status_tiles(bundle)[:4],
             traffic_chart=_build_traffic_chart(dashboard, bundle["live"], title="PACKETS / SEC"),
             charts=(
                 UiChartModel(
@@ -554,6 +636,7 @@ class UiPageBuilder:
                         ("BYTE RATE", _fmt_bandwidth(bundle["live"].get("byte_rate", 0.0))),
                         ("ACTIVE FLOWS", _fmt_int(bundle["live"].get("active_flows", 0))),
                         ("PROVIDER", _safe_text(bundle["live"].get("provider_source", "unknown")).upper()),
+                        ("ATTACK RATE", _fmt_int(dashboard.get("active_attacks", 0))),
                     ),
                 ),
             ),
@@ -564,20 +647,44 @@ class UiPageBuilder:
     def attack_logs(self) -> UiPagePayload:
         bundle = self._bundle()
         entries = _merged_feed(bundle["history"])
+        action_status = control_manager.latest_status()
+        attack_source = bundle["dashboard"].get("attacks", {}).get("source_ips", [["10.0.0.4", 1]])
+        timeline_points = tuple(
+            UiChartPoint(entry.timestamp, float(index + 1))
+            for index, entry in enumerate(reversed(entries[-8:]))
+        )
         return UiPagePayload(
             name="attack-logs",
-            title="ATTACK LOGS",
-            description="MERGED DETECTION / MITIGATION / RUNTIME TIMELINE",
+            title="ATTACK SIMULATOR",
+            eyebrow="OFFENSIVE LAB",
+            description="SYN / UDP / ICMP TRIGGERING WITH LIVE PROGRESS AND TIMELINE",
             active_path="/ui/attack-logs",
             status_bar=_status_bar(bundle),
+            stats=(
+                UiMetricCard("ACTIVE ACTION", _safe_text(action_status.get("action", "idle")).replace("-", " ").upper(), "latest operator command", "warn"),
+                UiMetricCard("ACTION STATE", _safe_text(action_status.get("state", "ready")).upper(), "live simulator status", "good"),
+                UiMetricCard("SOURCE", _safe_text(attack_source[0][0], "10.0.0.4").upper(), "simulated source", "neutral"),
+                UiMetricCard("TARGET", _safe_text(bundle["mitigation"].get("target_ip", "10.0.0.2")).upper(), "current target", "neutral"),
+            ),
+            statuses=_status_tiles(bundle)[:4],
+            actions=_attack_controls(),
+            attack_chart=UiChartModel(
+                chart_id="attack-timeline",
+                title="ATTACK TIMELINE",
+                chart_type="line",
+                unit="EVENTS",
+                points=timeline_points or (UiChartPoint("NOW", 0.0),),
+            ),
             feed=UiEventFeed(title="ATTACK LOG", entries=entries),
             tables=(
                 _bundle_table(
-                    "SUMMARY",
+                    "SIMULATOR STATUS",
                     (
-                        ("ENTRIES", _fmt_int(len(entries))),
-                        ("ATTACKS", _fmt_int(bundle["dashboard"].get("active_attacks", 0))),
-                        ("MITIGATION EVENTS", _fmt_int(bundle["dashboard"].get("mitigation_events", 0))),
+                        ("ACTION", _safe_text(action_status.get("action", "idle")).upper()),
+                        ("STATE", _safe_text(action_status.get("state", "ready")).upper()),
+                        ("DETAIL", _safe_text(action_status.get("detail", "Awaiting operator command.")).upper()),
+                        ("SOURCE", _safe_text(attack_source[0][0], "10.0.0.4").upper()),
+                        ("TARGET", _safe_text(bundle["mitigation"].get("target_ip", "10.0.0.2")).upper()),
                     ),
                 ),
             ),
@@ -593,7 +700,8 @@ class UiPageBuilder:
         return UiPagePayload(
             name="lab-console",
             title="LAB CONSOLE",
-            description="HIDDEN LAB CONTROL SURFACE",
+            eyebrow="TERMINAL ACCESS",
+            description="LIVE HOST SHELLS / TELEMETRY / ATTACK CONTROLS",
             active_path="/ui/lab-console",
             status_bar=_status_bar(bundle),
             lab_console=UiLabConsolePayload(
@@ -643,6 +751,8 @@ class UiPageBuilder:
                 action_buttons=(
                     UiLabActionButton("Open h1 shell", "open-h1-shell", "shell"),
                     UiLabActionButton("Run SYN Flood", "run-syn-flood", "attack"),
+                    UiLabActionButton("Run UDP Flood", "run-udp-flood", "attack"),
+                    UiLabActionButton("Run ICMP Flood", "run-icmp-flood", "attack"),
                     UiLabActionButton("Stop attack", "stop-attack", "control"),
                 ),
                 action_status=UiLabActionStatus(
@@ -661,10 +771,12 @@ class UiPageBuilder:
         rows = tuple((item.area.upper(), item.check_name.upper(), item.detail.upper()) for item in findings)
         return UiPagePayload(
             name="doctor",
-            title="DOCTOR",
-            description="READ-ONLY DIAGNOSTICS VIEW",
+            title="DOCTOR PANEL",
+            eyebrow="DIAGNOSTICS",
+            description="FAILED CHECKS / RUNTIME DIAGNOSTICS / REPAIR GUIDANCE",
             active_path="/ui/doctor",
             status_bar=_status_bar(bundle),
+            statuses=_status_tiles(bundle)[:4],
             tables=(
                 _table("FAILED SUBSYSTEMS", ("AREA", "CHECK", "DETAIL"), rows, "NO FAILED SUBSYSTEMS"),
             ),
@@ -701,10 +813,18 @@ class UiPageBuilder:
         )
         return UiPagePayload(
             name="session",
-            title="SESSION",
-            description="STARTUP SESSION AND RUNTIME STATE",
+            title="SESSION PANEL",
+            eyebrow="RUNTIME METADATA",
+            description="CURRENT SESSION / RUNTIME METADATA / SERVICE STATUS",
             active_path="/ui/session",
             status_bar=_status_bar(bundle),
+            stats=(
+                UiMetricCard("ACTIVE SESSIONS", _fmt_int(len(diagnostics.get("active_sessions", []))), "service session count", "good"),
+                UiMetricCard("HEARTBEATS", _fmt_int(diagnostics.get("heartbeat_count", 0)), "runtime heartbeats", "neutral"),
+                UiMetricCard("REPLAY EVENTS", _fmt_int(diagnostics.get("replay", {}).get("event_count", 0)), "replay ledger size", "neutral"),
+                UiMetricCard("SYNC", _safe_text(diagnostics.get("synchronization", {}).get("state", "unknown")).upper(), "synchronization state", "good"),
+            ),
+            statuses=_status_tiles(bundle)[:4],
             tables=(
                 _bundle_table("ACTIVE SESSION", startup_rows, "NO STARTUP SESSION RECORDED."),
                 _table("RUNTIME STATE", ("ID", "KIND", "STATE", "OWNER"), service_rows, "NO RUNTIME STATE"),

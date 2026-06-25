@@ -23,6 +23,7 @@ LAB_HOSTS = ("h1", "h2", "h3")
 ATTACK_ACTIONS = {
     "run-syn-flood": "syn_flood",
     "run-udp-flood": "udp_flood",
+    "run-icmp-flood": "icmp_flood",
     "run-http-flood": "http_flood",
     "run-slowloris": "slowloris",
 }

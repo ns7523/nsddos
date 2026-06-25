@@ -117,6 +117,23 @@ def _service_table(state: StartupDisplayState) -> Table:
     return table
 
 
+def _stage_matrix(state: StartupDisplayState) -> Table:
+    table = Table(expand=True, box=None, pad_edge=False, show_header=False)
+    table.add_column("stage")
+    table.add_column("value")
+    for key, label, _detail in STARTUP_STEPS:
+        if key in state.failed_checks:
+            status = Text("OFFLINE", style=f"bold {theme.DANGER}")
+        elif key in state.completed:
+            status = Text("ONLINE", style=f"bold {theme.SUCCESS}")
+        elif key == state.active_step:
+            status = Text("BOOTING", style=f"bold {theme.WARNING}")
+        else:
+            status = Text("WAIT", style=theme.MUTED)
+        table.add_row(Text(label, style=f"bold {theme.MUTED}"), status)
+    return table
+
+
 def _boot_log(state: StartupDisplayState) -> Text:
     lines = state.boot_lines or ["[--:--:--] SYSTEM     boot sequence started"]
     log = Text()
@@ -138,7 +155,10 @@ def _startup_renderable(state: StartupDisplayState) -> RenderableType:
         banner,
         Text("NSDDOS BOOT MONITOR", style=f"bold {theme.SUCCESS}"),
         Rule(style=theme.SUCCESS),
+        Text("COMMAND CENTER STARTUP MATRIX", style=f"bold {theme.MUTED}"),
         _status_line(state),
+        Text(""),
+        _stage_matrix(state),
         Text(""),
         Text("BOOT LOG", style=f"bold {theme.MUTED}"),
         _boot_log(state),

@@ -24,13 +24,13 @@ templates = Jinja2Templates(directory=str(Path(__file__).with_name("templates"))
 def build_navigation(active_path: str) -> tuple[UiNavItem, ...]:
     primary = (
         ("OVERVIEW", "/ui", "Primary", ""),
-        ("INFRASTRUCTURE", "/ui/infrastructure", "Primary", ""),
-        ("DETECTION", "/ui/detection", "Primary", ""),
-        ("MITIGATION", "/ui/mitigation", "Primary", ""),
+        ("LIVE TOPOLOGY", "/ui/infrastructure", "Primary", ""),
+        ("DETECTION ENGINE", "/ui/detection", "Primary", ""),
+        ("MITIGATION PANEL", "/ui/mitigation", "Primary", ""),
         ("LIVE TRAFFIC", "/ui/live-traffic", "Primary", ""),
-        ("ATTACK LOGS", "/ui/attack-logs", "Primary", ""),
-        ("DOCTOR", "/ui/doctor", "Primary", ""),
-        ("SESSION", "/ui/session", "Primary", ""),
+        ("ATTACK SIMULATOR", "/ui/attack-logs", "Primary", ""),
+        ("DOCTOR PANEL", "/ui/doctor", "Primary", ""),
+        ("SESSION PANEL", "/ui/session", "Primary", ""),
     )
     explorer = (
         ("LAB CONSOLE", "/ui/lab-console", "Explorer", ""),

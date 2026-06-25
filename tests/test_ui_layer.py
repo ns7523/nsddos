@@ -176,8 +176,8 @@ def test_ui_routes_render_cyber_console(monkeypatch) -> None:
             response = client.get(path, follow_redirects=True)
             assert response.status_code == 200
             assert "NSDDOS" in response.text
-            assert "Operator Console" not in response.text
-            assert "command center" not in response.text.lower()
+            assert "ENTERPRISE CYBER DEFENSE DASHBOARD" in response.text
+            assert "COMMAND CENTER" in response.text
 
 
 def test_ui_route_presence() -> None:
@@ -196,17 +196,17 @@ def test_ui_root_redesign_markers(monkeypatch) -> None:
         assert response.status_code == 200
         assert "SYSTEM" in response.text
         assert "THREAT LEVEL" in response.text
-        assert "ATTACK LOGS" in response.text
-        assert "NSDDOS Control Panel" not in response.text
-        assert "premium" not in response.text.lower()
+        assert "ATTACK SIMULATOR" in response.text
+        assert "MISSION CONTROL" in response.text
+        assert "SERVICE STATUS MATRIX" in response.text
 
 
 def test_overview_view_model_has_fixed_attack_order(monkeypatch) -> None:
     _stub_ui_sources(monkeypatch)
     page = UiPageBuilder().overview()
 
-    assert [point.label for point in page.attack_chart.points] == ["SYN Flood", "UDP Flood", "HTTP Flood", "Slowloris"]
-    assert [point.value for point in page.attack_chart.points] == [2.0, 1.0, 0.0, 0.0]
+    assert [point.label for point in page.attack_chart.points] == ["SYN Flood", "UDP Flood", "ICMP Flood", "HTTP Flood", "Slowloris"]
+    assert [point.value for point in page.attack_chart.points] == [2.0, 1.0, 0.0, 0.0, 0.0]
 
 
 def test_status_bar_has_exact_five_fields_and_uptime_fallback(monkeypatch) -> None:
@@ -266,12 +266,17 @@ def test_ui_assets_served(monkeypatch) -> None:
     with TestClient(create_ui_app()) as client:
         css = client.get("/static/css/app.css")
         js = client.get("/static/js/charts.js")
+        topology = client.get("/static/js/topology.js")
+        vendor = client.get("/static/vendor/cytoscape.min.js")
         font = client.get("/static/fonts/JetBrainsMono-Regular.ttf")
         assert css.status_code == 200
         assert js.status_code == 200
+        assert topology.status_code == 200
+        assert vendor.status_code == 200
         assert font.status_code == 200
         assert "@font-face" in css.text
         assert "window.nsddosCharts" in js.text
+        assert "window.nsddosTopology" in topology.text
         assert "tailwind" not in css.text.lower()
 
 
@@ -334,6 +339,17 @@ def test_ui_websocket_attack_logs_snapshot(monkeypatch) -> None:
         with client.websocket_connect("/ui/ws/attack-logs") as websocket:
             payload = websocket.receive_json()
             assert payload["page"]["name"] == "attack-logs"
+
+
+def test_attack_simulator_route_shows_expected_controls(monkeypatch) -> None:
+    _stub_ui_sources(monkeypatch)
+    with TestClient(create_ui_app()) as client:
+        response = client.get("/ui/attack-logs")
+
+    assert response.status_code == 200
+    assert "Launch SYN Flood" in response.text
+    assert "Launch UDP Flood" in response.text
+    assert "Launch ICMP Flood" in response.text
 
 
 def test_ui_signature_detection(monkeypatch) -> None:

@@ -5,14 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ page.title }} | NSDDOS</title>
     <link rel="stylesheet" href="/static/css/app.css">
+    <script defer src="/static/vendor/chart.umd.js"></script>
+    <script defer src="/static/vendor/cytoscape.min.js"></script>
     <script defer src="/static/js/charts.js"></script>
+    <script defer src="/static/js/topology.js"></script>
     <script defer src="/static/js/dashboard.js"></script>
     <script defer src="/static/js/lab-console.js"></script>
   </head>
   <body data-page-name="{{ page.name }}"{% if ws_path %} data-ws-path="{{ ws_path }}"{% endif %}>
     <div class="shell">
       <aside class="sidebar">
-        <div class="sidebar-brand">NSDDOS</div>
+        <div class="sidebar-brand-block">
+          <div class="sidebar-brand">NSDDOS</div>
+          <div class="sidebar-tag">SECURITY APPLIANCE</div>
+        </div>
+        <div class="sidebar-mission">
+          <span class="sidebar-mission-label">MISSION</span>
+          <span class="sidebar-mission-value">COMMAND CENTER</span>
+        </div>
         <nav class="sidebar-nav">
           {% for item in nav_items if item.group == "Primary" %}
           <a href="{{ item.path }}" class="sidebar-link{% if item.active %} active{% endif %}">{{ item.label }}</a>
@@ -29,6 +39,10 @@
       </aside>
 
       <main class="main">
+        <header class="mission-strip">
+          <div class="mission-strip-title">ENTERPRISE CYBER DEFENSE DASHBOARD</div>
+          <div class="mission-strip-copy">host = orchestration / containers = runtime / websocket = live signal</div>
+        </header>
         <header class="status-bar" id="statusBar">
           {% set status_fields = page.status_bar.fields if page.status_bar else [] %}
           {% for field in status_fields %}
@@ -40,6 +54,7 @@
         </header>
 
         <section class="page-head">
+          <div class="page-kicker">{{ page.eyebrow or "OPERATOR CONSOLE" }}</div>
           <div class="page-title">{{ page.title }}</div>
           <div class="page-subtitle">{{ page.description }}</div>
           <div class="page-meta">

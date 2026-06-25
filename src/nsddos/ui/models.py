@@ -255,6 +255,19 @@ class UiCommandCta:
 
 
 @dataclass(frozen=True)
+class UiActionControl:
+    """Interactive UI action."""
+
+    label: str
+    action: str
+    kind: str = "control"
+    detail: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
 class UiLabNode:
     """LAB topology node."""
 
@@ -380,6 +393,7 @@ class UiPagePayload:
     services: tuple[Any, ...] = ()
     stats: tuple[UiMetricCard, ...] = ()
     statuses: tuple[UiStatusTile, ...] = ()
+    actions: tuple[UiActionControl, ...] = ()
     charts: tuple[UiChartModel, ...] = ()
     timeline: tuple[UiTimelineEntry, ...] = ()
     tables: tuple[UiTableSection, ...] = ()
@@ -406,6 +420,7 @@ class UiPagePayload:
             "services": [service.to_dict() if hasattr(service, "to_dict") else service for service in self.services],
             "stats": [card.to_dict() for card in self.stats],
             "statuses": [tile.to_dict() for tile in self.statuses],
+            "actions": [action.to_dict() for action in self.actions],
             "charts": [chart.to_dict() for chart in self.charts],
             "timeline": [item.to_dict() for item in self.timeline],
             "tables": [table.to_dict() for table in self.tables],

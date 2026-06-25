@@ -57,6 +57,8 @@ def _lab_payload() -> UiPagePayload:
             action_buttons=(
                 UiLabActionButton("Open h1 shell", "open-h1-shell", "shell"),
                 UiLabActionButton("Run SYN Flood", "run-syn-flood", "attack"),
+                UiLabActionButton("Run UDP Flood", "run-udp-flood", "attack"),
+                UiLabActionButton("Run ICMP Flood", "run-icmp-flood", "attack"),
                 UiLabActionButton("Stop attack", "stop-attack", "control"),
             ),
             action_status=UiLabActionStatus(
@@ -80,6 +82,7 @@ def test_lab_console_route_renders(monkeypatch) -> None:
     assert "LAB CONSOLE" in response.text
     assert "Open h1 shell" in response.text
     assert "Run SYN Flood" in response.text
+    assert "Run ICMP Flood" in response.text
     assert "Packets/sec" in response.text
 
 
@@ -135,8 +138,8 @@ def test_lab_console_action_endpoint_dispatches_expected_runtime_helper(monkeypa
     )
 
     with TestClient(create_ui_app()) as client:
-        response = client.post("/ui/api/lab/actions/run-syn-flood")
+        response = client.post("/ui/api/lab/actions/run-icmp-flood")
 
     assert response.status_code == 200
-    assert response.json()["action"] == "run-syn-flood"
-    assert calls == [("run-syn-flood", {})]
+    assert response.json()["action"] == "run-icmp-flood"
+    assert calls == [("run-icmp-flood", {})]
