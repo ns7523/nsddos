@@ -7,7 +7,7 @@ maintainers = [
   {name = "N S Akash"}
 ]
 name = "nsddos"
-version = "0.9.0b7"
+version = "0.9.0b8"
 description = "IoT DDoS detection and simulation framework."
 readme = "README.md"
 requires-python = ">=3.11"
