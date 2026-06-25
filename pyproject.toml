@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nsddos"
-version = "0.9.0b5"
+version = "0.9.0b6"
 description = "IoT DDoS detection and simulation framework."
 readme = "README.md"
 requires-python = ">=3.11"
