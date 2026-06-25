@@ -3,9 +3,6 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-maintainers = [
-  {name = "N S Akash"}
-]
 name = "nsddos"
 version = "0.9.0b8"
 description = "IoT DDoS detection and simulation framework."
@@ -14,6 +11,9 @@ requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [
   { name = "NS-DDoS Contributors" }
+]
+maintainers = [
+  {name = "N S Akash"}
 ]
 keywords = ["cybersecurity", "ddos", "iot", "networking", "simulation"]
 classifiers = [
@@ -41,8 +41,8 @@ dependencies = [
 dev = [
   "build>=1.2",
   "pytest>=8.2",
-  "black>=24.4",
-  "ruff>=0.5",
+  "black==24.10.0",
+  "ruff==0.12.0",
   "mypy>=1.10,<2.0",
   "isort>=5.13",
   "httpx>=0.27",
