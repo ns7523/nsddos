@@ -2,6 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/nsddos.svg)](https://pypi.org/project/nsddos/)
 [![Python](https://img.shields.io/pypi/pyversions/nsddos.svg)](https://pypi.org/project/nsddos/)
+[![lint](https://github.com/ns7523/nsddos/actions/workflows/lint.yml/badge.svg)](https://github.com/ns7523/nsddos/actions/workflows/lint.yml)
 [![License](https://img.shields.io/github/license/ns7523/nsddos.svg)](LICENSE)
 
 Production-grade AI-powered DDoS detection and mitigation platform for software-defined networks and IoT environments.
